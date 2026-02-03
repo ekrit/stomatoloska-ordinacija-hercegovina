@@ -1,0 +1,8 @@
+<Project>
+  <Target Name="EnsureRestore" BeforeTargets="Build"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <MSBuild Projects="$(MSBuildProjectFullPath)"
+             Targets="Restore"
+             Properties="RestoreLockedMode=false" />
+  </Target>
+</Project>
