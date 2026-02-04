@@ -15,6 +15,23 @@ builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddTransient<IRoleService, RoleService>();
 builder.Services.AddTransient<IGenderService, GenderService>();
 builder.Services.AddTransient<ICityService, CityService>();
+builder.Services.AddTransient<IPatientService, PatientService>();
+builder.Services.AddTransient<IDoctorService, DoctorService>();
+builder.Services.AddTransient<IAdminService, AdminService>();
+builder.Services.AddTransient<IAppointmentService, AppointmentService>();
+builder.Services.AddTransient<IServiceService, ServiceService>();
+builder.Services.AddTransient<IRoomService, RoomService>();
+builder.Services.AddTransient<IMedicalRecordService, MedicalRecordService>();
+builder.Services.AddTransient<IDoctorNoteService, DoctorNoteService>();
+builder.Services.AddTransient<IPaymentService, PaymentService>();
+builder.Services.AddTransient<IReviewService, ReviewService>();
+builder.Services.AddTransient<IProductService, ProductService>();
+builder.Services.AddTransient<IOrderService, OrderService>();
+builder.Services.AddTransient<IOrderItemService, OrderItemService>();
+builder.Services.AddTransient<IReminderService, ReminderService>();
+builder.Services.AddTransient<IHygieneTrackerService, HygieneTrackerService>();
+builder.Services.AddTransient<IActivityLogService, ActivityLogService>();
+builder.Services.AddTransient<IReportService, ReportService>();
 
 
 // Configure database
