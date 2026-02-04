@@ -31,6 +31,8 @@ namespace SOH.Services.Database
         public string PasswordSalt { get; set; } = string.Empty;
         
         public bool IsActive { get; set; } = true;
+
+        public UserRoleType Role { get; set; }
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
@@ -50,5 +52,9 @@ namespace SOH.Services.Database
         
         // Navigation property for the many-to-many relationship with Role
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+
+        public Patient? Patient { get; set; }
+        public Doctor? Doctor { get; set; }
+        public Admin? Admin { get; set; }
     }
 } 
