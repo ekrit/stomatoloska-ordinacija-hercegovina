@@ -364,6 +364,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         actions: buildUserAppBarActions(
           context: context,
           canLogout: false,
+          showProfile: false,
         ),
       ),
       body: Center(
