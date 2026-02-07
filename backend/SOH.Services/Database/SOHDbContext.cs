@@ -118,6 +118,30 @@ namespace SOH.Services.Database
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Appointment>()
+                .HasOne(a => a.Patient)
+                .WithMany(p => p.Appointments)
+                .HasForeignKey(a => a.PatientId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Appointment>()
+                .HasOne(a => a.Doctor)
+                .WithMany(d => d.Appointments)
+                .HasForeignKey(a => a.DoctorId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Appointment>()
+                .HasOne(a => a.Service)
+                .WithMany(s => s.Appointments)
+                .HasForeignKey(a => a.ServiceId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Appointment>()
+                .HasOne(a => a.Room)
+                .WithMany(r => r.Appointments)
+                .HasForeignKey(a => a.RoomId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Appointment>()
                 .HasOne(a => a.DoctorNoteEntry)
                 .WithOne(n => n.Appointment)
                 .HasForeignKey<DoctorNote>(n => n.AppointmentId)
@@ -134,6 +158,18 @@ namespace SOH.Services.Database
                 .WithOne(r => r.Appointment)
                 .HasForeignKey<Review>(r => r.AppointmentId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.Patient)
+                .WithMany(p => p.Reviews)
+                .HasForeignKey(r => r.PatientId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.Doctor)
+                .WithMany(d => d.Reviews)
+                .HasForeignKey(r => r.DoctorId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Order>()
                 .HasMany(o => o.Items)
