@@ -13,3 +13,9 @@ The project is developed for academic purposes and includes:
 - Frontend: **Flutter**
   
 > Seminar project – educational use only.
+
+**Repository structure:**
+- `app/` Flutter application (mobile + desktop)
+- `backend/` .NET API, services, and Docker files
+- `docs/` command references
+- `scripts/` utility commands
