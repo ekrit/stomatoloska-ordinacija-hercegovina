@@ -30,7 +30,12 @@ List<Widget> buildUserAppBarActions({
   UserResponse? user,
   required bool canLogout,
   Future<void> Function()? onLogout,
+  bool showProfile = true,
 }) {
+  if (!showProfile) {
+    return const [];
+  }
+
   final fullName = [
     user?.firstName?.trim(),
     user?.lastName?.trim(),
