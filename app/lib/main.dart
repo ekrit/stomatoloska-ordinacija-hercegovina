@@ -3,6 +3,7 @@ import 'package:soh_api/api.dart';
 import 'admin_home_page.dart';
 import 'doctor_home_page.dart';
 import 'patient_home_page.dart';
+import 'widgets/user_appbar_actions.dart';
 
 void main() {
   runApp(const MyApp());
@@ -144,6 +145,14 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  Future<void> _confirmLogout() async {
+    final shouldLogout = await showLogoutConfirm(context);
+    if (!shouldLogout) {
+      return;
+    }
+    _logout();
+  }
+
   @override
   Widget build(BuildContext context) {
     final authUser = _authResponse?.user;
@@ -152,14 +161,6 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
-        actions: [
-          if (_authResponse != null)
-            IconButton(
-              onPressed: _logout,
-              tooltip: 'Logout',
-              icon: const Icon(Icons.logout),
-            ),
-        ],
       ),
       body: Center(
         child: SizedBox(
@@ -360,6 +361,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Register'),
+        actions: buildUserAppBarActions(
+          context: context,
+          canLogout: false,
+        ),
       ),
       body: Center(
         child: SizedBox(
