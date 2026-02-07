@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:soh_api/api.dart';
+import 'admin_home_page.dart';
+import 'doctor_home_page.dart';
+import 'patient_home_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,6 +16,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -38,15 +43,6 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
   @override
@@ -54,68 +50,428 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  static const _baseUrl = 'http://127.0.0.1:5351';
+  static const _defaultGenderId = 1;
+  static const _defaultCityId = 3;
+  final _usernameController = TextEditingController();
+  final _loginPasswordController = TextEditingController();
+  final _bearerAuth = HttpBearerAuth();
+  late final ApiClient _apiClient;
+  late final UsersApi _usersApi;
 
-  void _incrementCounter() {
+  bool _isLoading = false;
+  String? _error;
+  AuthResponse? _authResponse;
+  int? _userCount;
+  bool _showPassword = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _apiClient = ApiClient(basePath: _baseUrl, authentication: _bearerAuth);
+    _usersApi = UsersApi(_apiClient);
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _loginPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _isLoading = true;
+      _error = null;
+      _userCount = null;
+    });
+
+    try {
+      final response = await _usersApi.usersAuthenticatePost(
+        userLoginRequest: UserLoginRequest(
+          username: _usernameController.text.trim(),
+          password: _loginPasswordController.text,
+        ),
+      );
+
+      if (response?.token == null || response!.token!.isEmpty) {
+        setState(() {
+          _error = 'Login succeeded but no token was returned.';
+          _authResponse = null;
+        });
+        return;
+      }
+
+      _bearerAuth.accessToken = response.token!;
+      final users = await _usersApi.usersGet(retrieveAll: true);
+
+      setState(() {
+        _authResponse = response;
+        _userCount = users?.totalCount ?? users?.items?.length;
+      });
+
+      _navigateAfterLogin(response.user);
+    } catch (error) {
+      setState(() {
+        _error = error.toString();
+        _authResponse = null;
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _openRegistration() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => RegistrationPage(
+          usersApi: _usersApi,
+          defaultGenderId: _defaultGenderId,
+          defaultCityId: _defaultCityId,
+        ),
+      ),
+    );
+  }
+
+  void _logout() {
+    setState(() {
+      _bearerAuth.accessToken = '';
+      _authResponse = null;
+      _userCount = null;
+      _error = null;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    final authUser = _authResponse?.user;
+
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
+        actions: [
+          if (_authResponse != null)
+            IconButton(
+              onPressed: _logout,
+              tooltip: 'Logout',
+              icon: const Icon(Icons.logout),
+            ),
+        ],
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+        child: SizedBox(
+          width: 420,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextField(
+                  controller: _usernameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Username',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _loginPasswordController,
+                  obscureText: !_showPassword,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _showPassword = !_showPassword;
+                        });
+                      },
+                      icon: Icon(
+                        _showPassword ? Icons.visibility_off : Icons.visibility,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _login,
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Login'),
+                ),
+                TextButton(
+                  onPressed: _isLoading ? null : _openRegistration,
+                  child: const Text('Register as patient'),
+                ),
+                if (_error != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    _error!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ],
+                if (_authResponse != null) ...[
+                  const SizedBox(height: 20),
+                  Text(
+                    'Logged in as ${authUser?.username ?? 'unknown'}',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text('Token expires: ${_authResponse?.expiresAt ?? '-'}'),
+                  const SizedBox(height: 8),
+                  Text('Total users: ${_userCount ?? '-'}'),
+                ],
+              ],
             ),
-          ],
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+    );
+  }
+
+  void _navigateAfterLogin(UserResponse? user) {
+    if (user == null) {
+      return;
+    }
+
+    final roles = user.roles ?? [];
+    final roleNames = roles
+        .map((role) => (role.name ?? '').toLowerCase())
+        .where((name) => name.isNotEmpty)
+        .toList();
+
+    if (roleNames.contains('administrator') || roleNames.contains('admin')) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => AdminHomePage(user: user)),
+      );
+      return;
+    }
+
+    if (roleNames.contains('doctor')) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => DoctorHomePage(user: user)),
+      );
+      return;
+    }
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => PatientHomePage(user: user)),
+    );
+  }
+}
+
+class RegistrationPage extends StatefulWidget {
+  const RegistrationPage({
+    super.key,
+    required this.usersApi,
+    required this.defaultGenderId,
+    required this.defaultCityId,
+  });
+
+  final UsersApi usersApi;
+  final int defaultGenderId;
+  final int defaultCityId;
+
+  @override
+  State<RegistrationPage> createState() => _RegistrationPageState();
+}
+
+
+class _RegistrationPageState extends State<RegistrationPage> {
+  final _usernameController = TextEditingController();
+  final _registerPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+
+  bool _isLoading = false;
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _registerPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _register() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      if (_registerPasswordController.text != _confirmPasswordController.text) {
+        setState(() {
+          _error = 'Passwords do not match.';
+        });
+        return;
+      }
+
+      await widget.usersApi.usersRegisterPost(
+        userRegisterRequest: UserRegisterRequest(
+          firstName: _firstNameController.text.trim(),
+          lastName: _lastNameController.text.trim(),
+          email: _emailController.text.trim(),
+          username: _usernameController.text.trim(),
+          password: _registerPasswordController.text,
+          phoneNumber: _phoneController.text.trim().isEmpty
+              ? null
+              : _phoneController.text.trim(),
+          genderId: widget.defaultGenderId,
+          cityId: widget.defaultCityId,
+        ),
+      );
+
+      if (!mounted) {
+        return;
+      }
+      Navigator.of(context).pop();
+    } catch (error) {
+      setState(() {
+        _error = error.toString();
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Register'),
+      ),
+      body: Center(
+        child: SizedBox(
+          width: 420,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: _firstNameController,
+                    decoration: const InputDecoration(
+                      labelText: 'First name',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _lastNameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Last name',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _usernameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Username',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _phoneController,
+                    decoration: const InputDecoration(
+                      labelText: 'Phone (optional)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _registerPasswordController,
+                    obscureText: !_showPassword,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      border: const OutlineInputBorder(),
+                      suffixIcon: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _showPassword = !_showPassword;
+                          });
+                        },
+                        icon: Icon(
+                          _showPassword ? Icons.visibility_off : Icons.visibility,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _confirmPasswordController,
+                    obscureText: !_showConfirmPassword,
+                    decoration: InputDecoration(
+                      labelText: 'Confirm password',
+                      border: const OutlineInputBorder(),
+                      suffixIcon: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _showConfirmPassword = !_showConfirmPassword;
+                          });
+                        },
+                        icon: Icon(
+                          _showConfirmPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _register,
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Create account'),
+                  ),
+                  if (_error != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      _error!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
