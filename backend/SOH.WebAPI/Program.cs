@@ -35,6 +35,7 @@ builder.Services.AddTransient<IReminderService, ReminderService>();
 builder.Services.AddTransient<IHygieneTrackerService, HygieneTrackerService>();
 builder.Services.AddTransient<IActivityLogService, ActivityLogService>();
 builder.Services.AddTransient<IReportService, ReportService>();
+builder.Services.AddTransient<IAdminDashboardService, AdminDashboardService>();
 
 
 // Configure database

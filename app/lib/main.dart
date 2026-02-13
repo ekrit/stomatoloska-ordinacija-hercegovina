@@ -1,12 +1,16 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
-import 'admin_home_page.dart';
-import 'doctor_home_page.dart';
-import 'patient_home_page.dart';
+import 'core/api/api_providers.dart';
+import 'core/config/app_config.dart';
+import 'features/admin_dashboard/presentation/screens/admin_dashboard_screen.dart';
 import 'widgets/user_appbar_actions.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -41,17 +45,16 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends ConsumerStatefulWidget {
   const MyHomePage({super.key, required this.title});
 
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  ConsumerState<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  static const _baseUrl = 'http://127.0.0.1:5351';
+class _MyHomePageState extends ConsumerState<MyHomePage> {
   static const _defaultGenderId = 1;
   static const _defaultCityId = 3;
   final _usernameController = TextEditingController();
@@ -66,10 +69,17 @@ class _MyHomePageState extends State<MyHomePage> {
   int? _userCount;
   bool _showPassword = false;
 
+  bool get _isDesktop {
+    if (kIsWeb) {
+      return false;
+    }
+    return Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  }
+
   @override
   void initState() {
     super.initState();
-    _apiClient = ApiClient(basePath: _baseUrl, authentication: _bearerAuth);
+    _apiClient = ApiClient(basePath: AppConfig.apiBaseUrl, authentication: _bearerAuth);
     _usersApi = UsersApi(_apiClient);
   }
 
@@ -104,6 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }
 
       _bearerAuth.accessToken = response.token!;
+      ref.read(authTokenProvider.notifier).state = response.token!;
       final users = await _usersApi.usersGet(retrieveAll: true);
 
       setState(() {
@@ -111,7 +122,7 @@ class _MyHomePageState extends State<MyHomePage> {
         _userCount = users?.totalCount ?? users?.items?.length;
       });
 
-      _navigateAfterLogin(response.user);
+      await _navigateAfterLogin(response.user);
     } catch (error) {
       setState(() {
         _error = error.toString();
@@ -143,6 +154,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _userCount = null;
       _error = null;
     });
+    ref.read(authTokenProvider.notifier).state = null;
   }
 
   Future<void> _confirmLogout() async {
@@ -208,17 +220,22 @@ class _MyHomePageState extends State<MyHomePage> {
                         )
                       : const Text('Login'),
                 ),
-                TextButton(
-                  onPressed: _isLoading ? null : _openRegistration,
-                  child: const Text('Register as patient'),
-                ),
-                if (_error != null) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    _error!,
-                    style: const TextStyle(color: Colors.red),
+                if (!_isDesktop)
+                  TextButton(
+                    onPressed: _isLoading ? null : _openRegistration,
+                    child: const Text('Register as patient'),
                   ),
-                ],
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 20,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _error ?? '',
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ),
                 if (_authResponse != null) ...[
                   const SizedBox(height: 20),
                   Text(
@@ -238,7 +255,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _navigateAfterLogin(UserResponse? user) {
+  Future<void> _navigateAfterLogin(UserResponse? user) async {
     if (user == null) {
       return;
     }
@@ -251,21 +268,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if (roleNames.contains('administrator') || roleNames.contains('admin')) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => AdminHomePage(user: user)),
+        MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
       );
       return;
     }
 
-    if (roleNames.contains('doctor')) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => DoctorHomePage(user: user)),
-      );
-      return;
-    }
-
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => PatientHomePage(user: user)),
-    );
+    setState(() {
+      _bearerAuth.accessToken = '';
+      _authResponse = null;
+      _userCount = null;
+      _error = 'Administrator access only.';
+    });
+    ref.read(authTokenProvider.notifier).state = null;
   }
 }
 
