@@ -1,27 +1,30 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/fake/fake_appointment_api_service.dart';
-import '../../data/fake/fake_dashboard_api_service.dart';
-import '../../data/fake/fake_doctor_api_service.dart';
+import '../../../../core/api/api_providers.dart';
 import '../../data/models/appointment_stats.dart';
 import '../../data/models/dashboard_stats.dart';
 import '../../data/models/doctor.dart';
 import '../../data/models/revenue_stats.dart';
 import '../../data/repositories/dashboard_repository_impl.dart';
 import '../../data/repositories/doctor_repository_impl.dart';
+import '../../data/services/appointment_api_service_impl.dart';
+import '../../data/services/dashboard_api_service_impl.dart';
+import '../../data/services/doctor_api_service_impl.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../../domain/repositories/doctor_repository.dart';
 
 final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
+  final apiClient = ref.watch(apiClientProvider);
   return DashboardRepositoryImpl(
-    dashboardApi: FakeDashboardApiService(),
-    appointmentApi: FakeAppointmentApiService(),
+    dashboardApi: DashboardApiServiceImpl(apiClient),
+    appointmentApi: AppointmentApiServiceImpl(apiClient),
   );
 });
 
 final doctorRepositoryProvider = Provider<DoctorRepository>((ref) {
+  final apiClient = ref.watch(apiClientProvider);
   return DoctorRepositoryImpl(
-    doctorApi: FakeDoctorApiService(),
+    doctorApi: DoctorApiServiceImpl(apiClient),
   );
 });
 

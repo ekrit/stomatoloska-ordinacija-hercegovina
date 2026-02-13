@@ -1,4 +1,4 @@
-﻿using SOH.Services.Helpers;
+using SOH.Services.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace SOH.Services.Database
@@ -44,8 +44,8 @@ namespace SOH.Services.Database
                     LastName = "Mušić",
                     Email = TestMailReceiver,
                     Username = "admin",
-                    PasswordHash = "3KbrBi5n9zdQnceWWOK5zaeAwfEjsluyhRQUbNkcgLQ=",
-                    PasswordSalt = "6raKZCuEsvnBBxPKHGpRtA==",
+                    PasswordHash = "A73+rnMJ25Y/AhnRuEbJQDCDT+uXP8kpNtZ5bhS4fuA=",
+                    PasswordSalt = "fVmPGXAOrMU9qOyyeZgRlg==",
                     IsActive = true,
                     CreatedAt = fixedDate,
                     PhoneNumber = DefaultPhoneNumber,
@@ -60,8 +60,8 @@ namespace SOH.Services.Database
                     LastName = "Musić",
                     Email = "example1@gmail.com",
                     Username = "user", 
-                    PasswordHash = "kDPVcZaikiII7vXJbMEw6B0xZ245I29ocaxBjLaoAC0=", 
-                    PasswordSalt = "O5R9WmM6IPCCMci/BCG/eg==", 
+                    PasswordHash = "A73+rnMJ25Y/AhnRuEbJQDCDT+uXP8kpNtZ5bhS4fuA=", 
+                    PasswordSalt = "fVmPGXAOrMU9qOyyeZgRlg==", 
                     IsActive = true, 
                     CreatedAt = fixedDate,
                     PhoneNumber = DefaultPhoneNumber,
@@ -76,8 +76,8 @@ namespace SOH.Services.Database
                     LastName = "Joldić",
                     Email = "example2@gmail.com",
                     Username = "admin2", 
-                    PasswordHash = "BiWDuil9svAKOYzii5wopQW3YqjVfQrzGE2iwH/ylY4=", 
-                    PasswordSalt = "pfNS+OLBaQeGqBIzXXcWuA==", 
+                    PasswordHash = "A73+rnMJ25Y/AhnRuEbJQDCDT+uXP8kpNtZ5bhS4fuA=", 
+                    PasswordSalt = "fVmPGXAOrMU9qOyyeZgRlg==", 
                     IsActive = true, 
                     CreatedAt = fixedDate,
                     PhoneNumber = DefaultPhoneNumber,
@@ -92,8 +92,8 @@ namespace SOH.Services.Database
                     LastName = "Test", 
                     Email = TestMailSender, 
                     Username = "user2", 
-                    PasswordHash = "KUF0Jsocq9AqdwR9JnT2OrAqm5gDj7ecQvNwh6fW/Bs=", 
-                    PasswordSalt = "c3ZKo0va3tYfnYuNKkHDbQ==", 
+                    PasswordHash = "A73+rnMJ25Y/AhnRuEbJQDCDT+uXP8kpNtZ5bhS4fuA=", 
+                    PasswordSalt = "fVmPGXAOrMU9qOyyeZgRlg==", 
                     IsActive = true, 
                     CreatedAt = fixedDate,
                     PhoneNumber = DefaultPhoneNumber,
@@ -108,7 +108,7 @@ namespace SOH.Services.Database
                 new UserRole { Id = 1, UserId = 1, RoleId = 1, DateAssigned = fixedDate }, 
                 new UserRole { Id = 2, UserId = 2, RoleId = 1, DateAssigned = fixedDate }, 
                 new UserRole { Id = 3, UserId = 3, RoleId = 2, DateAssigned = fixedDate }, 
-                new UserRole { Id = 4, UserId = 4, RoleId = 2, DateAssigned = fixedDate }  
+                new UserRole { Id = 4, UserId = 4, RoleId = 2, DateAssigned = fixedDate }
             );
 
             // Seed Genders
