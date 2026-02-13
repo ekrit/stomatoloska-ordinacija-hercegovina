@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
-import 'admin_home_page.dart';
-import 'doctor_home_page.dart';
+import 'features/admin_dashboard/presentation/screens/admin_dashboard_screen.dart';
 import 'patient_home_page.dart';
 import 'widgets/user_appbar_actions.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -111,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
         _userCount = users?.totalCount ?? users?.items?.length;
       });
 
-      _navigateAfterLogin(response.user);
+      await _navigateAfterLogin(response.user);
     } catch (error) {
       setState(() {
         _error = error.toString();
@@ -238,7 +238,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _navigateAfterLogin(UserResponse? user) {
+  Future<void> _navigateAfterLogin(UserResponse? user) async {
     if (user == null) {
       return;
     }
@@ -251,15 +251,29 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if (roleNames.contains('administrator') || roleNames.contains('admin')) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => AdminHomePage(user: user)),
+        MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
       );
       return;
     }
 
-    if (roleNames.contains('doctor')) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => DoctorHomePage(user: user)),
-      );
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Administrator access only'),
+        content: const Text(
+          'This desktop application is intended for administrators. '
+          'Please contact an administrator if you need access.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted) {
       return;
     }
 
