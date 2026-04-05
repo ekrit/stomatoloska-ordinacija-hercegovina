@@ -5,6 +5,9 @@ import '../config/app_config.dart';
 
 final authTokenProvider = StateProvider<String?>((ref) => null);
 
+/// Set after login; cleared on logout. Used for app-bar profile and “edit my profile”.
+final currentUserProvider = StateProvider<UserResponse?>((ref) => null);
+
 final apiClientProvider = Provider<ApiClient>((ref) {
   final token = ref.watch(authTokenProvider);
   final auth = HttpBearerAuth();
@@ -13,3 +16,19 @@ final apiClientProvider = Provider<ApiClient>((ref) {
   }
   return ApiClient(basePath: AppConfig.apiBaseUrl, authentication: auth);
 });
+
+final usersApiProvider = Provider<UsersApi>(
+  (ref) => UsersApi(ref.watch(apiClientProvider)),
+);
+
+final genderApiProvider = Provider<GenderApi>(
+  (ref) => GenderApi(ref.watch(apiClientProvider)),
+);
+
+final cityApiProvider = Provider<CityApi>(
+  (ref) => CityApi(ref.watch(apiClientProvider)),
+);
+
+final roleApiProvider = Provider<RoleApi>(
+  (ref) => RoleApi(ref.watch(apiClientProvider)),
+);

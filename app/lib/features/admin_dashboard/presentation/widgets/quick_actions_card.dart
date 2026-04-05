@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 class QuickActionsCard extends StatelessWidget {
   const QuickActionsCard({super.key});
 
+  static const double _rowHeight = 52;
+
   @override
   Widget build(BuildContext context) {
     final actions = [
@@ -13,6 +15,13 @@ class QuickActionsCard extends StatelessWidget {
       _ActionItem('Generate Reports', Icons.bar_chart_outlined),
       _ActionItem('System Settings', Icons.settings_outlined),
     ];
+
+    final buttonStyle = OutlinedButton.styleFrom(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      alignment: Alignment.center,
+      minimumSize: Size.zero,
+    );
 
     return Card(
       elevation: 0,
@@ -32,20 +41,32 @@ class QuickActionsCard extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final action in actions)
-                  SizedBox(
-                    width: 170,
-                    child: OutlinedButton.icon(
-                      onPressed: () {},
-                      icon: Icon(action.icon, size: 18),
-                      label: Text(action.label),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: actions.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                mainAxisExtent: 52,
+              ),
+              itemBuilder: (context, index) {
+                final action = actions[index];
+                return SizedBox.expand(
+                  child: OutlinedButton.icon(
+                    onPressed: () {},
+                    style: buttonStyle,
+                    icon: Icon(action.icon, size: 18),
+                    label: Text(
+                      action.label,
+                      maxLines: 2,
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-              ],
+                );
+              },
             ),
           ],
         ),

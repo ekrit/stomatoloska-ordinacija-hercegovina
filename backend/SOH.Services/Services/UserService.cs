@@ -203,7 +203,10 @@ namespace SOH.Services.Services
             user.GenderId = request.GenderId;
             user.CityId = request.CityId;
             user.IsActive = request.IsActive;
-            user.Picture = request.Picture;
+            if (request.Picture != null)
+            {
+                user.Picture = request.Picture;
+            }
 
             // Update password if provided
             if (!string.IsNullOrEmpty(request.Password))

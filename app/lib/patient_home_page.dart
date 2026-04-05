@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:soh_api/api.dart';
+
+import 'features/admin_users/presentation/screens/user_edit_screen.dart';
 import 'widgets/user_appbar_actions.dart';
 
 class PatientHomePage extends StatelessWidget {
@@ -17,6 +19,15 @@ class PatientHomePage extends StatelessWidget {
           user: user,
           canLogout: true,
           onLogout: () => _confirmLogout(context),
+          onProfileTap: user.id != null
+              ? () {
+                  Navigator.of(context).push<void>(
+                    MaterialPageRoute<void>(
+                      builder: (_) => UserEditScreen(userId: user.id!),
+                    ),
+                  );
+                }
+              : null,
         ),
       ),
       body: Center(

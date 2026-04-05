@@ -36,6 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_riverpod: ^2.6.1
   fl_chart: ^0.69.0
+  file_picker: ^8.1.7
   soh_api:
     path: packages/soh_api
 
