@@ -44,7 +44,8 @@ namespace SOH.Services.Database
                     LastName = "Mušić",
                     Email = TestMailReceiver,
                     Username = "admin",
-                    PasswordHash = "A73+rnMJ25Y/AhnRuEbJQDCDT+uXP8kpNtZ5bhS4fuA=",
+                    // Dev password: SohDev2026!
+                    PasswordHash = "4BNQxOR2Z9YWxOvrV8d06ex8xsdPoxFIYOduR76p3PY=",
                     PasswordSalt = "fVmPGXAOrMU9qOyyeZgRlg==",
                     IsActive = true,
                     CreatedAt = fixedDate,
@@ -60,7 +61,8 @@ namespace SOH.Services.Database
                     LastName = "Musić",
                     Email = "example1@gmail.com",
                     Username = "user", 
-                    PasswordHash = "A73+rnMJ25Y/AhnRuEbJQDCDT+uXP8kpNtZ5bhS4fuA=", 
+                    // Dev password: SohDev2026!
+                    PasswordHash = "4BNQxOR2Z9YWxOvrV8d06ex8xsdPoxFIYOduR76p3PY=", 
                     PasswordSalt = "fVmPGXAOrMU9qOyyeZgRlg==", 
                     IsActive = true, 
                     CreatedAt = fixedDate,
@@ -76,7 +78,8 @@ namespace SOH.Services.Database
                     LastName = "Joldić",
                     Email = "example2@gmail.com",
                     Username = "admin2", 
-                    PasswordHash = "A73+rnMJ25Y/AhnRuEbJQDCDT+uXP8kpNtZ5bhS4fuA=", 
+                    // Dev password: SohDev2026!
+                    PasswordHash = "4BNQxOR2Z9YWxOvrV8d06ex8xsdPoxFIYOduR76p3PY=", 
                     PasswordSalt = "fVmPGXAOrMU9qOyyeZgRlg==", 
                     IsActive = true, 
                     CreatedAt = fixedDate,
@@ -92,7 +95,8 @@ namespace SOH.Services.Database
                     LastName = "Test", 
                     Email = TestMailSender, 
                     Username = "user2", 
-                    PasswordHash = "A73+rnMJ25Y/AhnRuEbJQDCDT+uXP8kpNtZ5bhS4fuA=", 
+                    // Dev password: SohDev2026!
+                    PasswordHash = "4BNQxOR2Z9YWxOvrV8d06ex8xsdPoxFIYOduR76p3PY=", 
                     PasswordSalt = "fVmPGXAOrMU9qOyyeZgRlg==", 
                     IsActive = true, 
                     CreatedAt = fixedDate,

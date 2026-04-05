@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/api/api_providers.dart';
+import '../../../admin_users/presentation/screens/user_edit_screen.dart';
+import '../../../admin_users/presentation/screens/users_list_screen.dart';
+import '../../../../widgets/user_appbar_actions.dart';
 import '../providers/admin_dashboard_providers.dart';
 import '../widgets/dashboard_sidebar.dart';
 import '../widgets/monthly_appointments_chart.dart';
@@ -18,15 +22,27 @@ class AdminDashboardScreen extends ConsumerWidget {
     final isWide = width >= 1200;
     final isMobile = width < 900;
 
+    void openSidebarSection(String id) {
+      if (id == 'users') {
+        Navigator.of(context).push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => const UsersListScreen(),
+          ),
+        );
+      }
+    }
+
+    final sidebar = DashboardSidebar(
+      selectedId: 'dashboard',
+      onItemTap: openSidebarSection,
+    );
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
-        title: const Text(
-          'Herzegovina Dental Admin',
-          style: TextStyle(color: Colors.black),
-        ),
+        title: const SizedBox.shrink(),
         iconTheme: const IconThemeData(color: Colors.black),
         actions: [
           SizedBox(
@@ -46,19 +62,37 @@ class AdminDashboardScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 12),
-          const CircleAvatar(
-            radius: 16,
-            backgroundColor: Colors.black12,
-            child: Icon(Icons.person, color: Colors.black87, size: 18),
+          Builder(
+            builder: (context) {
+              final me = ref.watch(currentUserProvider);
+              final id = me?.id;
+              return Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: buildUserProfileAvatar(
+                  context: context,
+                  user: me,
+                  radius: 16,
+                  onTap: id != null
+                      ? () {
+                          Navigator.of(context).push<void>(
+                            MaterialPageRoute<void>(
+                              builder: (_) => UserEditScreen(userId: id),
+                            ),
+                          );
+                        }
+                      : null,
+                ),
+              );
+            },
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
         ],
       ),
-      drawer: isMobile ? const Drawer(child: DashboardSidebar()) : null,
+      drawer: isMobile ? Drawer(child: sidebar) : null,
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!isMobile) const DashboardSidebar(),
+          if (!isMobile) sidebar,
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -184,7 +218,7 @@ class AdminDashboardScreen extends ConsumerWidget {
             crossAxisCount: columns,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: 2.2,
+            childAspectRatio: 1.95,
           ),
           itemCount: items.length,
           itemBuilder: (context, index) => items[index],

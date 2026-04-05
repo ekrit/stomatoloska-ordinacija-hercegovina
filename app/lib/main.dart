@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
@@ -155,6 +155,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       _error = null;
     });
     ref.read(authTokenProvider.notifier).state = null;
+    ref.read(currentUserProvider.notifier).state = null;
   }
 
   Future<void> _confirmLogout() async {
@@ -267,6 +268,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
         .toList();
 
     if (roleNames.contains('administrator') || roleNames.contains('admin')) {
+      ref.read(currentUserProvider.notifier).state = user;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
       );
@@ -280,6 +282,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       _error = 'Administrator access only.';
     });
     ref.read(authTokenProvider.notifier).state = null;
+    ref.read(currentUserProvider.notifier).state = null;
   }
 }
 

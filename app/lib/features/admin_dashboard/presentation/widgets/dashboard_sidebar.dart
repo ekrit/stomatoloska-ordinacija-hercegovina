@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 
 class DashboardSidebar extends StatelessWidget {
-  const DashboardSidebar({super.key});
+  const DashboardSidebar({
+    super.key,
+    this.selectedId = 'dashboard',
+    this.onItemTap,
+  });
+
+  final String selectedId;
+  final void Function(String id)? onItemTap;
 
   @override
   Widget build(BuildContext context) {
     final items = [
-      _SidebarItem('Dashboard', Icons.grid_view_rounded, true),
-      _SidebarItem('Appointments', Icons.calendar_today_outlined, false),
-      _SidebarItem('Patients', Icons.people_outline, false),
-      _SidebarItem('Staff', Icons.medical_services_outlined, false),
-      _SidebarItem('Reports', Icons.bar_chart_outlined, false),
-      _SidebarItem('Settings', Icons.settings_outlined, false),
+      const _SidebarItem('dashboard', 'Dashboard', Icons.grid_view_rounded),
+      const _SidebarItem('users', 'Users', Icons.group_outlined),
+      const _SidebarItem('settings', 'Settings', Icons.settings_outlined),
     ];
 
     return Container(
@@ -25,14 +29,12 @@ class DashboardSidebar extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
         children: [
-          Text(
-            'Herzegovina Dental Admin',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-          const SizedBox(height: 20),
-          for (final item in items) _SidebarTile(item: item),
+          for (final item in items)
+            _SidebarTile(
+              item: item,
+              isActive: item.id == selectedId,
+              onTap: () => onItemTap?.call(item.id),
+            ),
         ],
       ),
     );
@@ -40,30 +42,36 @@ class DashboardSidebar extends StatelessWidget {
 }
 
 class _SidebarItem {
-  const _SidebarItem(this.label, this.icon, this.isActive);
+  const _SidebarItem(this.id, this.label, this.icon);
 
+  final String id;
   final String label;
   final IconData icon;
-  final bool isActive;
 }
 
 class _SidebarTile extends StatelessWidget {
-  const _SidebarTile({required this.item});
+  const _SidebarTile({
+    required this.item,
+    required this.isActive,
+    required this.onTap,
+  });
 
   final _SidebarItem item;
+  final bool isActive;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final activeColor = theme.colorScheme.primary;
-    final textColor = item.isActive
+    final textColor = isActive
         ? activeColor
         : theme.colorScheme.onSurface.withOpacity(0.7);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Material(
-        color: item.isActive ? activeColor.withOpacity(0.08) : Colors.transparent,
+        color: isActive ? activeColor.withOpacity(0.08) : Colors.transparent,
         borderRadius: BorderRadius.circular(10),
         child: ListTile(
           leading: Icon(item.icon, size: 20, color: textColor),
@@ -71,10 +79,10 @@ class _SidebarTile extends StatelessWidget {
             item.label,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: textColor,
-              fontWeight: item.isActive ? FontWeight.w600 : FontWeight.w500,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
             ),
           ),
-          onTap: () {},
+          onTap: onTap,
           dense: true,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),

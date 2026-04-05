@@ -39,7 +39,7 @@ builder.Services.AddTransient<IAdminDashboardService, AdminDashboardService>();
 
 
 // Configure database
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=.;Database=sohDb;User Id=sa;Password=QWEasd123!;TrustServerCertificate=True;Trusted_Connection=True;";
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=SOH_LocalDev;Integrated Security=True;";
 builder.Services.AddDatabaseServices(connectionString);
 
 // Add configuration
