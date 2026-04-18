@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
@@ -22,9 +24,22 @@ class MonthlyAppointmentsChart extends StatelessWidget {
         FlSpot(i.toDouble(), stats.monthly[i].count.toDouble()),
     ];
 
+    final maxCount = spots.isEmpty
+        ? 0.0
+        : spots.map((s) => s.y).reduce(math.max);
+    final chartMaxY = maxCount <= 0 ? 4.0 : math.max(4.0, (maxCount * 1.15).ceilToDouble());
+    final tickInterval = chartMaxY <= 5
+        ? 1.0
+        : chartMaxY <= 12
+            ? 2.0
+            : chartMaxY <= 30
+                ? 5.0
+                : (chartMaxY / 5).ceilToDouble();
+
     return LineChart(
       LineChartData(
         minY: 0,
+        maxY: chartMaxY,
         gridData: const FlGridData(show: true),
         borderData: FlBorderData(show: false),
         titlesData: FlTitlesData(
@@ -32,11 +47,16 @@ class MonthlyAppointmentsChart extends StatelessWidget {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 36,
+              interval: tickInterval,
               getTitlesWidget: (value, meta) {
-                if (value % 50 != 0) {
+                final v = value.round();
+                if (v < 0 || v > meta.max) {
                   return const SizedBox.shrink();
                 }
-                return Text(value.toInt().toString());
+                if ((value - v).abs() > 0.01) {
+                  return const SizedBox.shrink();
+                }
+                return Text(v.toString());
               },
             ),
           ),

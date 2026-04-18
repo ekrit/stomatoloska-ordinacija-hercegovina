@@ -26,7 +26,13 @@ namespace SOH.Services.Services
             await BeforeInsert(entity, request);
 
             await _context.SaveChangesAsync();
+            await OnAfterInsertAsync(entity, request);
             return MapToResponse(entity);
+        }
+
+        protected virtual Task OnAfterInsertAsync(TEntity entity, TInsert request)
+        {
+            return Task.CompletedTask;
         }
 
         protected virtual async Task BeforeInsert(TEntity entity, TInsert request)
@@ -51,7 +57,13 @@ namespace SOH.Services.Services
             MapUpdateToEntity(entity, request);
 
             await _context.SaveChangesAsync();
+            await OnAfterUpdateAsync(entity, request);
             return MapToResponse(entity);
+        }
+
+        protected virtual Task OnAfterUpdateAsync(TEntity entity, TUpdate request)
+        {
+            return Task.CompletedTask;
         }
 
         protected virtual async Task BeforeUpdate(TEntity entity, TUpdate request)

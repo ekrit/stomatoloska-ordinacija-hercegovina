@@ -13,6 +13,30 @@ namespace SOH.Services.Services
         {
         }
 
+        protected override async Task OnAfterInsertAsync(Appointment entity, AppointmentUpsertRequest request)
+        {
+            _context.ActivityLogs.Add(new ActivityLog
+            {
+                Action = "AppointmentCreated",
+                EntityName = "Appointment",
+                EntityId = entity.Id.ToString(),
+                CreatedAt = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+        }
+
+        protected override async Task OnAfterUpdateAsync(Appointment entity, AppointmentUpsertRequest request)
+        {
+            _context.ActivityLogs.Add(new ActivityLog
+            {
+                Action = "AppointmentUpdated",
+                EntityName = "Appointment",
+                EntityId = entity.Id.ToString(),
+                CreatedAt = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+        }
+
         protected override IQueryable<Appointment> ApplyFilter(IQueryable<Appointment> query, AppointmentSearchObject search)
         {
             if (search.PatientId.HasValue)

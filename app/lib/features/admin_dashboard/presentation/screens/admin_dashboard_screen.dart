@@ -9,6 +9,7 @@ import '../providers/admin_dashboard_providers.dart';
 import '../widgets/dashboard_sidebar.dart';
 import '../widgets/monthly_appointments_chart.dart';
 import '../widgets/quick_actions_card.dart';
+import '../widgets/recent_activity_section.dart';
 import '../widgets/revenue_breakdown_chart.dart';
 import '../widgets/staff_spotlight_card.dart';
 import '../widgets/stat_card.dart';
@@ -136,6 +137,8 @@ class AdminDashboardScreen extends ConsumerWidget {
                         _buildStaffSpotlight(ref),
                       ],
                     ),
+                  const SizedBox(height: 24),
+                  const RecentActivitySection(),
                 ],
               ),
             ),
@@ -156,72 +159,100 @@ class AdminDashboardScreen extends ConsumerWidget {
       ),
       error: (error, _) => Text('Failed to load stats: $error'),
       data: (stats) {
-        final items = [
+        final primary = [
           StatCard(
-            title: 'Total Doctors',
-            value: stats.totalDoctors.toString(),
-            subtitle: 'Active practitioners',
-            icon: Icons.medical_services_outlined,
-          ),
-          StatCard(
-            title: 'Total Practices',
-            value: stats.totalPractices.toString(),
-            subtitle: 'Operational clinics',
-            icon: Icons.location_city_outlined,
-          ),
-          StatCard(
-            title: 'Total Users',
-            value: stats.totalUsers.toString(),
-            subtitle: 'Registered patients & staff',
+            title: 'Aktivni korisnici',
+            value: stats.activeUsers.toString(),
+            subtitle: 'Nalozi sa aktivnim statusom',
             icon: Icons.people_outline,
           ),
           StatCard(
-            title: 'Completed Appointments',
+            title: 'Doktori',
+            value: stats.totalDoctors.toString(),
+            subtitle: 'Registrovani doktori',
+            icon: Icons.medical_services_outlined,
+          ),
+          StatCard(
+            title: 'Sobe',
+            value: stats.totalRooms.toString(),
+            subtitle: 'Ordinacijske sobe',
+            icon: Icons.meeting_room_outlined,
+          ),
+          StatCard(
+            title: 'Prosječna zarada',
+            value: '€ ${stats.averageEarnings.toStringAsFixed(0)}',
+            subtitle: 'Po doktoru, zadnjih 30 dana',
+            icon: Icons.euro_outlined,
+            accentColor: Colors.green,
+          ),
+        ];
+
+        final secondary = [
+          StatCard(
+            title: 'Ukupno korisnika',
+            value: stats.totalUsers.toString(),
+            subtitle: 'Svi nalozi u sistemu',
+            icon: Icons.groups_outlined,
+          ),
+          StatCard(
+            title: 'Završeni termini',
             value: stats.completedAppointments.toString(),
-            subtitle: 'Last 30 days',
+            subtitle: 'Zadnjih 30 dana',
             icon: Icons.check_circle_outline,
           ),
           StatCard(
-            title: 'Cancelled Appointments',
+            title: 'Otkazani termini',
             value: stats.cancelledAppointments.toString(),
-            subtitle: 'Last 30 days',
+            subtitle: 'Zadnjih 30 dana',
             icon: Icons.cancel_outlined,
             accentColor: Colors.orange,
           ),
           StatCard(
-            title: 'Average Earnings',
-            value: '€ ${stats.averageEarnings.toStringAsFixed(0)}',
-            subtitle: 'Per doctor, last month',
-            icon: Icons.euro_outlined,
-            accentColor: Colors.green,
-          ),
-          StatCard(
-            title: 'New Patients This Month',
+            title: 'Novi pacijenti (mjesec)',
             value: stats.newPatientsThisMonth.toString(),
-            subtitle: 'From various sources',
+            subtitle: 'U tekućem mjesecu',
             icon: Icons.person_add_alt_1_outlined,
             accentColor: Colors.blueGrey,
           ),
           StatCard(
-            title: 'Revenue Growth',
-            value: '+${stats.revenueGrowth.toStringAsFixed(1)}%',
-            subtitle: 'Compared to previous',
+            title: 'Rast prihoda',
+            value: '${stats.revenueGrowth >= 0 ? '+' : ''}${stats.revenueGrowth.toStringAsFixed(1)}%',
+            subtitle: 'U odnosu na prethodnih 30 dana',
             icon: Icons.trending_up_outlined,
             accentColor: Colors.purple,
           ),
         ];
 
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: columns,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 1.95,
-          ),
-          itemCount: items.length,
-          itemBuilder: (context, index) => items[index],
+        Widget grid(List<StatCard> cards) {
+          return GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 1.95,
+            ),
+            itemCount: cards.length,
+            itemBuilder: (context, index) => cards[index],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            grid(primary),
+            const SizedBox(height: 20),
+            Text(
+              'Dodatne statistike',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black54,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            grid(secondary),
+          ],
         );
       },
     );

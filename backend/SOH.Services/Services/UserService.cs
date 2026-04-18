@@ -155,7 +155,14 @@ namespace SOH.Services.Services
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            // Assign roles if provided
+            _context.ActivityLogs.Add(new ActivityLog
+            {
+                Action = "UserRegistered",
+                EntityName = "User",
+                EntityId = user.Id.ToString(),
+                CreatedAt = DateTime.UtcNow
+            });
+
             if (request.RoleIds != null && request.RoleIds.Any())
             {
                 foreach (var roleId in request.RoleIds)
@@ -168,8 +175,9 @@ namespace SOH.Services.Services
                     };
                     _context.UserRoles.Add(userRole);
                 }
-                await _context.SaveChangesAsync();
             }
+
+            await _context.SaveChangesAsync();
 
             return await GetUserResponseWithRolesAsync(user.Id);
         }
