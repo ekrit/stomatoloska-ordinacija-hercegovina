@@ -1,3 +1,4 @@
+import '../models/activity_log_entry.dart';
 import '../models/appointment_stats.dart';
 import '../models/dashboard_stats.dart';
 import '../models/revenue_stats.dart';
@@ -28,5 +29,10 @@ class DashboardRepositoryImpl implements DashboardRepository {
   @override
   Future<RevenueStats> fetchRevenueStats() {
     return _appointmentApi.fetchRevenueStats();
+  }
+
+  @override
+  Future<List<ActivityLogEntry>> fetchRecentActivity({int take = 30}) {
+    return _dashboardApi.fetchRecentActivity(take: take);
   }
 }

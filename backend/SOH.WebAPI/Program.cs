@@ -1,10 +1,12 @@
 using SOH.Services.Database;
 using Mapster;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Models;
 using SOH.WebAPI.Filters;
 using SOH.Services.Services;
 using SOH.Services.Interfaces;
+using SOH.WebAPI.Services;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -46,6 +48,7 @@ builder.Services.AddDatabaseServices(connectionString);
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 
 builder.Services.AddMapster();
+builder.Services.AddSingleton<IAppointmentReminderPublisher, AppointmentReminderPublisher>();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var jwtSecret = jwtSettings.GetValue<string>("SecretKey") ?? string.Empty;
@@ -73,6 +76,13 @@ builder.Services.AddAuthentication(options =>
         };
     })
     .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
+
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
 
 builder.Services.AddControllers(x =>
     {
@@ -111,7 +121,7 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-//if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();

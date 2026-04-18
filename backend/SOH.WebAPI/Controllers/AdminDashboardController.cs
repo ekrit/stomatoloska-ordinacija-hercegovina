@@ -40,5 +40,11 @@ namespace SOH.WebAPI.Controllers
         {
             return await _service.GetDoctorSpotlightAsync(limit);
         }
+
+        [HttpGet("activity/recent")]
+        public async Task<List<ActivityLogResponse>> GetRecentActivity([FromQuery] int take = 30)
+        {
+            return await _service.GetRecentActivityAsync(take);
+        }
     }
 }

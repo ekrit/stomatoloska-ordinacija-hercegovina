@@ -22,7 +22,8 @@ namespace SOH.Services.Services
             var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
 
             var totalDoctors = await _context.Doctors.CountAsync();
-            var totalPractices = await _context.Rooms.CountAsync();
+            var totalRooms = await _context.Rooms.CountAsync();
+            var activeUsers = await _context.Users.CountAsync(u => u.IsActive);
             var totalUsers = await _context.Users.CountAsync();
 
             var completedAppointments = await _context.Appointments
@@ -56,8 +57,10 @@ namespace SOH.Services.Services
 
             return new DashboardStatsResponse
             {
+                ActiveUsers = activeUsers,
                 TotalDoctors = totalDoctors,
-                TotalPractices = totalPractices,
+                TotalPractices = totalRooms,
+                TotalRooms = totalRooms,
                 TotalUsers = totalUsers,
                 CompletedAppointments = completedAppointments,
                 CancelledAppointments = cancelledAppointments,
@@ -141,6 +144,25 @@ namespace SOH.Services.Services
                     Name = $"{d.FirstName} {d.LastName}".Trim(),
                     Specialization = d.Specialization,
                     AvatarUrl = null
+                })
+                .ToListAsync();
+        }
+
+        public async Task<List<ActivityLogResponse>> GetRecentActivityAsync(int take = 30)
+        {
+            var safeTake = Math.Clamp(take, 1, 100);
+            return await _context.ActivityLogs
+                .AsNoTracking()
+                .Where(a => a.EntityName == "User" || a.EntityName == "Appointment")
+                .OrderByDescending(a => a.CreatedAt)
+                .Take(safeTake)
+                .Select(a => new ActivityLogResponse
+                {
+                    Id = a.Id,
+                    Action = a.Action,
+                    EntityName = a.EntityName,
+                    EntityId = a.EntityId,
+                    CreatedAt = a.CreatedAt
                 })
                 .ToListAsync();
         }

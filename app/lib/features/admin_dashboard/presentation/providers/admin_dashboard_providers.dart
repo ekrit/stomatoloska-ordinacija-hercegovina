@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/api/api_providers.dart';
+import '../../data/models/activity_log_entry.dart';
 import '../../data/models/appointment_stats.dart';
 import '../../data/models/dashboard_stats.dart';
 import '../../data/models/doctor.dart';
@@ -42,4 +43,8 @@ final revenueStatsProvider = FutureProvider<RevenueStats>((ref) {
 
 final doctorsProvider = FutureProvider<List<Doctor>>((ref) {
   return ref.watch(doctorRepositoryProvider).fetchDoctors();
+});
+
+final recentActivityProvider = FutureProvider<List<ActivityLogEntry>>((ref) {
+  return ref.watch(dashboardRepositoryProvider).fetchRecentActivity(take: 30);
 });
