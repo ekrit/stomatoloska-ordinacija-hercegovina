@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../screens/admin_add_patient_screen.dart';
 import '../screens/admin_appointments_list_screen.dart';
 import '../screens/admin_office_locations_screen.dart';
 import '../screens/admin_reports_list_screen.dart';
@@ -88,7 +89,7 @@ class QuickActionsCard extends StatelessWidget {
 
     switch (index) {
       case 0:
-        push(const UsersListScreen());
+        push(const AdminAddPatientScreen());
         break;
       case 1:
         push(const UsersListScreen());

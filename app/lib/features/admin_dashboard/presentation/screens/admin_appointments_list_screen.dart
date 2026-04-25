@@ -5,6 +5,7 @@ import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
 import '../../../../core/utils/appointment_labels.dart';
+import 'admin_appointment_edit_screen.dart';
 
 final _allAppointmentsAdminProvider = FutureProvider.autoDispose<List<AppointmentResponse>>((ref) async {
   final r = await ref.watch(appointmentApiProvider).appointmentGet(retrieveAll: true);
@@ -51,6 +52,17 @@ class AdminAppointmentsListScreen extends ConsumerWidget {
                   'Patient #${a.patientId ?? '—'} · Doctor #${a.doctorId ?? '—'}\n${appointmentStatusLabel(a.status)}',
                 ),
                 isThreeLine: true,
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () async {
+                  final changed = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute<bool>(
+                      builder: (_) => AdminAppointmentEditScreen(appointment: a),
+                    ),
+                  );
+                  if (changed == true) {
+                    ref.invalidate(_allAppointmentsAdminProvider);
+                  }
+                },
               );
             },
           );

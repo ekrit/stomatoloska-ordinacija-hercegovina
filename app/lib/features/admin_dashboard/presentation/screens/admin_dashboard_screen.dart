@@ -8,6 +8,7 @@ import '../../../../widgets/user_appbar_actions.dart';
 import '../providers/admin_dashboard_providers.dart';
 import '../widgets/dashboard_sidebar.dart';
 import '../widgets/monthly_appointments_chart.dart';
+import '../widgets/admin_dashboard_search_bar.dart';
 import '../widgets/quick_actions_card.dart';
 import '../widgets/recent_activity_section.dart';
 import '../widgets/revenue_breakdown_chart.dart';
@@ -46,22 +47,7 @@ class AdminDashboardScreen extends ConsumerWidget {
         title: const SizedBox.shrink(),
         iconTheme: const IconThemeData(color: Colors.black),
         actions: [
-          SizedBox(
-            width: isMobile ? 180 : 320,
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search patients, doctors, appointments...',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: Colors.grey.shade100,
-                contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ),
+          AdminDashboardSearchBar(width: isMobile ? 180 : 320),
           const SizedBox(width: 12),
           Builder(
             builder: (context) {
