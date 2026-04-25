@@ -1,6 +1,8 @@
 # Analysis: seminar document vs Stomatološka Ordinacija Hercegovina solution
 
-_Source: gap review (excluding online payment). Tracked for implementation follow-up._
+_Source: gap review (excluding online payment)._
+
+**Update (Flutter):** Branch `feat/seminar-requirements-ui` implements the missing client pieces: guest locations, registration, patient shell (home / appointments / care / profile), my appointments (upcoming · completed · cancelled) with cancel, findings, and reviews, reminders & hygiene (next visit + brushing log + avoid list), admin quick actions wired to users, cities, appointments, and reports lists. Online PayPal payment and collaborative recommendation phase remain out of scope unless added later._
 
 ## 1. Document (Fakultet Informacijskih Tehnologija (1).docx) — substance
 
