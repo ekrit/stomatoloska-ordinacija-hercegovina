@@ -67,9 +67,11 @@ class HomeScreen extends ConsumerWidget {
                       appointments: appointments,
                       services: services,
                     );
+                    final communityCategories = communityPreferredCategories(list);
                     final rec = recommendedProducts(
                       list,
                       recentServiceName: recentServiceName,
+                      communityPreferredCategories: communityCategories,
                     );
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,6 +86,16 @@ class HomeScreen extends ConsumerWidget {
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color:
                                         Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ),
+                        if (communityCategories.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Text(
+                              'Also trending with similar users: ${communityCategories.join(', ')}',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                                   ),
                             ),
                           ),

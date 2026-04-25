@@ -5,6 +5,7 @@ import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
 import '../../../../core/utils/appointment_labels.dart';
+import 'admin_appointment_create_screen.dart';
 import 'admin_appointment_edit_screen.dart';
 
 final _allAppointmentsAdminProvider = FutureProvider.autoDispose<List<AppointmentResponse>>((ref) async {
@@ -22,6 +23,20 @@ class AdminAppointmentsListScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('All appointments'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: 'Create',
+            onPressed: () async {
+              final changed = await Navigator.of(context).push<bool>(
+                MaterialPageRoute<bool>(
+                  builder: (_) => const AdminAppointmentCreateScreen(),
+                ),
+              );
+              if (changed == true) {
+                ref.invalidate(_allAppointmentsAdminProvider);
+              }
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.invalidate(_allAppointmentsAdminProvider),

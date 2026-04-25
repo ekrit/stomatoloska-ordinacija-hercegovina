@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 
 import '../providers/admin_dashboard_providers.dart';
 
+String activityCountLabel(int count) => 'Ukupno: $count';
+
 class RecentActivitySection extends ConsumerWidget {
   const RecentActivitySection({super.key});
 
@@ -29,6 +31,17 @@ class RecentActivitySection extends ConsumerWidget {
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
+            ),
+            const SizedBox(height: 6),
+            async.maybeWhen(
+              data: (items) => Text(
+                activityCountLabel(items.length),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).hintColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              orElse: () => const SizedBox.shrink(),
             ),
             const SizedBox(height: 16),
             async.when(

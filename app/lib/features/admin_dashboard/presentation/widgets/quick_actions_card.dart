@@ -5,6 +5,7 @@ import '../screens/admin_appointments_list_screen.dart';
 import '../screens/admin_office_locations_screen.dart';
 import '../screens/admin_products_list_screen.dart';
 import '../screens/admin_reports_list_screen.dart';
+import '../screens/admin_system_settings_screen.dart';
 import '../../../admin_users/presentation/screens/users_list_screen.dart';
 
 class QuickActionsCard extends StatelessWidget {
@@ -108,10 +109,9 @@ class QuickActionsCard extends StatelessWidget {
       case 5:
         push(const AdminProductsListScreen());
         break;
-      default:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Settings: connect your policy screens here.')),
-        );
+      case 6:
+        push(const AdminSystemSettingsScreen());
+        break;
     }
   }
 }

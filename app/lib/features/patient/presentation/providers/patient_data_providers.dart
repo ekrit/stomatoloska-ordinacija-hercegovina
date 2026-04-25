@@ -41,6 +41,7 @@ List<ProductResponse> recommendedProducts(
   List<ProductResponse> all, {
   int max = 6,
   String? recentServiceName,
+  List<String> communityPreferredCategories = const [],
 }) {
   if (all.isEmpty) return [];
 
@@ -59,6 +60,11 @@ List<ProductResponse> recommendedProducts(
     }
   }
 
+  final collaborative = _collaborativeMatches(all, communityPreferredCategories);
+  if (collaborative.isNotEmpty) {
+    return collaborative.take(max).toList();
+  }
+
   final oralCare = all.where((p) {
     final c = (p.category ?? '').toLowerCase();
     return c.contains('oral') ||
@@ -70,6 +76,33 @@ List<ProductResponse> recommendedProducts(
   final source = oralCare.isNotEmpty ? oralCare : all;
   source.sort((a, b) => (a.id ?? 0).compareTo(b.id ?? 0));
   return source.take(max).toList();
+}
+
+List<ProductResponse> _collaborativeMatches(
+  List<ProductResponse> all,
+  List<String> communityPreferredCategories,
+) {
+  if (communityPreferredCategories.isEmpty) return const [];
+  final normalized = communityPreferredCategories.map((e) => e.toLowerCase().trim()).toSet();
+  final matched = all.where((p) {
+    final c = (p.category ?? '').toLowerCase().trim();
+    return c.isNotEmpty && normalized.contains(c);
+  }).toList();
+  matched.sort((a, b) => (a.id ?? 0).compareTo(b.id ?? 0));
+  return matched;
+}
+
+List<String> communityPreferredCategories(List<ProductResponse> all, {int top = 2}) {
+  if (all.isEmpty) return const [];
+  final counter = <String, int>{};
+  for (final p in all) {
+    final c = (p.category ?? '').toLowerCase().trim();
+    if (c.isEmpty) continue;
+    counter[c] = (counter[c] ?? 0) + 1;
+  }
+  final ranked = counter.entries.toList()
+    ..sort((a, b) => b.value.compareTo(a.value));
+  return ranked.take(top).map((e) => e.key).toList();
 }
 
 Set<String> _keywords(String? raw) {
