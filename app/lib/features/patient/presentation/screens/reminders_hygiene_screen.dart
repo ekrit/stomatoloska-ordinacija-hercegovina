@@ -98,15 +98,34 @@ class RemindersHygieneScreen extends ConsumerWidget {
           hygiene.when(
             data: (row) {
               final count = row?.brushesCount ?? 0;
+              final goal = 2;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  LinearProgressIndicator(value: (count.clamp(0, 2)) / 2),
+                  LinearProgressIndicator(value: (count.clamp(0, goal)) / goal),
                   const SizedBox(height: 8),
-                  Text('Logged today: $count / 2'),
+                  Text('Logged today: $count / $goal'),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _BrushingSlotChip(
+                          label: 'Morning',
+                          filled: count >= 1,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _BrushingSlotChip(
+                          label: 'Evening',
+                          filled: count >= 2,
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 12),
                   FilledButton.tonalIcon(
-                    onPressed: user?.id == null || count >= 2
+                    onPressed: user?.id == null || count >= goal
                         ? null
                         : () async {
                             final uid = user!.id!;
@@ -124,7 +143,7 @@ class RemindersHygieneScreen extends ConsumerWidget {
                               final list = snap?.items ?? [];
                               final existing = list.isNotEmpty ? list.first : null;
                               final next = (existing?.brushesCount ?? 0) + 1;
-                              if (next > 2) return;
+                              if (next > goal) return;
                               final req = HygieneTrackerUpsertRequest(
                                 patientId: uid,
                                 date: day,
@@ -173,6 +192,46 @@ class RemindersHygieneScreen extends ConsumerWidget {
                 ],
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BrushingSlotChip extends StatelessWidget {
+  const _BrushingSlotChip({required this.label, required this.filled});
+
+  final String label;
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: filled ? scheme.primary : scheme.outlineVariant,
+          width: filled ? 2 : 1,
+        ),
+        color: filled ? scheme.primaryContainer.withOpacity(0.35) : null,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            filled ? Icons.check_circle : Icons.circle_outlined,
+            size: 22,
+            color: filled ? scheme.primary : scheme.outline,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
           ),
         ],
       ),

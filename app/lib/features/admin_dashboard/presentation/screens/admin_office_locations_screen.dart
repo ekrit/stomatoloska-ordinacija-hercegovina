@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
+import 'admin_city_edit_screen.dart';
 
 final _citiesAdminProvider = FutureProvider.autoDispose<List<CityResponse>>((ref) async {
   final r = await ref.watch(cityApiProvider).cityGet(retrieveAll: true);
@@ -48,6 +49,17 @@ class AdminOfficeLocationsScreen extends ConsumerWidget {
                     leading: const Icon(Icons.location_city),
                     title: Text(c.name ?? 'City'),
                     subtitle: Text('City ID: ${c.id ?? '—'}'),
+                    trailing: const Icon(Icons.edit_outlined),
+                    onTap: () async {
+                      final changed = await Navigator.of(context).push<bool>(
+                        MaterialPageRoute<bool>(
+                          builder: (_) => AdminCityEditScreen(city: c),
+                        ),
+                      );
+                      if (changed == true) {
+                        ref.invalidate(_citiesAdminProvider);
+                      }
+                    },
                   ),
                 ),
               ),
