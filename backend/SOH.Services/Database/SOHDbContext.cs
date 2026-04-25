@@ -80,6 +80,18 @@ namespace SOH.Services.Database
             modelBuilder.Entity<City>()
                 .HasIndex(c => c.Name)
                 .IsUnique();
+            modelBuilder.Entity<City>()
+                .Property(c => c.Address)
+                .HasMaxLength(200);
+            modelBuilder.Entity<City>()
+                .Property(c => c.ContactPhone)
+                .HasMaxLength(50);
+            modelBuilder.Entity<City>()
+                .Property(c => c.ContactEmail)
+                .HasMaxLength(100);
+            modelBuilder.Entity<City>()
+                .Property(c => c.WorkingHours)
+                .HasMaxLength(100);
 
             modelBuilder.Entity<User>()
                 .HasOne(u => u.Gender)

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SOH.Services.Database;
 
@@ -11,9 +12,11 @@ using SOH.Services.Database;
 namespace SOH.Services.Migrations
 {
     [DbContext(typeof(SOHDbContext))]
-    partial class SOHDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260425232441_OfficeCityContactHours")]
+    partial class OfficeCityContactHours
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
