@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../screens/admin_add_patient_screen.dart';
 import '../screens/admin_appointments_list_screen.dart';
 import '../screens/admin_office_locations_screen.dart';
+import '../screens/admin_products_list_screen.dart';
 import '../screens/admin_reports_list_screen.dart';
 import '../../../admin_users/presentation/screens/users_list_screen.dart';
 
@@ -19,6 +20,7 @@ class QuickActionsCard extends StatelessWidget {
       _ActionItem('Edit Office Info', Icons.edit_outlined),
       _ActionItem('Manage Appointments', Icons.calendar_today_outlined),
       _ActionItem('Generate Reports', Icons.bar_chart_outlined),
+      _ActionItem('Manage Products', Icons.inventory_2_outlined),
       _ActionItem('System Settings', Icons.settings_outlined),
     ];
 
@@ -102,6 +104,9 @@ class QuickActionsCard extends StatelessWidget {
         break;
       case 4:
         push(const AdminReportsListScreen());
+        break;
+      case 5:
+        push(const AdminProductsListScreen());
         break;
       default:
         ScaffoldMessenger.of(context).showSnackBar(
