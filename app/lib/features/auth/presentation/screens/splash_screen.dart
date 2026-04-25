@@ -5,6 +5,7 @@ import '../../../../core/api/api_providers.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/storage/auth_storage.dart';
 import '../../../../core/utils/role_utils.dart';
+import '../../../patient/presentation/providers/patient_repository_providers.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -37,6 +38,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         if (userIsDoctor(user)) {
           Navigator.of(context).pushReplacementNamed(AppRoutes.doctor);
           return;
+        }
+        if (user.id != null) {
+          final existing = await ref
+              .read(patientSessionRepositoryProvider)
+              .listPatientsByUserId(user.id!);
+          if (existing.isEmpty) {
+            Navigator.of(context).pushReplacementNamed(AppRoutes.completeProfile);
+            return;
+          }
         }
         Navigator.of(context).pushReplacementNamed(AppRoutes.patientShell);
         return;
