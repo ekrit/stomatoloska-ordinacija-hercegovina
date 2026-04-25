@@ -32,3 +32,51 @@ final cityApiProvider = Provider<CityApi>(
 final roleApiProvider = Provider<RoleApi>(
   (ref) => RoleApi(ref.watch(apiClientProvider)),
 );
+
+final doctorApiProvider = Provider<DoctorApi>(
+  (ref) => DoctorApi(ref.watch(apiClientProvider)),
+);
+
+final serviceApiProvider = Provider<ServiceApi>(
+  (ref) => ServiceApi(ref.watch(apiClientProvider)),
+);
+
+final roomApiProvider = Provider<RoomApi>(
+  (ref) => RoomApi(ref.watch(apiClientProvider)),
+);
+
+final productApiProvider = Provider<ProductApi>(
+  (ref) => ProductApi(ref.watch(apiClientProvider)),
+);
+
+final patientApiProvider = Provider<PatientApi>(
+  (ref) => PatientApi(ref.watch(apiClientProvider)),
+);
+
+final appointmentApiProvider = Provider<AppointmentApi>(
+  (ref) => AppointmentApi(ref.watch(apiClientProvider)),
+);
+
+final medicalRecordApiProvider = Provider<MedicalRecordApi>(
+  (ref) => MedicalRecordApi(ref.watch(apiClientProvider)),
+);
+
+final reviewApiProvider = Provider<ReviewApi>(
+  (ref) => ReviewApi(ref.watch(apiClientProvider)),
+);
+
+final reminderApiProvider = Provider<ReminderApi>(
+  (ref) => ReminderApi(ref.watch(apiClientProvider)),
+);
+
+final hygieneTrackerApiProvider = Provider<HygieneTrackerApi>(
+  (ref) => HygieneTrackerApi(ref.watch(apiClientProvider)),
+);
+
+final reportApiProvider = Provider<ReportApi>(
+  (ref) => ReportApi(ref.watch(apiClientProvider)),
+);
+
+final orderApiProvider = Provider<OrderApi>(
+  (ref) => OrderApi(ref.watch(apiClientProvider)),
+);

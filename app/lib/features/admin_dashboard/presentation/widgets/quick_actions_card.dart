@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../screens/admin_appointments_list_screen.dart';
+import '../screens/admin_office_locations_screen.dart';
+import '../screens/admin_reports_list_screen.dart';
+import '../../../admin_users/presentation/screens/users_list_screen.dart';
+
 class QuickActionsCard extends StatelessWidget {
   const QuickActionsCard({super.key});
 
@@ -55,7 +60,7 @@ class QuickActionsCard extends StatelessWidget {
                 final action = actions[index];
                 return SizedBox.expand(
                   child: OutlinedButton.icon(
-                    onPressed: () {},
+                    onPressed: () => _onAction(context, index),
                     style: buttonStyle,
                     icon: Icon(action.icon, size: 18),
                     label: Text(
@@ -72,6 +77,36 @@ class QuickActionsCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _onAction(BuildContext context, int index) {
+    void push(Widget page) {
+      Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(builder: (_) => page),
+      );
+    }
+
+    switch (index) {
+      case 0:
+        push(const UsersListScreen());
+        break;
+      case 1:
+        push(const UsersListScreen());
+        break;
+      case 2:
+        push(const AdminOfficeLocationsScreen());
+        break;
+      case 3:
+        push(const AdminAppointmentsListScreen());
+        break;
+      case 4:
+        push(const AdminReportsListScreen());
+        break;
+      default:
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Settings: connect your policy screens here.')),
+        );
+    }
   }
 }
 
