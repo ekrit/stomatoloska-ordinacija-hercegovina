@@ -9,6 +9,7 @@ import '../../../widgets/user_appbar_actions.dart' show showLogoutConfirm;
 import '../../admin_users/presentation/screens/user_edit_screen.dart';
 import '../../home/presentation/home_screen.dart';
 import 'screens/my_appointments_screen.dart';
+import 'screens/my_orders_screen.dart';
 import 'screens/reminders_hygiene_screen.dart';
 
 class PatientShellScreen extends ConsumerStatefulWidget {
@@ -98,6 +99,18 @@ class _ProfileTab extends StatelessWidget {
                       ),
                     );
                   },
+          ),
+          ListTile(
+            leading: const Icon(Icons.shopping_bag_outlined),
+            title: const Text('My orders'),
+            subtitle: const Text('View your product orders'),
+            onTap: () {
+              Navigator.of(context).push<void>(
+                MaterialPageRoute<void>(
+                  builder: (_) => const MyOrdersScreen(),
+                ),
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.logout),
