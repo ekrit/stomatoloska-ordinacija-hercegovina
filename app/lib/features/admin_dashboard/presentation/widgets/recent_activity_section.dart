@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../providers/admin_dashboard_providers.dart';
 
-String activityCountLabel(int count) => 'Ukupno: $count';
+String activityCountLabel(int count) => 'Total: $count';
 
 class RecentActivitySection extends ConsumerWidget {
   const RecentActivitySection({super.key});
@@ -27,7 +27,7 @@ class RecentActivitySection extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Zadnje radnje',
+              'Recent Activity',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -49,11 +49,11 @@ class RecentActivitySection extends ConsumerWidget {
                 height: 120,
                 child: Center(child: CircularProgressIndicator()),
               ),
-              error: (e, _) => Text('Greška pri učitavanju: $e'),
+              error: (e, _) => Text('Error loading activity: $e'),
               data: (items) {
                 if (items.isEmpty) {
                   return Text(
-                    'Nema zabilježenih radnji.',
+                    'No activity recorded yet.',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).hintColor,
                         ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/api/api_providers.dart';
+import '../../../../core/router/app_routes.dart';
+import '../../../../core/storage/auth_storage.dart';
 import '../../../admin_users/presentation/screens/user_edit_screen.dart';
 import '../../../admin_users/presentation/screens/users_list_screen.dart';
 import '../../../../widgets/user_appbar_actions.dart';
@@ -32,6 +34,15 @@ class AdminDashboardScreen extends ConsumerWidget {
           ),
         );
       }
+    }
+
+    Future<void> logout() async {
+      final ok = await showLogoutConfirm(context);
+      if (!ok) return;
+      await AuthStorage.clear();
+      ref.read(currentUserProvider.notifier).state = null;
+      if (!context.mounted) return;
+      Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
     }
 
     final sidebar = DashboardSidebar(
@@ -71,6 +82,11 @@ class AdminDashboardScreen extends ConsumerWidget {
                 ),
               );
             },
+          ),
+          IconButton(
+            onPressed: logout,
+            tooltip: 'Log out',
+            icon: const Icon(Icons.logout),
           ),
           const SizedBox(width: 12),
         ],
@@ -147,27 +163,27 @@ class AdminDashboardScreen extends ConsumerWidget {
       data: (stats) {
         final primary = [
           StatCard(
-            title: 'Aktivni korisnici',
+            title: 'Active users',
             value: stats.activeUsers.toString(),
-            subtitle: 'Nalozi sa aktivnim statusom',
+            subtitle: 'Accounts currently marked active',
             icon: Icons.people_outline,
           ),
           StatCard(
-            title: 'Doktori',
+            title: 'Doctors',
             value: stats.totalDoctors.toString(),
-            subtitle: 'Registrovani doktori',
+            subtitle: 'Registered doctors',
             icon: Icons.medical_services_outlined,
           ),
           StatCard(
-            title: 'Sobe',
+            title: 'Rooms',
             value: stats.totalRooms.toString(),
-            subtitle: 'Ordinacijske sobe',
+            subtitle: 'Clinic treatment rooms',
             icon: Icons.meeting_room_outlined,
           ),
           StatCard(
-            title: 'Prosječna zarada',
+            title: 'Average earnings',
             value: '€ ${stats.averageEarnings.toStringAsFixed(0)}',
-            subtitle: 'Po doktoru, zadnjih 30 dana',
+            subtitle: 'Per doctor, last 30 days',
             icon: Icons.euro_outlined,
             accentColor: Colors.green,
           ),
@@ -175,35 +191,35 @@ class AdminDashboardScreen extends ConsumerWidget {
 
         final secondary = [
           StatCard(
-            title: 'Ukupno korisnika',
+            title: 'Total users',
             value: stats.totalUsers.toString(),
-            subtitle: 'Svi nalozi u sistemu',
+            subtitle: 'All user accounts in system',
             icon: Icons.groups_outlined,
           ),
           StatCard(
-            title: 'Završeni termini',
+            title: 'Completed appointments',
             value: stats.completedAppointments.toString(),
-            subtitle: 'Zadnjih 30 dana',
+            subtitle: 'Last 30 days',
             icon: Icons.check_circle_outline,
           ),
           StatCard(
-            title: 'Otkazani termini',
+            title: 'Cancelled appointments',
             value: stats.cancelledAppointments.toString(),
-            subtitle: 'Zadnjih 30 dana',
+            subtitle: 'Last 30 days',
             icon: Icons.cancel_outlined,
             accentColor: Colors.orange,
           ),
           StatCard(
-            title: 'Novi pacijenti (mjesec)',
+            title: 'New patients (month)',
             value: stats.newPatientsThisMonth.toString(),
-            subtitle: 'U tekućem mjesecu',
+            subtitle: 'In the current month',
             icon: Icons.person_add_alt_1_outlined,
             accentColor: Colors.blueGrey,
           ),
           StatCard(
-            title: 'Rast prihoda',
+            title: 'Revenue growth',
             value: '${stats.revenueGrowth >= 0 ? '+' : ''}${stats.revenueGrowth.toStringAsFixed(1)}%',
-            subtitle: 'U odnosu na prethodnih 30 dana',
+            subtitle: 'Compared to previous 30 days',
             icon: Icons.trending_up_outlined,
             accentColor: Colors.purple,
           ),
@@ -230,7 +246,7 @@ class AdminDashboardScreen extends ConsumerWidget {
             grid(primary),
             const SizedBox(height: 20),
             Text(
-              'Dodatne statistike',
+              'Additional statistics',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Colors.black54,

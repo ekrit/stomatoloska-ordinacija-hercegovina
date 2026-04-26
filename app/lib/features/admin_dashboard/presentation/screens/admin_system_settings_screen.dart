@@ -13,7 +13,7 @@ class AdminSystemSettingsScreen extends StatelessWidget {
           _SettingTile(
             icon: Icons.info_outline,
             title: 'Application profile',
-            subtitle: 'Stomatoloska Ordinacija Hercegovina - Admin panel',
+            subtitle: 'Dental Clinic Herzegovina - Admin panel',
           ),
           _SettingTile(
             icon: Icons.security_outlined,

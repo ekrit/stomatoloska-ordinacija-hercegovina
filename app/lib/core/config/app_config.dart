@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 class AppConfig {
-  static const _apiPort = 5130;
+  static const _apiPort = 5350;
   static const _apiBaseUrlOverride =
       String.fromEnvironment('API_BASE_URL', defaultValue: '');
   static const _isDocker =

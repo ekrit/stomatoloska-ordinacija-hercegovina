@@ -160,7 +160,7 @@ class HomeScreen extends ConsumerWidget {
                             FilledButton.icon(
                               onPressed: onBook,
                               icon: const Icon(Icons.calendar_month),
-                              label: const Text('Zakaži Termin'),
+                              label: const Text('Book Appointment'),
                             ),
                           ],
                         ),
