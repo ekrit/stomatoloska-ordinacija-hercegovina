@@ -43,7 +43,7 @@ class GuestLocationsScreen extends ConsumerWidget {
                 leading: const Icon(Icons.location_city_outlined),
                 title: Text(c.name ?? 'City'),
                 subtitle: const Text(
-                  'Stomatološka Ordinacija Hercegovina — public directory entry.',
+                  'Dental Clinic Herzegovina — public directory entry.',
                 ),
               );
             },

@@ -47,11 +47,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   Future<void> _submit() async {
     final user = ref.read(currentUserProvider);
     final doctor = _doctor;
+    final doctorId = doctor?.userId;
     final day = _selectedDay;
     final slot = _slotStart;
     final svc = _service;
     if (user?.id == null ||
-        doctor?.userId == null ||
+        doctorId == null ||
         day == null ||
         slot == null ||
         svc?.id == null) {
@@ -86,7 +87,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       await ref.read(patientCareRepositoryProvider).createAppointment(
             AppointmentUpsertRequest(
               patientId: user!.id!,
-              doctorId: doctor.userId!,
+              doctorId: doctorId,
               serviceId: svc.id!,
               roomId: room!.id!,
               startTime: slot,

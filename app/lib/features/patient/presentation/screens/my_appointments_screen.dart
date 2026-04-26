@@ -270,7 +270,7 @@ class _AppointmentPatientCard extends ConsumerWidget {
                     OutlinedButton.icon(
                       onPressed: a.id == null ? null : () => _confirmCancel(context, ref, a),
                       icon: const Icon(Icons.cancel_outlined),
-                      label: const Text('Otkaži'),
+                      label: const Text('Cancel'),
                     ),
                     OutlinedButton.icon(
                       onPressed: a.id == null
@@ -281,7 +281,7 @@ class _AppointmentPatientCard extends ConsumerWidget {
                                 ),
                               ),
                       icon: const Icon(Icons.description_outlined),
-                      label: const Text('Nalazi'),
+                      label: const Text('Findings'),
                     ),
                   ],
                   if (mode == _PatientListMode.completed && a.id != null) ...[
@@ -292,7 +292,7 @@ class _AppointmentPatientCard extends ConsumerWidget {
                             ),
                           ),
                       icon: const Icon(Icons.description_outlined),
-                      label: const Text('Nalazi'),
+                      label: const Text('Findings'),
                     ),
                     Consumer(
                       builder: (context, ref, _) {
@@ -307,7 +307,7 @@ class _AppointmentPatientCard extends ConsumerWidget {
                                       ),
                                     ),
                             icon: const Icon(Icons.star_outline),
-                            label: Text(has ? 'Ocijenjeno' : 'Ocijeni'),
+                            label: Text(has ? 'Reviewed' : 'Rate'),
                           ),
                           loading: () => const Padding(
                             padding: EdgeInsets.all(8),

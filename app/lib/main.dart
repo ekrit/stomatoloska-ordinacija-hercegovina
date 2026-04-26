@@ -35,7 +35,7 @@ class SohApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Stomatološka Ordinacija Hercegovina',
+      title: 'Dental Clinic Herzegovina',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(

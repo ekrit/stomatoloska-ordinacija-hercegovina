@@ -11,7 +11,7 @@ final _patientIdProvider = FutureProvider.autoDispose<int?>((ref) async {
   final userId = ref.watch(currentUserProvider)?.id;
   if (userId == null) return null;
   final patients = await ref.watch(patientSessionRepositoryProvider).listPatientsByUserId(userId);
-  return patients.isEmpty ? null : patients.first.id;
+  return patients.isEmpty ? null : patients.first.userId;
 });
 
 final _ordersProvider = FutureProvider.autoDispose<List<OrderResponse>>((ref) async {

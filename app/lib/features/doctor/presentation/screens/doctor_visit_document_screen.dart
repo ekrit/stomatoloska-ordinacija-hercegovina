@@ -40,7 +40,7 @@ class _DoctorVisitDocumentScreenState
     final existingAsync = ref.watch(_recordsForAppointmentProvider(id));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Documenti / Nalazi')),
+      appBar: AppBar(title: const Text('Documents / findings')),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: existingAsync.when(

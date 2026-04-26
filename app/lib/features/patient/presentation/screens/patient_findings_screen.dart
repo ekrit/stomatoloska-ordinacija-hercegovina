@@ -22,7 +22,7 @@ class PatientFindingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(_recordsForAppointmentPatientProvider(appointmentId));
     return Scaffold(
-      appBar: AppBar(title: const Text('Nalazi / dokumenti')),
+      appBar: AppBar(title: const Text('Findings / documents')),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),

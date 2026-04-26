@@ -51,13 +51,9 @@ class AdminOfficeLocationsScreen extends ConsumerWidget {
                     subtitle: Text(
                       [
                         'City ID: ${c.id ?? '—'}',
-                        if ((c.address ?? '').isNotEmpty) 'Address: ${c.address}',
-                        if ((c.contactPhone ?? '').isNotEmpty) 'Phone: ${c.contactPhone}',
-                        if ((c.contactEmail ?? '').isNotEmpty) 'Email: ${c.contactEmail}',
-                        if ((c.workingHours ?? '').isNotEmpty) 'Hours: ${c.workingHours}',
                       ].join('\n'),
                     ),
-                    isThreeLine: true,
+                    isThreeLine: false,
                     trailing: const Icon(Icons.edit_outlined),
                     onTap: () async {
                       final changed = await Navigator.of(context).push<bool>(
