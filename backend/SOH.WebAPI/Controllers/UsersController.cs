@@ -10,6 +10,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Collections.Generic;
+using SOH.WebAPI.Authorization;
 
 namespace SOH.WebAPI.Controllers
 {
@@ -30,7 +31,11 @@ namespace SOH.WebAPI.Controllers
             _configuration = configuration;
         }
 
+        private int? CurrentUserId =>
+            int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
+
         [HttpGet]
+        [Authorize(Roles = RoleNames.Administrator)]
         public async Task<ActionResult<PagedResult<UserResponse>>> Get([FromQuery] UserSearchObject? search = null)
         {
             return await _userService.GetAsync(search ?? new UserSearchObject());
@@ -39,6 +44,12 @@ namespace SOH.WebAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<UserResponse>> GetById(int id)
         {
+            var uid = CurrentUserId;
+            if (uid == null)
+                return Unauthorized();
+            if (!User.IsInRole(RoleNames.Administrator) && uid != id)
+                return Forbid();
+
             var user = await _userService.GetByIdAsync(id);
 
             if (user == null)
@@ -48,6 +59,7 @@ namespace SOH.WebAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = RoleNames.Administrator)]
         public async Task<ActionResult<UserResponse>> Create(UserUpsertRequest request)
         {
             var createdUser = await _userService.CreateAsync(request);
@@ -94,6 +106,12 @@ namespace SOH.WebAPI.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<UserResponse>> Update(int id, UserUpsertRequest request)
         {
+            var uid = CurrentUserId;
+            if (uid == null)
+                return Unauthorized();
+            if (!User.IsInRole(RoleNames.Administrator) && uid != id)
+                return Forbid();
+
             var updatedUser = await _userService.UpdateAsync(id, request);
 
             if (updatedUser == null)
@@ -103,6 +121,7 @@ namespace SOH.WebAPI.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = RoleNames.Administrator)]
         public async Task<ActionResult> Delete(int id)
         {
             var deleted = await _userService.DeleteAsync(id);
