@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
+import '../../../../core/api/soh_extra_api.dart';
 
 final _allReportsAdminProvider = FutureProvider.autoDispose<List<ReportResponse>>((ref) async {
   final r = await ref.watch(reportApiProvider).reportGet(retrieveAll: true);
@@ -65,6 +69,42 @@ class AdminReportsListScreen extends ConsumerWidget {
                           );
                       ref.invalidate(_allReportsAdminProvider);
                       messenger.showSnackBar(const SnackBar(content: Text('Report generated.')));
+                    } catch (e) {
+                      messenger.showSnackBar(SnackBar(content: Text('$e')));
+                    }
+                  },
+                ),
+                FilledButton.tonalIcon(
+                  icon: const Icon(Icons.picture_as_pdf_outlined),
+                  label: const Text('PDF: Appointments summary'),
+                  onPressed: () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    try {
+                      final bytes = await SohExtraApi(ref.read(apiClientProvider))
+                          .downloadAppointmentsSummaryPdf();
+                      final dir = await getTemporaryDirectory();
+                      final path =
+                          '${dir.path}/appointments-summary-${DateTime.now().millisecondsSinceEpoch}.pdf';
+                      await File(path).writeAsBytes(bytes);
+                      messenger.showSnackBar(SnackBar(content: Text('PDF saved: $path')));
+                    } catch (e) {
+                      messenger.showSnackBar(SnackBar(content: Text('$e')));
+                    }
+                  },
+                ),
+                FilledButton.tonalIcon(
+                  icon: const Icon(Icons.pie_chart_outline),
+                  label: const Text('PDF: Revenue by service'),
+                  onPressed: () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    try {
+                      final bytes = await SohExtraApi(ref.read(apiClientProvider))
+                          .downloadRevenueByServicePdf(months: 6);
+                      final dir = await getTemporaryDirectory();
+                      final path =
+                          '${dir.path}/revenue-by-service-${DateTime.now().millisecondsSinceEpoch}.pdf';
+                      await File(path).writeAsBytes(bytes);
+                      messenger.showSnackBar(SnackBar(content: Text('PDF saved: $path')));
                     } catch (e) {
                       messenger.showSnackBar(SnackBar(content: Text('$e')));
                     }

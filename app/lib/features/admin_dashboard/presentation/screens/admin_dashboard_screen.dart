@@ -243,17 +243,44 @@ class AdminDashboardScreen extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            grid(primary),
-            const SizedBox(height: 20),
             Text(
-              'Additional statistics',
+              'Overview',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Colors.black54,
                   ),
             ),
+            const SizedBox(height: 8),
+            grid(primary),
             const SizedBox(height: 12),
-            grid(secondary),
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.35)),
+              ),
+              child: Theme(
+                data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                child: ExpansionTile(
+                  title: Text(
+                    'More insights',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                  subtitle: Text(
+                    'Extended KPIs (users, appointments, growth)',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.black54,
+                        ),
+                  ),
+                  childrenPadding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+                  children: [
+                    grid(secondary),
+                  ],
+                ),
+              ),
+            ),
           ],
         );
       },
