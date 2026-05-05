@@ -38,6 +38,7 @@ builder.Services.AddScoped<IHygieneTrackerService, HygieneTrackerService>();
 builder.Services.AddScoped<IActivityLogService, ActivityLogService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 
 
 // Configure database

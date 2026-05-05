@@ -30,6 +30,8 @@ namespace SOH.Services.Database
         public DbSet<HygieneTracker> HygieneTrackers { get; set; }
         public DbSet<ActivityLog> ActivityLogs { get; set; }
         public DbSet<Report> Reports { get; set; }
+        public DbSet<ProductInteraction> ProductInteractions { get; set; }
+        public DbSet<UserNotification> UserNotifications { get; set; }
     
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -194,6 +196,24 @@ namespace SOH.Services.Database
                 .WithOne(i => i.Product)
                 .HasForeignKey(i => i.ProductId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<ProductInteraction>()
+                .HasOne(pi => pi.User)
+                .WithMany()
+                .HasForeignKey(pi => pi.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ProductInteraction>()
+                .HasOne(pi => pi.Product)
+                .WithMany()
+                .HasForeignKey(pi => pi.ProductId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<UserNotification>()
+                .HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Seed initial data
             modelBuilder.SeedData();
