@@ -4,6 +4,7 @@ using SOH.Model.SearchObjects;
 using SOH.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SOH.WebAPI.Authorization;
 
 namespace SOH.WebAPI.Controllers
 {
@@ -23,6 +24,24 @@ namespace SOH.WebAPI.Controllers
         public override async Task<CityResponse?> GetById(int id)
         {
             return await base.GetById(id);
+        }
+
+        [Authorize(Roles = RoleNames.Administrator)]
+        public override async Task<CityResponse> Create([FromBody] CityUpsertRequest request)
+        {
+            return await base.Create(request);
+        }
+
+        [Authorize(Roles = RoleNames.Administrator)]
+        public override async Task<CityResponse?> Update(int id, [FromBody] CityUpsertRequest request)
+        {
+            return await base.Update(id, request);
+        }
+
+        [Authorize(Roles = RoleNames.Administrator)]
+        public override async Task<bool> Delete(int id)
+        {
+            return await base.Delete(id);
         }
     }
 }

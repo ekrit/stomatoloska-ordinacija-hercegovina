@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../core/api/api_providers.dart';
+import '../../../core/api/soh_extra_api.dart';
 import '../../../core/widgets/async_body.dart';
 import '../../../core/widgets/section_header.dart';
 import '../../patient/presentation/providers/patient_data_providers.dart';
+import 'recommendations_providers.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key, required this.onBook});
@@ -16,9 +18,7 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
     final doctors = ref.watch(doctorsProvider);
-    final products = ref.watch(productsProvider);
-    final appointments = ref.watch(myAppointmentsProvider);
-    final services = ref.watch(servicesProvider);
+    final recommended = ref.watch(recommendedProductsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -27,9 +27,7 @@ class HomeScreen extends ConsumerWidget {
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(doctorsProvider);
-          ref.invalidate(productsProvider);
-          ref.invalidate(myAppointmentsProvider);
-          ref.invalidate(servicesProvider);
+          ref.invalidate(recommendedProductsProvider);
         },
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -61,61 +59,59 @@ class HomeScreen extends ConsumerWidget {
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               sliver: SliverToBoxAdapter(
-                child: products.when(
-                  data: (list) {
-                    final recentServiceName = _mostRecentServiceName(
-                      appointments: appointments,
-                      services: services,
-                    );
-                    final communityCategories = communityPreferredCategories(list);
-                    final rec = recommendedProducts(
-                      list,
-                      recentServiceName: recentServiceName,
-                      communityPreferredCategories: communityCategories,
-                    );
+                child: recommended.when(
+                  data: (rec) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 20),
-                        const SectionHeader('Recommended Products'),
-                        if (recentServiceName != null && recentServiceName.trim().isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Text(
-                              'Based on your recent service: $recentServiceName',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
+                        const SectionHeader('Recommended for you'),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Text(
+                            'Suggestions from our server use your visits, clinic popularity, and products you view.',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
                           ),
-                        if (communityCategories.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Text(
-                              'Also trending with similar users: ${communityCategories.join(', ')}',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
-                          ),
+                        ),
                         if (rec.isEmpty)
                           Text(
-                            'No products in catalog yet.',
+                            'No recommendations yet — check back after more catalog data is available.',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                                 ),
                           )
                         else
                           SizedBox(
-                            height: 120,
+                            height: 132,
                             child: ListView.separated(
                               scrollDirection: Axis.horizontal,
                               itemCount: rec.length,
                               separatorBuilder: (_, __) => const SizedBox(width: 12),
                               itemBuilder: (context, i) {
-                                final p = rec[i];
-                                return _ProductCard(product: p);
+                                final item = rec[i];
+                                return _ProductCard(
+                                  product: item.product,
+                                  hint: item.reasons.isNotEmpty ? item.reasons.first : null,
+                                  onTap: () async {
+                                    final id = item.product.id;
+                                    if (id == null) return;
+                                    try {
+                                      await SohExtraApi(ref.read(apiClientProvider))
+                                          .trackProductInteraction(productId: id);
+                                    } catch (_) {}
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Logged interest in ${item.product.name ?? 'product'} — recommendations will improve over time.',
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                );
                               },
                             ),
                           ),
@@ -126,7 +122,10 @@ class HomeScreen extends ConsumerWidget {
                     padding: EdgeInsets.all(24),
                     child: Center(child: CircularProgressIndicator()),
                   ),
-                  error: (e, _) => Text('Products: $e'),
+                  error: (e, _) => Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text('Recommendations: $e'),
+                  ),
                 ),
               ),
             ),
@@ -200,55 +199,56 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-String? _mostRecentServiceName({
-  required AsyncValue<List<AppointmentResponse>> appointments,
-  required AsyncValue<List<ServiceResponse>> services,
-}) {
-  final appts = appointments.asData?.value;
-  final svcs = services.asData?.value;
-  if (appts == null || svcs == null || appts.isEmpty || svcs.isEmpty) return null;
-
-  appts.sort((a, b) => (b.startTime ?? DateTime(0)).compareTo(a.startTime ?? DateTime(0)));
-  final recent = appts.firstWhere(
-    (a) => a.serviceId != null,
-    orElse: () => appts.first,
-  );
-  final id = recent.serviceId;
-  if (id == null) return null;
-  for (final s in svcs) {
-    if (s.id == id) return s.name;
-  }
-  return null;
-}
-
 class _ProductCard extends StatelessWidget {
-  const _ProductCard({required this.product});
+  const _ProductCard({
+    required this.product,
+    this.hint,
+    this.onTap,
+  });
 
   final ProductResponse product;
+  final String? hint;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 200,
+      width: 210,
       child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                product.name ?? 'Product',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              const Spacer(),
-              if (product.price != null)
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  '${product.price!.toStringAsFixed(2)} KM',
-                  style: Theme.of(context).textTheme.labelLarge,
+                  product.name ?? 'Product',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall,
                 ),
-            ],
+                if (hint != null && hint!.trim().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      hint!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ),
+                const Spacer(),
+                if (product.price != null)
+                  Text(
+                    '${product.price!.toStringAsFixed(2)} KM',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+              ],
+            ),
           ),
         ),
       ),

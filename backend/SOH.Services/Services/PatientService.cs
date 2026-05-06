@@ -37,5 +37,22 @@ namespace SOH.Services.Services
 
             return query;
         }
+
+        protected override Patient MapInsertToEntity(Patient entity, PatientUpsertRequest request)
+        {
+            _mapper.Map(request, entity);
+            entity.Phone = string.IsNullOrWhiteSpace(request.Phone)
+                ? string.Empty
+                : request.Phone.Trim();
+            return entity;
+        }
+
+        protected override void MapUpdateToEntity(Patient entity, PatientUpsertRequest request)
+        {
+            _mapper.Map(request, entity);
+            entity.Phone = string.IsNullOrWhiteSpace(request.Phone)
+                ? string.Empty
+                : request.Phone.Trim();
+        }
     }
 }

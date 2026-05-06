@@ -10,42 +10,46 @@ using SOH.WebAPI.Services;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
+using SOH.WebAPI.Hubs;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddTransient<IUserService, UserService>();
-builder.Services.AddTransient<IRoleService, RoleService>();
-builder.Services.AddTransient<IGenderService, GenderService>();
-builder.Services.AddTransient<ICityService, CityService>();
-builder.Services.AddTransient<IPatientService, PatientService>();
-builder.Services.AddTransient<IDoctorService, DoctorService>();
-builder.Services.AddTransient<IAdminService, AdminService>();
-builder.Services.AddTransient<IAppointmentService, AppointmentService>();
-builder.Services.AddTransient<IServiceService, ServiceService>();
-builder.Services.AddTransient<IRoomService, RoomService>();
-builder.Services.AddTransient<IMedicalRecordService, MedicalRecordService>();
-builder.Services.AddTransient<IDoctorNoteService, DoctorNoteService>();
-builder.Services.AddTransient<IPaymentService, PaymentService>();
-builder.Services.AddTransient<IReviewService, ReviewService>();
-builder.Services.AddTransient<IProductService, ProductService>();
-builder.Services.AddTransient<IOrderService, OrderService>();
-builder.Services.AddTransient<IOrderItemService, OrderItemService>();
-builder.Services.AddTransient<IReminderService, ReminderService>();
-builder.Services.AddTransient<IHygieneTrackerService, HygieneTrackerService>();
-builder.Services.AddTransient<IActivityLogService, ActivityLogService>();
-builder.Services.AddTransient<IReportService, ReportService>();
-builder.Services.AddTransient<IAdminDashboardService, AdminDashboardService>();
+// Add services to the container (scoped to align DbContext lifetime).
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IGenderService, GenderService>();
+builder.Services.AddScoped<ICityService, CityService>();
+builder.Services.AddScoped<IPatientService, PatientService>();
+builder.Services.AddScoped<IDoctorService, DoctorService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+builder.Services.AddScoped<IServiceService, ServiceService>();
+builder.Services.AddScoped<IRoomService, RoomService>();
+builder.Services.AddScoped<IMedicalRecordService, MedicalRecordService>();
+builder.Services.AddScoped<IDoctorNoteService, DoctorNoteService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderItemService, OrderItemService>();
+builder.Services.AddScoped<IReminderService, ReminderService>();
+builder.Services.AddScoped<IHygieneTrackerService, HygieneTrackerService>();
+builder.Services.AddScoped<IActivityLogService, ActivityLogService>();
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IReportPdfService, ReportPdfService>();
+builder.Services.AddSingleton<INotificationRealtimePublisher, SignalRNotificationPublisher>();
+builder.Services.AddSignalR();
 
 
 // Configure database
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=SOH_LocalDev;Integrated Security=True;";
 builder.Services.AddDatabaseServices(connectionString);
-
-// Add configuration
-builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 
 builder.Services.AddMapster();
 builder.Services.AddSingleton<IAppointmentReminderPublisher, AppointmentReminderPublisher>();
@@ -73,6 +77,20 @@ builder.Services.AddAuthentication(options =>
             ValidIssuer = jwtSettings.GetValue<string>("Issuer"),
             ValidAudience = jwtSettings.GetValue<string>("Audience"),
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
         };
     })
     .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
@@ -127,12 +145,17 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Avoid redirecting API traffic from http://localhost during local dev (can break POST clients).
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 using (var scope = app.Services.CreateScope())
 {
@@ -148,16 +171,6 @@ using (var scope = app.Services.CreateScope())
 
 
     }
-    // Train the recommender model in background after startup
-    //_ = Task.Run(async () =>  // The underscore tells the compiler we're intentionally ignoring the result
-    //{
-    //    // Wait a bit for the app to fully start
-    //    await Task.Delay(2000);
-    //    using (var trainingScope = app.Services.CreateScope())
-    //    {
-    //        RecommenderService.TrainModelAtStartup(trainingScope.ServiceProvider);
-    //    }
-    //});
 }
 
 app.Run();

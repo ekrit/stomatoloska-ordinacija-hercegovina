@@ -20,6 +20,9 @@ import '../widgets/stat_card.dart';
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
 
+  /// Same vertical space for charts + quick actions (wide row + narrow stack).
+  static const double _insightsRowHeight = 320;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final width = MediaQuery.of(context).size.width;
@@ -105,36 +108,67 @@ class AdminDashboardScreen extends ConsumerWidget {
                   _buildStatsSection(context, ref, width),
                   const SizedBox(height: 24),
                   if (isWide)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Expanded(
-                          flex: 3,
-                          child: Column(
+                        SizedBox(
+                          height: AdminDashboardScreen._insightsRowHeight,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              _buildChartsRow(context, ref),
+                              Expanded(
+                                child: _DashboardPanel(
+                                  title: 'Monthly Appointments Trend',
+                                  child: _buildAppointmentsChart(ref),
+                                ),
+                              ),
+                              const SizedBox(width: 24),
+                              Expanded(
+                                child: _DashboardPanel(
+                                  title: 'Service Revenue Breakdown',
+                                  child: _buildRevenueChart(ref),
+                                ),
+                              ),
+                              const SizedBox(width: 24),
+                              Expanded(
+                                child: _DashboardPanel(
+                                  title: 'Quick Actions',
+                                  child: const QuickActionsGrid(),
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 24),
-                        Expanded(
-                          flex: 2,
-                          child: Column(
-                            children: [
-                              const QuickActionsCard(),
-                              const SizedBox(height: 24),
-                              _buildStaffSpotlight(ref),
-                            ],
-                          ),
-                        ),
+                        const SizedBox(height: 24),
+                        _buildStaffSpotlight(ref),
                       ],
                     )
                   else
                     Column(
                       children: [
-                        _buildChartsStack(context, ref),
+                        SizedBox(
+                          height: AdminDashboardScreen._insightsRowHeight,
+                          child: _DashboardPanel(
+                            title: 'Monthly Appointments Trend',
+                            child: _buildAppointmentsChart(ref),
+                          ),
+                        ),
                         const SizedBox(height: 24),
-                        const QuickActionsCard(),
+                        SizedBox(
+                          height: AdminDashboardScreen._insightsRowHeight,
+                          child: _DashboardPanel(
+                            title: 'Service Revenue Breakdown',
+                            child: _buildRevenueChart(ref),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          height: AdminDashboardScreen._insightsRowHeight,
+                          child: _DashboardPanel(
+                            title: 'Quick Actions',
+                            child: const QuickActionsGrid(),
+                          ),
+                        ),
                         const SizedBox(height: 24),
                         _buildStaffSpotlight(ref),
                       ],
@@ -243,56 +277,47 @@ class AdminDashboardScreen extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            grid(primary),
-            const SizedBox(height: 20),
             Text(
-              'Additional statistics',
+              'Overview',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Colors.black54,
                   ),
             ),
+            const SizedBox(height: 8),
+            grid(primary),
             const SizedBox(height: 12),
-            grid(secondary),
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.35)),
+              ),
+              child: Theme(
+                data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                child: ExpansionTile(
+                  title: Text(
+                    'More insights',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                  subtitle: Text(
+                    'Extended KPIs (users, appointments, growth)',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.black54,
+                        ),
+                  ),
+                  childrenPadding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+                  children: [
+                    grid(secondary),
+                  ],
+                ),
+              ),
+            ),
           ],
         );
       },
-    );
-  }
-
-  Widget _buildChartsRow(BuildContext context, WidgetRef ref) {
-    return Row(
-      children: [
-        Expanded(
-          child: _ChartCard(
-            title: 'Monthly Appointments Trend',
-            child: _buildAppointmentsChart(ref),
-          ),
-        ),
-        const SizedBox(width: 24),
-        Expanded(
-          child: _ChartCard(
-            title: 'Service Revenue Breakdown',
-            child: _buildRevenueChart(ref),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildChartsStack(BuildContext context, WidgetRef ref) {
-    return Column(
-      children: [
-        _ChartCard(
-          title: 'Monthly Appointments Trend',
-          child: _buildAppointmentsChart(ref),
-        ),
-        const SizedBox(height: 24),
-        _ChartCard(
-          title: 'Service Revenue Breakdown',
-          child: _buildRevenueChart(ref),
-        ),
-      ],
     );
   }
 
@@ -327,8 +352,8 @@ class AdminDashboardScreen extends ConsumerWidget {
   }
 }
 
-class _ChartCard extends StatelessWidget {
-  const _ChartCard({
+class _DashboardPanel extends StatelessWidget {
+  const _DashboardPanel({
     required this.title,
     required this.child,
   });
@@ -346,21 +371,18 @@ class _ChartCard extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: SizedBox(
-          height: 240,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-              const SizedBox(height: 12),
-              Expanded(child: child),
-            ],
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            Expanded(child: child),
+          ],
         ),
       ),
     );

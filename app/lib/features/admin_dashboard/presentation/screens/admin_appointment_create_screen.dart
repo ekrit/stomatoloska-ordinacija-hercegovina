@@ -97,7 +97,11 @@ class _AdminAppointmentCreateScreenState extends ConsumerState<AdminAppointmentC
           TextField(
             controller: _patientId,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Patient ID', border: OutlineInputBorder()),
+            decoration: const InputDecoration(
+              labelText: 'Patient (user) ID',
+              helperText: 'Same as the patient account user id (Patients.UserId), not a row number.',
+              border: OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: 12),
           TextField(

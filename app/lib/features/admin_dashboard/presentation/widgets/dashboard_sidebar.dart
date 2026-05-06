@@ -15,7 +15,6 @@ class DashboardSidebar extends StatelessWidget {
     final items = [
       const _SidebarItem('dashboard', 'Dashboard', Icons.grid_view_rounded),
       const _SidebarItem('users', 'Users', Icons.group_outlined),
-      const _SidebarItem('settings', 'Settings', Icons.settings_outlined),
     ];
 
     return Container(

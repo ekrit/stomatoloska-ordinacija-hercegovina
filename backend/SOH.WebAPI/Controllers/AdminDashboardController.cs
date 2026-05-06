@@ -2,12 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SOH.Model.Responses;
 using SOH.Services.Interfaces;
+using SOH.WebAPI.Authorization;
 
 namespace SOH.WebAPI.Controllers
 {
     [ApiController]
     [Route("admin-dashboard")]
-    [Authorize]
+    [Authorize(Roles = RoleNames.Administrator)]
     public class AdminDashboardController : ControllerBase
     {
         private readonly IAdminDashboardService _service;

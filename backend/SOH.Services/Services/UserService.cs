@@ -118,6 +118,19 @@ namespace SOH.Services.Services
             }
         }
 
+        /// <summary>
+        /// Aligns <see cref="User.Role"/> (domain type) with assigned JWT role names.
+        /// </summary>
+        private static UserRoleType InferDomainRoleFromRoleNames(IEnumerable<string> roleNames)
+        {
+            var set = new HashSet<string>(roleNames.Select(n => n.Trim().ToLowerInvariant()));
+            if (set.Contains("administrator") || set.Contains("admin"))
+                return UserRoleType.Admin;
+            if (set.Contains("doctor") || set.Contains("dentist") || set.Contains("stomatolog"))
+                return UserRoleType.Doctor;
+            return UserRoleType.Patient;
+        }
+
         public async Task<UserResponse> CreateAsync(UserUpsertRequest request)
         {
             // Check if user with same email or username already exists
@@ -131,6 +144,13 @@ namespace SOH.Services.Services
                 throw new InvalidOperationException("User with this username already exists.");
             }
 
+            var roleNamesForDomain = request.RoleIds != null && request.RoleIds.Any()
+                ? await _context.Roles
+                    .Where(r => request.RoleIds!.Contains(r.Id))
+                    .Select(r => r.Name)
+                    .ToListAsync()
+                : new List<string>();
+
             var user = new User
             {
                 FirstName = request.FirstName,
@@ -142,7 +162,10 @@ namespace SOH.Services.Services
                 CityId = request.CityId,
                 IsActive = request.IsActive,
                 CreatedAt = DateTime.UtcNow,
-                Picture = request.Picture
+                Picture = request.Picture,
+                Role = roleNamesForDomain.Count > 0
+                    ? InferDomainRoleFromRoleNames(roleNamesForDomain)
+                    : UserRoleType.Patient
             };
 
             // Hash password if provided
@@ -240,6 +263,14 @@ namespace SOH.Services.Services
                     };
                     _context.UserRoles.Add(userRole);
                 }
+
+                var names = await _context.Roles
+                    .Where(r => request.RoleIds.Contains(r.Id))
+                    .Select(r => r.Name)
+                    .ToListAsync();
+                user.Role = names.Count > 0
+                    ? InferDomainRoleFromRoleNames(names)
+                    : UserRoleType.Patient;
             }
 
             await _context.SaveChangesAsync();
