@@ -15,7 +15,7 @@ namespace SOH.Services.Database
             // Use a fixed date for all timestamps
             var fixedDate = new DateTime(2025, 5, 5, 0, 0, 0, DateTimeKind.Utc);
 
-            // Seed Roles
+            // Seed Roles (JWT claim names; must match RoleNames in WebAPI)
             modelBuilder.Entity<Role>().HasData(
                 new Role 
                 { 
@@ -28,8 +28,16 @@ namespace SOH.Services.Database
                 new Role 
                 { 
                     Id = 2, 
-                    Name = "User", 
-                    Description = "Regular user role", 
+                    Name = "Patient", 
+                    Description = "Patient (registered user)", 
+                    CreatedAt = fixedDate, 
+                    IsActive = true 
+                },
+                new Role 
+                { 
+                    Id = 3, 
+                    Name = "Doctor", 
+                    Description = "Dentist / stomatologist", 
                     CreatedAt = fixedDate, 
                     IsActive = true 
                 }
@@ -44,6 +52,7 @@ namespace SOH.Services.Database
                     LastName = "Mušić",
                     Email = TestMailReceiver,
                     Username = "admin",
+                    Role = UserRoleType.Admin,
                     // Dev password: SohDev2026!
                     PasswordHash = "4BNQxOR2Z9YWxOvrV8d06ex8xsdPoxFIYOduR76p3PY=",
                     PasswordSalt = "fVmPGXAOrMU9qOyyeZgRlg==",
@@ -60,7 +69,8 @@ namespace SOH.Services.Database
                     FirstName = "Amel", 
                     LastName = "Musić",
                     Email = "example1@gmail.com",
-                    Username = "user", 
+                    Username = "user",
+                    Role = UserRoleType.Patient,
                     // Dev password: SohDev2026!
                     PasswordHash = "4BNQxOR2Z9YWxOvrV8d06ex8xsdPoxFIYOduR76p3PY=", 
                     PasswordSalt = "fVmPGXAOrMU9qOyyeZgRlg==", 
@@ -77,7 +87,8 @@ namespace SOH.Services.Database
                     FirstName = "Adil", 
                     LastName = "Joldić",
                     Email = "example2@gmail.com",
-                    Username = "admin2", 
+                    Username = "admin2",
+                    Role = UserRoleType.Doctor,
                     // Dev password: SohDev2026!
                     PasswordHash = "4BNQxOR2Z9YWxOvrV8d06ex8xsdPoxFIYOduR76p3PY=", 
                     PasswordSalt = "fVmPGXAOrMU9qOyyeZgRlg==", 
@@ -94,7 +105,8 @@ namespace SOH.Services.Database
                     FirstName = "Test", 
                     LastName = "Test", 
                     Email = TestMailSender, 
-                    Username = "user2", 
+                    Username = "user2",
+                    Role = UserRoleType.Patient,
                     // Dev password: SohDev2026!
                     PasswordHash = "4BNQxOR2Z9YWxOvrV8d06ex8xsdPoxFIYOduR76p3PY=", 
                     PasswordSalt = "fVmPGXAOrMU9qOyyeZgRlg==", 
@@ -107,12 +119,66 @@ namespace SOH.Services.Database
                 }
             );
 
-            // Seed UserRoles
+            // Seed UserRoles (JWT roles)
             modelBuilder.Entity<UserRole>().HasData(
                 new UserRole { Id = 1, UserId = 1, RoleId = 1, DateAssigned = fixedDate }, 
-                new UserRole { Id = 2, UserId = 2, RoleId = 1, DateAssigned = fixedDate }, 
-                new UserRole { Id = 3, UserId = 3, RoleId = 2, DateAssigned = fixedDate }, 
+                new UserRole { Id = 2, UserId = 2, RoleId = 2, DateAssigned = fixedDate }, 
+                new UserRole { Id = 3, UserId = 3, RoleId = 3, DateAssigned = fixedDate }, 
                 new UserRole { Id = 4, UserId = 4, RoleId = 2, DateAssigned = fixedDate }
+            );
+
+            // Doctor profile for seeded stomatologist (UserId 3)
+            modelBuilder.Entity<Doctor>().HasData(
+                new Doctor
+                {
+                    UserId = 3,
+                    FirstName = "Adil",
+                    LastName = "Joldić",
+                    Specialization = "Oral surgery",
+                    Rating = 4.85m
+                }
+            );
+
+            // Clinical rooms (required for appointment booking)
+            modelBuilder.Entity<Room>().HasData(
+                new Room { Id = 1, Name = "Ordinacija 1", IsAvailable = true },
+                new Room { Id = 2, Name = "Ordinacija 2", IsAvailable = true }
+            );
+
+            // Services offered at the clinic (required for booking flow)
+            modelBuilder.Entity<Service>().HasData(
+                new Service
+                {
+                    Id = 1,
+                    Name = "Pregled i savjet",
+                    Description = "Preventivni stomatološki pregled.",
+                    Price = 50.00m,
+                    DurationMinutes = 30
+                },
+                new Service
+                {
+                    Id = 2,
+                    Name = "Čišćenje zuba (profesionalno)",
+                    Description = "Uklanjanje zubnog kamenca i poliranje.",
+                    Price = 80.00m,
+                    DurationMinutes = 45
+                },
+                new Service
+                {
+                    Id = 3,
+                    Name = "Vađenje zuba",
+                    Description = "Jednostavna ekstrakcija.",
+                    Price = 120.00m,
+                    DurationMinutes = 60
+                },
+                new Service
+                {
+                    Id = 4,
+                    Name = "Plomba (komposit)",
+                    Description = "Ispun kompozitnim materijalom.",
+                    Price = 90.00m,
+                    DurationMinutes = 45
+                }
             );
 
             // Seed Genders

@@ -18,7 +18,7 @@ namespace SOH.Model.Requests
 
         [Phone]
         [MaxLength(20)]
-        public string Phone { get; set; } = string.Empty;
+        public string? Phone { get; set; }
 
         [Required]
         public DateTime DateOfBirth { get; set; }

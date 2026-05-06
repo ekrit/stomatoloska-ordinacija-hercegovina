@@ -115,154 +115,156 @@ class _ProfileTab extends ConsumerWidget {
             : 'Your profile';
     final pic = decodeUserPictureBytes(user?.picture);
 
-    return Scaffold(
-      backgroundColor: scheme.surfaceContainerLowest,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar.large(
-            pinned: true,
-            title: const Text('Profile'),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                Card(
-                  elevation: 0,
-                  color: scheme.surface,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CircleAvatar(
-                          radius: 40,
-                          backgroundColor: scheme.surfaceContainerHighest,
-                          backgroundImage: pic != null ? MemoryImage(pic) : null,
-                          child: pic == null
-                              ? Icon(Icons.person, size: 40, color: scheme.onSurfaceVariant)
-                              : null,
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                displayName,
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                              ),
-                              const SizedBox(height: 6),
-                              if (user?.email != null && user!.email!.trim().isNotEmpty)
-                                Chip(
-                                  avatar: const Icon(Icons.mail_outline, size: 18),
-                                  label: Text(
-                                    user!.email!,
-                                    style: Theme.of(context).textTheme.bodySmall,
-                                  ),
-                                  visualDensity: VisualDensity.compact,
-                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
+    // Do not nest a second Scaffold inside PatientShellScreen — it stacks toolbars / safe-area padding.
+    return Material(
+      color: scheme.surfaceContainerLowest,
+      child: SafeArea(
+        bottom: false,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(
+                'Profile',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Account',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
+              ),
+            ),
+            Card(
+              elevation: 0,
+              color: scheme.surface,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 40,
+                      backgroundColor: scheme.surfaceContainerHighest,
+                      backgroundImage: pic != null ? MemoryImage(pic) : null,
+                      child: pic == null
+                          ? Icon(Icons.person, size: 40, color: scheme.onSurfaceVariant)
+                          : null,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            displayName,
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                          const SizedBox(height: 6),
+                          if (user?.email != null && user!.email!.trim().isNotEmpty)
+                            Chip(
+                              avatar: const Icon(Icons.mail_outline, size: 18),
+                              label: Text(
+                                user!.email!,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                              visualDensity: VisualDensity.compact,
+                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                        ],
                       ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Card(
-                  elevation: 0,
-                  color: scheme.surface,
-                  child: Column(
-                    children: [
-                      ListTile(
-                        leading: Icon(Icons.edit_outlined, color: scheme.primary),
-                        title: const Text('Edit my account'),
-                        subtitle: const Text('Name, email, photo, and security'),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: user?.id == null
-                            ? null
-                            : () {
-                                Navigator.of(context).push<void>(
-                                  MaterialPageRoute<void>(
-                                    builder: (_) => UserEditScreen(userId: user!.id!),
-                                  ),
-                                );
-                              },
-                      ),
-                      const Divider(height: 1),
-                      ListTile(
-                        leading: Icon(Icons.shopping_bag_outlined, color: scheme.primary),
-                        title: const Text('My orders'),
-                        subtitle: const Text('Products you have ordered'),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
+              ),
+            ),
+          const SizedBox(height: 16),
+          Text(
+            'Account',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Card(
+            elevation: 0,
+            color: scheme.surface,
+            child: Column(
+              children: [
+                ListTile(
+                  leading: Icon(Icons.edit_outlined, color: scheme.primary),
+                  title: const Text('Edit my account'),
+                  subtitle: const Text('Name, email, photo, and security'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: user?.id == null
+                      ? null
+                      : () {
                           Navigator.of(context).push<void>(
                             MaterialPageRoute<void>(
-                              builder: (_) => const MyOrdersScreen(),
+                              builder: (_) => UserEditScreen(userId: user!.id!),
                             ),
                           );
                         },
-                      ),
-                    ],
-                  ),
                 ),
-                const SizedBox(height: 20),
-                Text(
-                  'Stay informed',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
+                const Divider(height: 1),
+                ListTile(
+                  leading: Icon(Icons.shopping_bag_outlined, color: scheme.primary),
+                  title: const Text('My orders'),
+                  subtitle: const Text('Products you have ordered'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.of(context).push<void>(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const MyOrdersScreen(),
                       ),
+                    );
+                  },
                 ),
-                const SizedBox(height: 8),
-                Card(
-                  elevation: 0,
-                  color: scheme.surface,
-                  child: ListTile(
-                    leading: Icon(Icons.notifications_active_outlined, color: scheme.primary),
-                    title: const Text('Notifications'),
-                    subtitle: Text(
-                      'Updates refresh automatically about every 45 seconds.',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                          ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Stay informed',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Card(
+            elevation: 0,
+            color: scheme.surface,
+            child: ListTile(
+              leading: Icon(Icons.notifications_active_outlined, color: scheme.primary),
+              title: const Text('Notifications'),
+              subtitle: Text(
+                'Updates refresh automatically about every 45 seconds.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
                     ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => _openNotifications(context, ref),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Card(
-                  elevation: 0,
-                  color: scheme.errorContainer.withOpacity(0.35),
-                  child: ListTile(
-                    leading: Icon(Icons.logout, color: scheme.error),
-                    title: Text('Sign out', style: TextStyle(color: scheme.error)),
-                    onTap: onLogout,
-                  ),
-                ),
-              ]),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _openNotifications(context, ref),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Card(
+            elevation: 0,
+            color: scheme.errorContainer.withOpacity(0.35),
+            child: ListTile(
+              leading: Icon(Icons.logout, color: scheme.error),
+              title: Text('Sign out', style: TextStyle(color: scheme.error)),
+              onTap: onLogout,
             ),
           ),
         ],
+        ),
       ),
     );
   }
 
   Future<void> _openNotifications(BuildContext context, WidgetRef ref) async {
-    final api = SohExtraApi(ref.read(apiClientProvider));
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -274,55 +276,102 @@ class _ProfileTab extends ConsumerWidget {
           maxChildSize: 0.92,
           minChildSize: 0.4,
           builder: (context, scroll) {
-            return FutureBuilder<List<UserNotificationItem>>(
-              future: api.fetchNotifications(take: 40),
-              builder: (context, snap) {
-                if (snap.connectionState == ConnectionState.waiting) {
-                  return const Center(child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: CircularProgressIndicator(),
-                  ));
-                }
-                if (snap.hasError) {
-                  return Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text('Could not load notifications: ${snap.error}'),
-                  );
-                }
-                final items = snap.data ?? [];
-                if (items.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Text('No notifications yet.'),
-                  );
-                }
-                return ListView.builder(
-                  controller: scroll,
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                  itemCount: items.length,
-                  itemBuilder: (context, i) {
-                    final n = items[i];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: ListTile(
-                        title: Text(n.title, style: TextStyle(fontWeight: n.isRead ? FontWeight.normal : FontWeight.w600)),
-                        subtitle: Text(n.body),
-                        isThreeLine: true,
-                        trailing: n.isRead ? null : const Icon(Icons.circle, size: 10),
-                        onTap: () async {
-                          if (!n.isRead) {
-                            try {
-                              await api.markNotificationRead(n.id);
-                              ref.invalidate(notificationUnreadPollProvider);
-                            } catch (_) {}
-                          }
-                          if (context.mounted) Navigator.of(context).pop();
-                        },
-                      ),
-                    );
-                  },
-                );
-              },
+            final token = ref.read(authTokenProvider);
+            return _PatientNotificationsSheet(
+              key: ValueKey<String?>(token),
+              scrollController: scroll,
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _PatientNotificationsSheet extends ConsumerStatefulWidget {
+  const _PatientNotificationsSheet({super.key, required this.scrollController});
+
+  final ScrollController scrollController;
+
+  @override
+  ConsumerState<_PatientNotificationsSheet> createState() => _PatientNotificationsSheetState();
+}
+
+class _PatientNotificationsSheetState extends ConsumerState<_PatientNotificationsSheet> {
+  late Future<List<UserNotificationItem>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _load();
+  }
+
+  Future<List<UserNotificationItem>> _load() {
+    final api = SohExtraApi(ref.read(apiClientProvider));
+    return api.fetchNotifications(take: 40);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<UserNotificationItem>>(
+      future: _future,
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+        if (snap.hasError) {
+          return Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text('Could not load notifications: ${snap.error}'),
+          );
+        }
+        final items = snap.data ?? [];
+        if (items.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.all(24),
+            child: Text('No notifications yet.'),
+          );
+        }
+        final api = SohExtraApi(ref.read(apiClientProvider));
+        return ListView.builder(
+          controller: widget.scrollController,
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          itemCount: items.length,
+          itemBuilder: (context, i) {
+            final n = items[i];
+            return Card(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: ListTile(
+                title: Text(
+                  n.title,
+                  style: TextStyle(fontWeight: n.isRead ? FontWeight.normal : FontWeight.w600),
+                ),
+                subtitle: Text(n.body),
+                isThreeLine: true,
+                trailing: n.isRead ? null : const Icon(Icons.circle, size: 10),
+                onTap: () async {
+                  if (!n.isRead) {
+                    try {
+                      await api.markNotificationRead(n.id);
+                      if (!context.mounted) return;
+                      ref.invalidate(notificationUnreadPollProvider);
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Could not mark as read: $e')),
+                        );
+                      }
+                      return;
+                    }
+                  }
+                  if (context.mounted) Navigator.of(context).pop();
+                },
+              ),
             );
           },
         );

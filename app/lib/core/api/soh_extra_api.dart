@@ -70,15 +70,29 @@ class SohExtraApi {
   }
 
   Future<void> markNotificationRead(int id) async {
-    final resp = await _client.invokeAPI(
-      r'/notifications/$id/read',
-      'PATCH',
-      <QueryParam>[],
-      null,
-      <String, String>{},
-      <String, String>{},
-      null,
-    );
+    Future<Response> invoke(String method, Object? body, String? contentType) {
+      return _client.invokeAPI(
+        r'/notifications/$id/read',
+        method,
+        <QueryParam>[],
+        body,
+        const {'Cache-Control': 'no-store'},
+        <String, String>{},
+        contentType,
+      );
+    }
+
+    var resp = await invoke('POST', <String, dynamic>{}, 'application/json');
+    if (resp.statusCode >= 200 && resp.statusCode < 300) return;
+
+    // Some stacks route POST differently; retry on 404 only.
+    if (resp.statusCode == 404) {
+      resp = await invoke('PATCH', <String, dynamic>{}, 'application/json');
+      if (resp.statusCode >= 200 && resp.statusCode < 300) return;
+      resp = await invoke('GET', null, null);
+      if (resp.statusCode >= 200 && resp.statusCode < 300) return;
+    }
+
     if (resp.statusCode < 200 || resp.statusCode >= 300) {
       throw Exception('Mark read failed (${resp.statusCode}): ${resp.body}');
     }
@@ -159,13 +173,45 @@ class UserNotificationItem {
   final bool isRead;
 
   static UserNotificationItem fromJson(Map<String, dynamic> j) {
+    final readAtRaw = j['readAt'] ?? j['ReadAt'];
+    final hasReadAt = readAtRaw != null &&
+        ((readAtRaw is String && readAtRaw.isNotEmpty) ||
+            readAtRaw is DateTime);
+    final explicitRead = _parseBool(j['isRead'] ?? j['IsRead']);
+    final isRead = explicitRead ?? hasReadAt;
+    final idVal = j['id'] ?? j['Id'];
+    final titleVal = j['title'] ?? j['Title'];
+    final bodyVal = j['body'] ?? j['Body'];
+    final createdVal = j['createdAt'] ?? j['CreatedAt'];
     return UserNotificationItem(
-      id: (j['id'] as num).toInt(),
-      title: j['title'] as String? ?? '',
-      body: j['body'] as String? ?? '',
-      createdAt: DateTime.tryParse(j['createdAt'] as String? ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0),
-      isRead: j['isRead'] as bool? ?? false,
+      id: _parseNotificationId(idVal),
+      title: titleVal as String? ?? '',
+      body: bodyVal as String? ?? '',
+      createdAt: DateTime.tryParse(createdVal as String? ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0),
+      isRead: isRead,
     );
+  }
+
+  static int _parseNotificationId(dynamic idVal) {
+    if (idVal == null) {
+      throw const FormatException('notification id missing');
+    }
+    if (idVal is int) return idVal;
+    if (idVal is num) return idVal.toInt();
+    if (idVal is String) return int.parse(idVal.trim());
+    throw FormatException('notification id', idVal);
+  }
+
+  static bool? _parseBool(dynamic v) {
+    if (v == null) return null;
+    if (v is bool) return v;
+    if (v is num) return v != 0;
+    if (v is String) {
+      final s = v.toLowerCase();
+      if (s == 'true' || s == '1') return true;
+      if (s == 'false' || s == '0') return false;
+    }
+    return null;
   }
 }
 

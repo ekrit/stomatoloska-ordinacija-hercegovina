@@ -19,7 +19,7 @@ namespace SOH.WebAPI.Controllers
     [Authorize]
     public class UsersController : ControllerBase
     {
-        private const string DefaultUserRoleName = "User";
+        private const string DefaultUserRoleName = RoleNames.Patient;
         private readonly IUserService _userService;
         private readonly IRoleService _roleService;
         private readonly IConfiguration _configuration;

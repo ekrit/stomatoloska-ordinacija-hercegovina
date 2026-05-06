@@ -8,13 +8,25 @@ final authTokenProvider = StateProvider<String?>((ref) => null);
 /// Set after login; cleared on logout. Used for app-bar profile and “edit my profile”.
 final currentUserProvider = StateProvider<UserResponse?>((ref) => null);
 
+/// Avoid `http://host:port//path` when joining base + route paths.
+String _normalizeApiBaseUrl(String raw) {
+  var s = raw.trim();
+  while (s.endsWith('/')) {
+    s = s.substring(0, s.length - 1);
+  }
+  return s;
+}
+
 final apiClientProvider = Provider<ApiClient>((ref) {
   final token = ref.watch(authTokenProvider);
   final auth = HttpBearerAuth();
   if (token != null && token.isNotEmpty) {
     auth.accessToken = token;
   }
-  return ApiClient(basePath: AppConfig.apiBaseUrl, authentication: auth);
+  return ApiClient(
+    basePath: _normalizeApiBaseUrl(AppConfig.apiBaseUrl),
+    authentication: auth,
+  );
 });
 
 final usersApiProvider = Provider<UsersApi>(

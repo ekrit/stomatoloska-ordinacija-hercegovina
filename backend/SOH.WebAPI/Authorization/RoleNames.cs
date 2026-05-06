@@ -6,5 +6,13 @@ namespace SOH.WebAPI.Authorization;
 public static class RoleNames
 {
     public const string Administrator = "Administrator";
-    public const string User = "User";
+
+    /// <summary>JWT/database role for clinic patients (public registration).</summary>
+    public const string Patient = "Patient";
+
+    /// <summary>JWT/database role for dentists (stomatologists).</summary>
+    public const string Doctor = "Doctor";
+
+    /// <summary>Legacy name; same claim value as <see cref="Patient"/>.</summary>
+    public const string User = Patient;
 }

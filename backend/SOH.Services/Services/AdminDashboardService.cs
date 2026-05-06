@@ -41,7 +41,9 @@ namespace SOH.Services.Services
                 : Math.Round(paidTotalCurrent / totalDoctors, 2);
 
             var newPatientsThisMonth = await _context.UserRoles
-                .Where(ur => ur.Role.Name == "User" && ur.User.CreatedAt >= monthStart)
+                .Where(ur =>
+                    (ur.Role.Name == "Patient" || ur.Role.Name == "User") &&
+                    ur.User.CreatedAt >= monthStart)
                 .Select(ur => ur.UserId)
                 .Distinct()
                 .CountAsync();

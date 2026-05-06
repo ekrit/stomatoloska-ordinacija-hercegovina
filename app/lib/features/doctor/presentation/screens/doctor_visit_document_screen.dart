@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
 
+import '../../../../core/api/api_providers.dart';
+import '../../../../core/router/app_routes.dart';
+import '../../../../core/storage/auth_storage.dart';
+import '../../../../widgets/user_appbar_actions.dart' show showLogoutConfirm;
 import '../../../patient/presentation/providers/patient_repository_providers.dart';
 import '../../../patient/presentation/providers/patient_data_providers.dart';
 
@@ -39,8 +43,27 @@ class _DoctorVisitDocumentScreenState
 
     final existingAsync = ref.watch(_recordsForAppointmentProvider(id));
 
+    Future<void> logout() async {
+      final ok = await showLogoutConfirm(context);
+      if (!ok) return;
+      await AuthStorage.clear();
+      ref.read(authTokenProvider.notifier).state = null;
+      ref.read(currentUserProvider.notifier).state = null;
+      if (!context.mounted) return;
+      Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Documents / findings')),
+      appBar: AppBar(
+        title: const Text('Documents / findings'),
+        actions: [
+          IconButton(
+            onPressed: logout,
+            icon: const Icon(Icons.logout),
+            tooltip: 'Log out',
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: existingAsync.when(

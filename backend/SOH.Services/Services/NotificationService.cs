@@ -44,13 +44,12 @@ public class NotificationService : INotificationService
 
     public async Task<bool> MarkReadAsync(int userId, int notificationId, CancellationToken cancellationToken = default)
     {
-        var n = await _context.UserNotifications
-            .FirstOrDefaultAsync(x => x.Id == notificationId && x.UserId == userId, cancellationToken);
-        if (n == null)
-            return false;
-        n.ReadAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync(cancellationToken);
-        return true;
+        var utc = DateTime.UtcNow;
+        return await _context.UserNotifications
+            .Where(x => x.Id == notificationId && x.UserId == userId)
+            .ExecuteUpdateAsync(
+                s => s.SetProperty(n => n.ReadAt, _ => utc),
+                cancellationToken) > 0;
     }
 
     public async Task NotifyAppointmentCreatedAsync(int patientUserId, int appointmentId, CancellationToken cancellationToken = default)

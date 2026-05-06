@@ -4,8 +4,11 @@ import 'package:intl/intl.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
+import '../../../../core/router/app_routes.dart';
+import '../../../../core/storage/auth_storage.dart';
 import '../../../../core/utils/appointment_labels.dart';
 import '../../../../core/utils/role_utils.dart';
+import '../../../../widgets/user_appbar_actions.dart' show showLogoutConfirm;
 import '../../../patient/presentation/providers/patient_repository_providers.dart';
 import 'doctor_visit_document_screen.dart';
 
@@ -36,9 +39,29 @@ class DoctorResponseScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
+
+    Future<void> logout() async {
+      final ok = await showLogoutConfirm(context);
+      if (!ok) return;
+      await AuthStorage.clear();
+      ref.read(authTokenProvider.notifier).state = null;
+      ref.read(currentUserProvider.notifier).state = null;
+      if (!context.mounted) return;
+      Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
+    }
+
     if (!userIsDoctor(user)) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Doctor')),
+        appBar: AppBar(
+          title: const Text('Doctor'),
+          actions: [
+            IconButton(
+              onPressed: logout,
+              icon: const Icon(Icons.logout),
+              tooltip: 'Log out',
+            ),
+          ],
+        ),
         body: const Center(child: Text('Doctor access only.')),
       );
     }
@@ -52,6 +75,11 @@ class DoctorResponseScreen extends ConsumerWidget {
             onPressed: () => ref.invalidate(_doctorAppointmentsProvider),
             icon: const Icon(Icons.refresh),
             tooltip: 'Refresh',
+          ),
+          IconButton(
+            onPressed: logout,
+            icon: const Icon(Icons.logout),
+            tooltip: 'Log out',
           ),
         ],
       ),
