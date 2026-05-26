@@ -7,6 +7,7 @@ import 'package:table_calendar/table_calendar.dart';
 import '../../../core/api/api_providers.dart';
 import '../../../core/config/booking_config.dart';
 import '../../../core/domain/booking_slots.dart';
+import '../../../core/utils/appointment_labels.dart';
 import '../../patient/presentation/providers/patient_data_providers.dart';
 import '../../patient/presentation/providers/patient_repository_providers.dart';
 
@@ -92,7 +93,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               roomId: room!.id!,
               startTime: slot,
               endTime: end,
-              status: AppointmentStatus.number1,
+              status: AppointmentStatuses.requested,
               doctorNote: _composeNotes(
                 serviceName: svc.name,
                 complaint: _complaintController.text,

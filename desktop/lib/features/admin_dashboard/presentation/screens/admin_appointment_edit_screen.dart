@@ -28,7 +28,7 @@ class _AdminAppointmentEditScreenState extends ConsumerState<AdminAppointmentEdi
   void initState() {
     super.initState();
     final a = widget.appointment;
-    _status = a.status ?? AppointmentStatus.number1;
+    _status = a.status ?? AppointmentStatuses.requested;
     _start = a.startTime ?? DateTime.now();
     _end = a.endTime ?? _start.add(const Duration(minutes: 30));
     _note = TextEditingController(text: a.doctorNote ?? '');

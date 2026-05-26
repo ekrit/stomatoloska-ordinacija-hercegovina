@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
+import '../../../../core/utils/appointment_labels.dart';
 
 int? parseIdInput(String value) => int.tryParse(value.trim());
 
@@ -74,7 +75,7 @@ class _AdminAppointmentCreateScreenState extends ConsumerState<AdminAppointmentC
               roomId: rid,
               startTime: _start,
               endTime: _start.add(const Duration(minutes: 30)),
-              status: AppointmentStatus.number1,
+              status: AppointmentStatuses.requested,
               doctorNote: _note.text.trim().isEmpty ? null : _note.text.trim(),
             ),
           );

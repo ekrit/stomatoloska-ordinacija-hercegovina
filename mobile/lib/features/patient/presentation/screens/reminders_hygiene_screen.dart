@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
+import '../../../../core/utils/appointment_labels.dart';
 import '../providers/patient_data_providers.dart';
 
 final _todayHygieneProvider = FutureProvider.autoDispose<HygieneTrackerResponse?>((ref) async {
@@ -46,7 +47,7 @@ class RemindersHygieneScreen extends ConsumerWidget {
           final s = a.status;
           final st = a.startTime;
           if (st == null) return false;
-          if (s != AppointmentStatus.number1 && s != AppointmentStatus.number2) return false;
+          if (s != AppointmentStatuses.requested && s != AppointmentStatuses.accepted) return false;
           return st.isAfter(now.subtract(const Duration(minutes: 1)));
         }).toList();
         if (upcoming.isEmpty) return null;

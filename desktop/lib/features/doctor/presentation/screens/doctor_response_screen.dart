@@ -88,19 +88,19 @@ class DoctorResponseScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text('$e')),
         data: (items) {
           final pending = items
-              .where((a) => a.status == AppointmentStatus.number1)
+              .where((a) => a.status == AppointmentStatuses.requested)
               .toList()
             ..sort((a, b) => (a.startTime ?? DateTime(0))
                 .compareTo(b.startTime ?? DateTime(0)));
           final upcoming = items
               .where((a) =>
-                  a.status == AppointmentStatus.number2 ||
-                  a.status == AppointmentStatus.number1)
+                  a.status == AppointmentStatuses.accepted ||
+                  a.status == AppointmentStatuses.requested)
               .toList()
             ..sort((a, b) => (a.startTime ?? DateTime(0))
                 .compareTo(b.startTime ?? DateTime(0)));
           final completed = items
-              .where((a) => a.status == AppointmentStatus.number4)
+              .where((a) => a.status == AppointmentStatuses.completed)
               .toList()
             ..sort((a, b) => (b.startTime ?? DateTime(0))
                 .compareTo(a.startTime ?? DateTime(0)));
@@ -226,7 +226,7 @@ class _AppointmentList extends ConsumerWidget {
                               context: context,
                               ref: ref,
                               appointment: a,
-                              next: AppointmentStatus.number3,
+                              next: AppointmentStatuses.declined,
                             ),
                             child: const Text('Reject'),
                           ),
@@ -235,7 +235,7 @@ class _AppointmentList extends ConsumerWidget {
                               context: context,
                               ref: ref,
                               appointment: a,
-                              next: AppointmentStatus.number2,
+                              next: AppointmentStatuses.accepted,
                             ),
                             child: const Text('Accept'),
                           ),
@@ -269,7 +269,7 @@ class _AppointmentList extends ConsumerWidget {
       final ok = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: Text(next == AppointmentStatus.number2 ? 'Accept request?' : 'Reject request?'),
+          title: Text(next == AppointmentStatuses.accepted ? 'Accept request?' : 'Reject request?'),
           content: TextField(
             controller: noteController,
             maxLines: 3,
@@ -310,7 +310,7 @@ class _AppointmentList extends ConsumerWidget {
       ref.invalidate(_doctorAppointmentsProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next == AppointmentStatus.number2 ? 'Accepted.' : 'Rejected.')),
+          SnackBar(content: Text(next == AppointmentStatuses.accepted ? 'Accepted.' : 'Rejected.')),
         );
       }
     } catch (e) {

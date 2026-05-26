@@ -165,15 +165,15 @@ class _AppointmentListView extends ConsumerWidget {
     bool upcoming(AppointmentResponse a) {
       final s = a.status;
       final et = a.endTime;
-      if (s != AppointmentStatus.number1 && s != AppointmentStatus.number2) return false;
+      if (s != AppointmentStatuses.requested && s != AppointmentStatuses.accepted) return false;
       if (et != null && et.isBefore(now)) return false;
       return true;
     }
 
-    bool completed(AppointmentResponse a) => a.status == AppointmentStatus.number4;
+    bool completed(AppointmentResponse a) => a.status == AppointmentStatuses.completed;
 
     bool cancelled(AppointmentResponse a) =>
-        a.status == AppointmentStatus.number5 || a.status == AppointmentStatus.number3;
+        a.status == AppointmentStatuses.cancelled || a.status == AppointmentStatuses.declined;
 
     switch (mode) {
       case _PatientListMode.upcoming:
@@ -367,7 +367,7 @@ class _AppointmentPatientCard extends ConsumerWidget {
               roomId: a.roomId!,
               startTime: a.startTime!,
               endTime: a.endTime!,
-              status: AppointmentStatus.number5,
+              status: AppointmentStatuses.cancelled,
               doctorNote: a.doctorNote,
             ),
           );
