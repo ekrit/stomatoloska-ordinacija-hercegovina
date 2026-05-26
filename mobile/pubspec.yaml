@@ -1,0 +1,30 @@
+name: mobile
+description: "Dental Clinic Herzegovina - patient mobile app (Android)."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.8
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  flutter_riverpod: ^2.6.1
+  shared_preferences: ^2.5.3
+  table_calendar: ^3.2.0
+  file_picker: ^8.1.7
+  soh_api:
+    path: packages/soh_api
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  openapi_generator: ^6.1.0
+  openapi_generator_cli: ^6.1.0
+
+flutter:
+  uses-material-design: true
