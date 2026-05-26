@@ -1,3 +1,4 @@
+using SOH.Model.Exceptions;
 using SOH.Model.Requests;
 using SOH.Model.Responses;
 using SOH.Model.SearchObjects;
@@ -36,19 +37,17 @@ namespace SOH.Services.Services
 
         protected override async Task BeforeInsert(Role entity, RoleUpsertRequest request)
         {
-            // Check for duplicate role name
             if (await _context.Roles.AnyAsync(r => r.Name == request.Name))
             {
-                throw new InvalidOperationException("A role with this name already exists.");
+                throw new BusinessException("A role with this name already exists.");
             }
         }
 
         protected override async Task BeforeUpdate(Role entity, RoleUpsertRequest request)
         {
-            // Check for duplicate role name (excluding current role)
             if (await _context.Roles.AnyAsync(r => r.Name == request.Name && r.Id != entity.Id))
             {
-                throw new InvalidOperationException("A role with this name already exists.");
+                throw new BusinessException("A role with this name already exists.");
             }
         }
     }

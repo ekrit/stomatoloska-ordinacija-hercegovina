@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
+using SOH.Model.Exceptions;
 using SOH.Model.Responses;
 using SOH.Model.SearchObjects;
 using SOH.Model.Requests;
@@ -136,12 +137,12 @@ namespace SOH.Services.Services
             // Check if user with same email or username already exists
             if (await _context.Users.AnyAsync(u => u.Email == request.Email))
             {
-                throw new InvalidOperationException("User with this email already exists.");
+                throw new BusinessException("User with this email already exists.");
             }
 
             if (await _context.Users.AnyAsync(u => u.Username == request.Username))
             {
-                throw new InvalidOperationException("User with this username already exists.");
+                throw new BusinessException("User with this username already exists.");
             }
 
             var roleNamesForDomain = request.RoleIds != null && request.RoleIds.Any()
@@ -217,13 +218,13 @@ namespace SOH.Services.Services
             // Check if email is being changed and if it already exists
             if (request.Email != user.Email && await _context.Users.AnyAsync(u => u.Email == request.Email))
             {
-                throw new InvalidOperationException("User with this email already exists.");
+                throw new BusinessException("User with this email already exists.");
             }
 
             // Check if username is being changed and if it already exists
             if (request.Username != user.Username && await _context.Users.AnyAsync(u => u.Username == request.Username))
             {
-                throw new InvalidOperationException("User with this username already exists.");
+                throw new BusinessException("User with this username already exists.");
             }
 
             user.FirstName = request.FirstName;
@@ -336,7 +337,7 @@ namespace SOH.Services.Services
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
-                throw new InvalidOperationException("User not found.");
+                throw new NotFoundException("User not found.");
 
             return MapToResponse(user);
         }
