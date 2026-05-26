@@ -1,15 +1,56 @@
-Nakon kreiranja part klase da se generiše ostatak : 
+## Flutter
 
-dart run build_runner build
+The Flutter client is split into two projects:
+- `mobile/` - Android patient app (only Patient accounts can sign in)
+- `desktop/` - Windows staff app (only Administrator and Doctor accounts can sign in)
 
-Provjeriti sve konektovane devices:
+If `flutter` is missing, install Flutter for Windows and add it to PATH:
+https://docs.flutter.dev/get-started/install/windows
 
-flutter devices
+Verify install:
+flutter --version
+flutter doctor -v
 
-Pokrenuti neki od njih 
+## Mobile (mobile/, Android)
 
-flutter run -d ime-device-a
+Fetch deps:
+cd mobile
+flutter pub get
 
-Flutter CARD: 
+Run on Android emulator (10.0.2.2 reaches the host loopback):
+flutter run -d emulator-5554 --dart-define=API_BASE_URL=http://10.0.2.2:5130
 
-4242424242424242
+Build release APK:
+flutter build apk --release
+# output: mobile/build/app/outputs/flutter-apk/app-release.apk
+
+Or use the helper script from the repo root:
+powershell -ExecutionPolicy Bypass -File .\scripts\mobile-build-android.ps1
+
+## Desktop (desktop/, Windows)
+
+Fetch deps:
+cd desktop
+flutter pub get
+
+Run on Windows:
+flutter run -d windows --dart-define=API_BASE_URL=http://127.0.0.1:5130
+
+Build release executable:
+flutter build windows --release
+# output: desktop/build/windows/x64/runner/Release/desktop.exe
+
+Or use the helper script from the repo root:
+powershell -ExecutionPolicy Bypass -File .\scripts\desktop-build-windows.ps1
+
+## Regenerate the OpenAPI client (packages/soh_api)
+
+Both apps generate the Dart client from the backend's swagger.json. After
+backend changes, regenerate inside whichever project needs the update:
+
+# From repo root, backend running on http://localhost:5130
+Invoke-WebRequest -Uri http://localhost:5130/swagger/v1/swagger.json -OutFile mobile/openapi.json
+cd mobile
+dart run openapi_generator_cli generate -i openapi.json -g dart -o packages/soh_api
+
+(Repeat for desktop/ when only the staff client needs new endpoints.)
