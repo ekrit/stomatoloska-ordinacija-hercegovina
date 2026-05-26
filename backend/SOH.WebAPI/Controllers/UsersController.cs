@@ -109,10 +109,11 @@ namespace SOH.WebAPI.Controllers
             var uid = CurrentUserId;
             if (uid == null)
                 return Unauthorized();
-            if (!User.IsInRole(RoleNames.Administrator) && uid != id)
+            var callerIsAdmin = User.IsInRole(RoleNames.Administrator);
+            if (!callerIsAdmin && uid != id)
                 return Forbid();
 
-            var updatedUser = await _userService.UpdateAsync(id, request);
+            var updatedUser = await _userService.UpdateAsync(id, request, callerIsAdmin);
 
             if (updatedUser == null)
                 return NotFound();

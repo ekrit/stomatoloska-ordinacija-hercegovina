@@ -205,7 +205,7 @@ namespace SOH.Services.Services
             return await GetUserResponseWithRolesAsync(user.Id);
         }
 
-        public async Task<UserResponse?> UpdateAsync(int id, UserUpsertRequest request)
+        public async Task<UserResponse?> UpdateAsync(int id, UserUpsertRequest request, bool callerIsAdmin)
         {
             var user = await _context.Users
                 .Include(u => u.UserRoles)
@@ -233,7 +233,16 @@ namespace SOH.Services.Services
             user.PhoneNumber = request.PhoneNumber;
             user.GenderId = request.GenderId;
             user.CityId = request.CityId;
-            user.IsActive = request.IsActive;
+
+            // IsActive and RoleIds are admin-only knobs. Silently ignoring
+            // them on non-admin calls is intentional: the patient/doctor UI
+            // never exposes these fields, so the server treats stray values
+            // as benign noise rather than a 4xx response.
+            if (callerIsAdmin)
+            {
+                user.IsActive = request.IsActive;
+            }
+
             if (request.Picture != null)
             {
                 user.Picture = request.Picture;
@@ -246,8 +255,8 @@ namespace SOH.Services.Services
                 user.PasswordSalt = Convert.ToBase64String(salt);
             }
 
-            // Update roles if provided
-            if (request.RoleIds != null)
+            // Update roles only when an admin asked for it.
+            if (callerIsAdmin && request.RoleIds != null)
             {
                 // Remove existing roles
                 _context.UserRoles.RemoveRange(user.UserRoles);
