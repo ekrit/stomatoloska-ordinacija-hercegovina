@@ -35,6 +35,13 @@ Prereqs:
 - Docker Desktop
 - .NET SDK 8+
 
+Copy [`backend/.env.example`](backend/.env.example) to `backend/.env` and fill in
+at minimum `SQL__PASSWORD`, `RABBITMQ__*`, and `JwtSettings__SecretKey` (32+
+random chars). SMTP credentials are only needed if you want the appointment
+reminder worker to send real emails; leave blank to disable it. The API and
+the subscriber both call `DotNetEnv` at startup, so the same `.env` file is
+also picked up by `dotnet run` outside Docker.
+
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\backend-up.ps1
 ```
