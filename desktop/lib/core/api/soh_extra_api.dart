@@ -8,6 +8,22 @@ class SohExtraApi {
 
   final ApiClient _client;
 
+  /// Server-side logout — revokes this JWT so it cannot be reused.
+  Future<void> logout() async {
+    final resp = await _client.invokeAPI(
+      r'/Users/logout',
+      'POST',
+      <QueryParam>[],
+      null,
+      <String, String>{},
+      <String, String>{},
+      null,
+    );
+    if (resp.statusCode < 200 || resp.statusCode >= 300) {
+      throw Exception('Logout failed (${resp.statusCode}): ${resp.body}');
+    }
+  }
+
   Future<Uint8List> downloadAppointmentsSummaryPdf({DateTime? fromUtc, DateTime? toUtc}) async {
     final qp = <QueryParam>[];
     if (fromUtc != null) {

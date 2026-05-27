@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
+import '../../../../core/api/soh_extra_api.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/storage/auth_storage.dart';
 import '../../../../core/utils/appointment_labels.dart';
@@ -43,6 +44,9 @@ class DoctorResponseScreen extends ConsumerWidget {
     Future<void> logout() async {
       final ok = await showLogoutConfirm(context);
       if (!ok) return;
+      try {
+        await SohExtraApi(ref.read(apiClientProvider)).logout();
+      } catch (_) {}
       await AuthStorage.clear();
       ref.read(authTokenProvider.notifier).state = null;
       ref.read(currentUserProvider.notifier).state = null;

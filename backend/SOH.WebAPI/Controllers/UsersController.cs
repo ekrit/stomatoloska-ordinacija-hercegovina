@@ -10,6 +10,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Collections.Generic;
 using SOH.WebAPI.Authorization;
+using SOH.WebAPI.Services;
 
 namespace SOH.WebAPI.Controllers
 {
@@ -22,17 +23,20 @@ namespace SOH.WebAPI.Controllers
         private readonly IUserService _userService;
         private readonly IRoleService _roleService;
         private readonly IPatientService _patientService;
+        private readonly IRevokedTokenStore _revokedTokens;
         private readonly IConfiguration _configuration;
 
         public UsersController(
             IUserService userService,
             IRoleService roleService,
             IPatientService patientService,
+            IRevokedTokenStore revokedTokens,
             IConfiguration configuration)
         {
             _userService = userService;
             _roleService = roleService;
             _patientService = patientService;
+            _revokedTokens = revokedTokens;
             _configuration = configuration;
         }
 
@@ -176,6 +180,26 @@ namespace SOH.WebAPI.Controllers
             });
         }
 
+        /// <summary>
+        /// Server-side logout. Records this token's jti in the revocation store
+        /// so any subsequent request that presents the same JWT (e.g. a stolen
+        /// or shared device) is rejected even before its natural expiry.
+        /// </summary>
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            var jti = User.FindFirstValue(JwtRegisteredClaimNames.Jti);
+            var expRaw = User.FindFirstValue(JwtRegisteredClaimNames.Exp);
+            if (!string.IsNullOrEmpty(jti))
+            {
+                var exp = long.TryParse(expRaw, out var seconds)
+                    ? DateTimeOffset.FromUnixTimeSeconds(seconds)
+                    : DateTimeOffset.UtcNow.AddHours(1);
+                _revokedTokens.Revoke(jti, exp);
+            }
+            return NoContent();
+        }
+
         private string GenerateJwtToken(UserResponse user, out DateTime expiresAt)
         {
             var settings = _configuration.GetSection("JwtSettings");
@@ -188,11 +212,17 @@ namespace SOH.WebAPI.Controllers
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             expiresAt = DateTime.UtcNow.AddMinutes(expirationMinutes);
 
+            // Unique jti per token so /Users/logout can revoke this specific
+            // session without invalidating other devices the user is signed in on.
+            var jti = Guid.NewGuid().ToString("N");
+
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Email, user.Email)
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(JwtRegisteredClaimNames.Jti, jti),
+                new Claim(ClaimTypes.Sid, jti)
             };
 
             foreach (var role in user.Roles)

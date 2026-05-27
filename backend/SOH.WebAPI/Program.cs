@@ -58,6 +58,7 @@ builder.Services.AddDatabaseServices(connectionString);
 
 builder.Services.AddMapster();
 builder.Services.AddSingleton<IAppointmentReminderPublisher, AppointmentReminderPublisher>();
+builder.Services.AddSingleton<IRevokedTokenStore, RevokedTokenStore>();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var jwtSecret = jwtSettings.GetValue<string>("SecretKey") ?? string.Empty;
@@ -96,6 +97,25 @@ builder.Services.AddAuthentication(options =>
                     path.StartsWithSegments("/hubs"))
                 {
                     context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            },
+            // Block logged-out tokens server-side. JwtBearer normally only checks
+            // signature + lifetime, so without this hook a stolen JWT keeps
+            // working even after the user clicks "log out". We trust the jti
+            // claim issued by GenerateJwtToken and reject anything the store
+            // remembers.
+            OnTokenValidated = context =>
+            {
+                var jti = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Sid)?.Value
+                    ?? context.Principal?.FindFirst("jti")?.Value;
+                if (!string.IsNullOrEmpty(jti))
+                {
+                    var store = context.HttpContext.RequestServices.GetRequiredService<IRevokedTokenStore>();
+                    if (store.IsRevoked(jti))
+                    {
+                        context.Fail("Token has been revoked.");
+                    }
                 }
                 return Task.CompletedTask;
             }
