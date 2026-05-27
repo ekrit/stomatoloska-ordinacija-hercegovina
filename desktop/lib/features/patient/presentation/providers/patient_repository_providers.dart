@@ -16,50 +16,6 @@ final patientCareRepositoryProvider = Provider<PatientCareRepository>((ref) {
   );
 });
 
-/// Catalog data for booking and home (doctors, services, rooms, products).
-class PatientCatalogRepository {
-  PatientCatalogRepository(
-    this._doctor,
-    this._service,
-    this._room,
-    this._product,
-  );
-
-  final DoctorApi _doctor;
-  final ServiceApi _service;
-  final RoomApi _room;
-  final ProductApi _product;
-
-  Future<List<DoctorResponse>> listDoctors() async {
-    final r = await _doctor.doctorGet(retrieveAll: true);
-    return r?.items ?? [];
-  }
-
-  Future<List<ServiceResponse>> listServices() async {
-    final r = await _service.serviceGet(retrieveAll: true);
-    return r?.items ?? [];
-  }
-
-  Future<List<RoomResponse>> listRooms() async {
-    final r = await _room.roomGet(retrieveAll: true);
-    return r?.items ?? [];
-  }
-
-  Future<List<ProductResponse>> listProducts() async {
-    final r = await _product.productGet(retrieveAll: true);
-    return r?.items ?? [];
-  }
-}
-
-final patientCatalogRepositoryProvider = Provider<PatientCatalogRepository>(
-  (ref) => PatientCatalogRepository(
-    ref.watch(doctorApiProvider),
-    ref.watch(serviceApiProvider),
-    ref.watch(roomApiProvider),
-    ref.watch(productApiProvider),
-  ),
-);
-
 class PatientSessionRepository {
   PatientSessionRepository(this._users, this._patient);
 
