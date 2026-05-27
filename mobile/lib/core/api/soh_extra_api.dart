@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:http/http.dart' show Response;
 import 'package:soh_api/api.dart';
@@ -116,45 +115,6 @@ class SohExtraApi {
     if (v is int) return v;
     if (v is num) return v.toInt();
     return 0;
-  }
-
-  Future<Uint8List> downloadAppointmentsSummaryPdf({DateTime? fromUtc, DateTime? toUtc}) async {
-    final qp = <QueryParam>[];
-    if (fromUtc != null) {
-      qp.add(QueryParam('fromUtc', fromUtc.toUtc().toIso8601String()));
-    }
-    if (toUtc != null) {
-      qp.add(QueryParam('toUtc', toUtc.toUtc().toIso8601String()));
-    }
-    final resp = await _client.invokeAPI(
-      r'/report/pdf/appointments-summary',
-      'GET',
-      qp,
-      null,
-      <String, String>{},
-      <String, String>{},
-      null,
-    );
-    if (resp.statusCode < 200 || resp.statusCode >= 300) {
-      throw Exception('PDF download failed (${resp.statusCode}): ${resp.body}');
-    }
-    return resp.bodyBytes;
-  }
-
-  Future<Uint8List> downloadRevenueByServicePdf({int months = 6}) async {
-    final resp = await _client.invokeAPI(
-      r'/report/pdf/revenue-by-service',
-      'GET',
-      <QueryParam>[QueryParam('months', '$months')],
-      null,
-      <String, String>{},
-      <String, String>{},
-      null,
-    );
-    if (resp.statusCode < 200 || resp.statusCode >= 300) {
-      throw Exception('PDF download failed (${resp.statusCode}): ${resp.body}');
-    }
-    return resp.bodyBytes;
   }
 }
 

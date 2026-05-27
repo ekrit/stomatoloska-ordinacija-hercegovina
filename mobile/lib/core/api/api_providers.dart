@@ -41,10 +41,6 @@ final cityApiProvider = Provider<CityApi>(
   (ref) => CityApi(ref.watch(apiClientProvider)),
 );
 
-final roleApiProvider = Provider<RoleApi>(
-  (ref) => RoleApi(ref.watch(apiClientProvider)),
-);
-
 final doctorApiProvider = Provider<DoctorApi>(
   (ref) => DoctorApi(ref.watch(apiClientProvider)),
 );
@@ -77,16 +73,8 @@ final reviewApiProvider = Provider<ReviewApi>(
   (ref) => ReviewApi(ref.watch(apiClientProvider)),
 );
 
-final reminderApiProvider = Provider<ReminderApi>(
-  (ref) => ReminderApi(ref.watch(apiClientProvider)),
-);
-
 final hygieneTrackerApiProvider = Provider<HygieneTrackerApi>(
   (ref) => HygieneTrackerApi(ref.watch(apiClientProvider)),
-);
-
-final reportApiProvider = Provider<ReportApi>(
-  (ref) => ReportApi(ref.watch(apiClientProvider)),
 );
 
 final orderApiProvider = Provider<OrderApi>(
