@@ -21,12 +21,18 @@ namespace SOH.WebAPI.Controllers
         private const string DefaultUserRoleName = RoleNames.Patient;
         private readonly IUserService _userService;
         private readonly IRoleService _roleService;
+        private readonly IPatientService _patientService;
         private readonly IConfiguration _configuration;
 
-        public UsersController(IUserService userService, IRoleService roleService, IConfiguration configuration)
+        public UsersController(
+            IUserService userService,
+            IRoleService roleService,
+            IPatientService patientService,
+            IConfiguration configuration)
         {
             _userService = userService;
             _roleService = roleService;
+            _patientService = patientService;
             _configuration = configuration;
         }
 
@@ -99,6 +105,28 @@ namespace SOH.WebAPI.Controllers
             };
 
             var createdUser = await _userService.CreateAsync(createRequest);
+
+            // Public registration always creates a clinic patient: every mobile
+            // user must have a Patient row so they can book/review/track without
+            // an admin pre-provisioning it. We treat any failure as best-effort
+            // and let the patient profile screen recover later.
+            try
+            {
+                await _patientService.CreateAsync(new PatientUpsertRequest
+                {
+                    UserId = createdUser.Id,
+                    FirstName = request.FirstName,
+                    LastName = request.LastName,
+                    Phone = request.PhoneNumber,
+                    DateOfBirth = DateTime.UtcNow.Date
+                });
+            }
+            catch
+            {
+                // Best-effort: ignore Patient creation errors here so registration
+                // succeeds; the profile screen lets the user fill in date of birth.
+            }
+
             return CreatedAtAction(nameof(GetById), new { id = createdUser.Id }, createdUser);
         }
 
