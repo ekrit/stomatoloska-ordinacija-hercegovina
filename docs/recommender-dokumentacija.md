@@ -32,9 +32,10 @@ tune without a redeploy.
 
 ```
 score(product, user)
-  = WeightContent       * contentMatch(product, recent-services(user))
-  + WeightPopularity    * log(1 + recent-order-count(product))
-  + WeightPersonalViews * log(1 + own-view-count(user, product))
+  = WeightContent        * contentMatch(product, recent-services(user))
+  + WeightPopularity     * log(1 + recent-order-count(product))
+  + WeightPersonalViews  * log(1 + own-view-count(user, product))
+  + WeightDetailOpened   * log(1 + own-detail-open-count(user, product))
 ```
 
 Current weights (see `RecommendationService`):
@@ -42,8 +43,9 @@ Current weights (see `RecommendationService`):
 | Signal | Weight | Window | Notes |
 |---|---|---|---|
 | Content (services -> product) | 3.5 | last 6 appointments in the last 9 months | Tokenized name+category+description; overlap with tokens from recent service names. Bounded `1 + 0.35 * overlap` capped at 4 to keep one strong match from dominating. |
-| Popularity (clinic-wide orders) | 1.2 | last 90 days | Counted from `OrderItems` joined to `Orders.CreatedAt`. Logarithmic so a 100-order spike does not crowd everything else out. |
+| Popularity (clinic-wide orders) | 1.2 | last 90 days | Counted from `Order.ProductId` on `Orders.CreatedAt` (quantity summed). Logarithmic so a 100-order spike does not crowd everything else out. |
 | Personal views | 2.0 | all time | `ProductInteractions` of kind `View`. Logarithmic for the same reason. |
+| Detail opened | 3.0 | all time | `ProductInteractions` of kind `DetailOpened`. Stronger personal signal than a passive card view. |
 
 The constants live at the top of the file:
 
@@ -51,6 +53,7 @@ The constants live at the top of the file:
 private const double WeightContent       = 3.5;
 private const double WeightPopularity    = 1.2;
 private const double WeightPersonalViews = 2.0;
+private const double WeightDetailOpened  = 3.0;
 ```
 
 The "content vs popular vs personal" mix is deliberate: a cold user with
@@ -72,7 +75,8 @@ English. Example:
   "reasons": [
     "Matches themes from your recent visits (shared terms: whitening, polish).",
     "Popular in the clinic lately (12 recent orders referencing this product).",
-    "You opened this product 3 time(s); we prioritize items you already explored."
+    "You viewed this product 2 time(s); we prioritize items you already explored.",
+    "You opened detail for this product 3 time(s), so we surface it higher."
   ]
 }
 ```
@@ -86,8 +90,9 @@ picks") so the UI never shows an empty justification chip.
 | Signal | EF table | Field(s) used |
 |---|---|---|
 | Content | `Appointments` joined to `Services` | `PatientId`, `StartTime`, `Service.Name` |
-| Popularity | `OrderItems` -> `Orders` | `ProductId`, `Order.CreatedAt` |
-| Personal views | `ProductInteractions` | `UserId`, `ProductId`, `Kind`, `CreatedAt` |
+| Popularity | `Orders` | `ProductId`, `Quantity`, `CreatedAt` |
+| Personal views | `ProductInteractions` | `UserId`, `ProductId`, `Kind=View`, `CreatedAt` |
+| Detail opened | `ProductInteractions` | `UserId`, `ProductId`, `Kind=DetailOpened`, `CreatedAt` |
 
 `ProductInteractions` is populated by the mobile app via `POST
 /Recommendation/track` whenever a patient opens a product card.

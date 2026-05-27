@@ -16,6 +16,7 @@ public class RecommendationService : IRecommendationService
     private const double WeightContent = 3.5;
     private const double WeightPopularity = 1.2;
     private const double WeightPersonalViews = 2.0;
+    private const double WeightDetailOpened = 3.0;
 
     private readonly SOHDbContext _context;
     private readonly IMapper _mapper;
@@ -62,6 +63,13 @@ public class RecommendationService : IRecommendationService
             .Select(g => new { ProductId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.ProductId, x => x.Count, cancellationToken);
 
+        var detailCounts = await _context.ProductInteractions
+            .AsNoTracking()
+            .Where(pi => pi.UserId == userId && pi.Kind == ProductInteractionKind.DetailOpened)
+            .GroupBy(pi => pi.ProductId)
+            .Select(g => new { ProductId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.ProductId, x => x.Count, cancellationToken);
+
         var serviceKeywords = await LoadRecentServiceKeywordsAsync(userId, cancellationToken);
 
         var products = await _context.Products.AsNoTracking().ToListAsync(cancellationToken);
@@ -87,7 +95,14 @@ public class RecommendationService : IRecommendationService
             if (views > 0)
             {
                 score += WeightPersonalViews * Math.Log(1 + views);
-                reasons.Add($"You opened this product {views} time(s); we prioritize items you already explored.");
+                reasons.Add($"You viewed this product {views} time(s); we prioritize items you already explored.");
+            }
+
+            var details = detailCounts.TryGetValue(p.Id, out var dc) ? dc : 0;
+            if (details > 0)
+            {
+                score += WeightDetailOpened * Math.Log(1 + details);
+                reasons.Add($"You opened detail for this product {details} time(s), so we surface it higher.");
             }
 
             if (reasons.Count == 0)
