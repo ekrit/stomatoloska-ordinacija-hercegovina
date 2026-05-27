@@ -21,6 +21,6 @@ namespace SOH.Services.Database
         [MaxLength(100)]
         public string Category { get; set; } = string.Empty;
 
-        public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+        public ICollection<Order> Orders { get; set; } = new List<Order>();
     }
 }

@@ -14,30 +14,42 @@ class OrderUpsertRequest {
   /// Returns a new [OrderUpsertRequest] instance.
   OrderUpsertRequest({
     required this.patientId,
+    required this.productId,
+    this.quantity = 1,
     required this.totalAmount,
   });
 
   int patientId;
+
+  int productId;
+
+  int quantity;
 
   double totalAmount;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is OrderUpsertRequest &&
     other.patientId == patientId &&
+    other.productId == productId &&
+    other.quantity == quantity &&
     other.totalAmount == totalAmount;
 
   @override
   int get hashCode =>
     // ignore: unnecessary_parenthesis
     (patientId.hashCode) +
+    (productId.hashCode) +
+    (quantity.hashCode) +
     (totalAmount.hashCode);
 
   @override
-  String toString() => 'OrderUpsertRequest[patientId=$patientId, totalAmount=$totalAmount]';
+  String toString() => 'OrderUpsertRequest[patientId=$patientId, productId=$productId, quantity=$quantity, totalAmount=$totalAmount]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
       json[r'patientId'] = this.patientId;
+      json[r'productId'] = this.productId;
+      json[r'quantity'] = this.quantity;
       json[r'totalAmount'] = this.totalAmount;
     return json;
   }
@@ -62,6 +74,8 @@ class OrderUpsertRequest {
 
       return OrderUpsertRequest(
         patientId: mapValueOfType<int>(json, r'patientId')!,
+        productId: mapValueOfType<int>(json, r'productId')!,
+        quantity: mapValueOfType<int>(json, r'quantity') ?? 1,
         totalAmount: mapValueOfType<double>(json, r'totalAmount')!,
       );
     }
@@ -111,7 +125,7 @@ class OrderUpsertRequest {
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
     'patientId',
+    'productId',
     'totalAmount',
   };
 }
-

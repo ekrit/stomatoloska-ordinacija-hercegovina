@@ -48,11 +48,11 @@ public class RecommendationService : IRecommendationService
         take = Math.Clamp(take, 1, 50);
 
         var sinceOrders = DateTime.UtcNow.AddDays(-90);
-        var orderCounts = await _context.OrderItems
+        var orderCounts = await _context.Orders
             .AsNoTracking()
-            .Where(oi => oi.Order.CreatedAt >= sinceOrders)
-            .GroupBy(oi => oi.ProductId)
-            .Select(g => new { ProductId = g.Key, Count = g.Count() })
+            .Where(o => o.CreatedAt >= sinceOrders)
+            .GroupBy(o => o.ProductId)
+            .Select(g => new { ProductId = g.Key, Count = g.Sum(x => x.Quantity) })
             .ToDictionaryAsync(x => x.ProductId, x => x.Count, cancellationToken);
 
         var viewCounts = await _context.ProductInteractions

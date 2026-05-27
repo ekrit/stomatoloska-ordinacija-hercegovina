@@ -188,12 +188,6 @@ class ApiClient {
           return ActivityLogResponsePagedResult.fromJson(value);
         case 'ActivityLogUpsertRequest':
           return ActivityLogUpsertRequest.fromJson(value);
-        case 'AdminResponse':
-          return AdminResponse.fromJson(value);
-        case 'AdminResponsePagedResult':
-          return AdminResponsePagedResult.fromJson(value);
-        case 'AdminUpsertRequest':
-          return AdminUpsertRequest.fromJson(value);
         case 'AppointmentResponse':
           return AppointmentResponse.fromJson(value);
         case 'AppointmentResponsePagedResult':
@@ -210,12 +204,6 @@ class ApiClient {
           return CityResponsePagedResult.fromJson(value);
         case 'CityUpsertRequest':
           return CityUpsertRequest.fromJson(value);
-        case 'DoctorNoteResponse':
-          return DoctorNoteResponse.fromJson(value);
-        case 'DoctorNoteResponsePagedResult':
-          return DoctorNoteResponsePagedResult.fromJson(value);
-        case 'DoctorNoteUpsertRequest':
-          return DoctorNoteUpsertRequest.fromJson(value);
         case 'DoctorResponse':
           return DoctorResponse.fromJson(value);
         case 'DoctorResponsePagedResult':
@@ -240,12 +228,6 @@ class ApiClient {
           return MedicalRecordResponsePagedResult.fromJson(value);
         case 'MedicalRecordUpsertRequest':
           return MedicalRecordUpsertRequest.fromJson(value);
-        case 'OrderItemResponse':
-          return OrderItemResponse.fromJson(value);
-        case 'OrderItemResponsePagedResult':
-          return OrderItemResponsePagedResult.fromJson(value);
-        case 'OrderItemUpsertRequest':
-          return OrderItemUpsertRequest.fromJson(value);
         case 'OrderResponse':
           return OrderResponse.fromJson(value);
         case 'OrderResponsePagedResult':
@@ -272,12 +254,6 @@ class ApiClient {
           return ProductResponsePagedResult.fromJson(value);
         case 'ProductUpsertRequest':
           return ProductUpsertRequest.fromJson(value);
-        case 'ReminderResponse':
-          return ReminderResponse.fromJson(value);
-        case 'ReminderResponsePagedResult':
-          return ReminderResponsePagedResult.fromJson(value);
-        case 'ReminderUpsertRequest':
-          return ReminderUpsertRequest.fromJson(value);
         case 'ReportResponse':
           return ReportResponse.fromJson(value);
         case 'ReportResponsePagedResult':

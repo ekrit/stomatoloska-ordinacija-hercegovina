@@ -23,7 +23,6 @@ namespace SOH.Services.Database
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Order> Orders { get; set; }
-        public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<HygieneTracker> HygieneTrackers { get; set; }
         public DbSet<ActivityLog> ActivityLogs { get; set; }
         public DbSet<Report> Reports { get; set; }
@@ -171,15 +170,15 @@ namespace SOH.Services.Database
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Order>()
-                .HasMany(o => o.Items)
-                .WithOne(i => i.Order)
-                .HasForeignKey(i => i.OrderId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasOne(o => o.Product)
+                .WithMany(p => p.Orders)
+                .HasForeignKey(o => o.ProductId)
+                .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<Product>()
-                .HasMany(p => p.OrderItems)
-                .WithOne(i => i.Product)
-                .HasForeignKey(i => i.ProductId)
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Patient)
+                .WithMany(p => p.Orders)
+                .HasForeignKey(o => o.PatientId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<ProductInteraction>()
