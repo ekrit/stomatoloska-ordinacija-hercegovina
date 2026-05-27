@@ -24,7 +24,6 @@ namespace SOH.Services.Database
         public DbSet<Product> Products { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
-        public DbSet<Reminder> Reminders { get; set; }
         public DbSet<HygieneTracker> HygieneTrackers { get; set; }
         public DbSet<ActivityLog> ActivityLogs { get; set; }
         public DbSet<Report> Reports { get; set; }

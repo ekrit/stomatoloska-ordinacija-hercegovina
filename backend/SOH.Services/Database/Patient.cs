@@ -28,7 +28,6 @@ namespace SOH.Services.Database
         public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
         public ICollection<Order> Orders { get; set; } = new List<Order>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
-        public ICollection<Reminder> Reminders { get; set; } = new List<Reminder>();
         public ICollection<HygieneTracker> HygieneTrackers { get; set; } = new List<HygieneTracker>();
     }
 }
