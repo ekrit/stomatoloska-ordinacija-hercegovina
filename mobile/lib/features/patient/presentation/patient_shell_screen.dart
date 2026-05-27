@@ -107,7 +107,7 @@ class _ProfileTab extends ConsumerWidget {
     final name = [
       user?.firstName?.trim(),
       user?.lastName?.trim(),
-    ].where((p) => p != null && p!.isNotEmpty).map((e) => e!).join(' ');
+    ].whereType<String>().where((p) => p.isNotEmpty).join(' ');
     final displayName = name.isNotEmpty
         ? name
         : (user?.username?.trim().isNotEmpty ?? false)

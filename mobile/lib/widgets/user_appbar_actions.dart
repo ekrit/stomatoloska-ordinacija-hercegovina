@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -99,7 +98,7 @@ List<Widget> buildUserAppBarActions({
   final fullName = [
     user?.firstName?.trim(),
     user?.lastName?.trim(),
-  ].where((part) => part != null && part!.isNotEmpty).map((e) => e!).join(' ');
+  ].whereType<String>().where((part) => part.isNotEmpty).join(' ');
 
   final displayName = fullName.isNotEmpty
       ? fullName
