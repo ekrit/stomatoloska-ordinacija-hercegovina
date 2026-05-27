@@ -1,4 +1,4 @@
-namespace SOH.Services.Services
+namespace SOH.Model.Requests
 {
     public class UserLoginRequest
     {

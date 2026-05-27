@@ -1,7 +1,6 @@
 using DotNetEnv;
 using SOH.Services.Database;
 using Mapster;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Models;
 using SOH.WebAPI.Filters;
@@ -105,8 +104,7 @@ builder.Services.AddAuthentication(options =>
                 return Task.CompletedTask;
             }
         };
-    })
-    .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
+    });
 
 builder.Services.AddAuthorization(options =>
 {

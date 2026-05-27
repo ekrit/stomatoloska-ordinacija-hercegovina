@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SOH.Model\SOH.Model.csproj" />
-    <ProjectReference Include="..\SOH.Subscriber\SOH.Subscriber.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -3,7 +3,6 @@ using SOH.Model.Responses;
 using SOH.Model.SearchObjects;
 using Microsoft.AspNetCore.Mvc;
 using SOH.Services.Interfaces;
-using SOH.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
