@@ -29,7 +29,6 @@ part 'auth/http_basic_auth.dart';
 part 'auth/http_bearer_auth.dart';
 
 part 'api/activity_log_api.dart';
-part 'api/admin_api.dart';
 part 'api/appointment_api.dart';
 part 'api/city_api.dart';
 part 'api/doctor_api.dart';
@@ -52,9 +51,6 @@ part 'api/users_api.dart';
 part 'model/activity_log_response.dart';
 part 'model/activity_log_response_paged_result.dart';
 part 'model/activity_log_upsert_request.dart';
-part 'model/admin_response.dart';
-part 'model/admin_response_paged_result.dart';
-part 'model/admin_upsert_request.dart';
 part 'model/appointment_response.dart';
 part 'model/appointment_response_paged_result.dart';
 part 'model/appointment_status.dart';

@@ -15,7 +15,6 @@ namespace SOH.Services.Database
         public DbSet<City> Cities { get; set; }
         public DbSet<Patient> Patients { get; set; }
         public DbSet<Doctor> Doctors { get; set; }
-        public DbSet<Admin> Admins { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<Service> Services { get; set; }
         public DbSet<Room> Rooms { get; set; }
@@ -116,12 +115,6 @@ namespace SOH.Services.Database
                 .HasOne(u => u.Doctor)
                 .WithOne(d => d.User)
                 .HasForeignKey<Doctor>(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<User>()
-                .HasOne(u => u.Admin)
-                .WithOne(a => a.User)
-                .HasForeignKey<Admin>(a => a.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Appointment>()
