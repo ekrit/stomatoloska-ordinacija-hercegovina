@@ -208,6 +208,12 @@ PublishScripts/
 !**/[Pp]ackages/build/
 # Uncomment if necessary however generally it will be regenerated when needed
 #!**/[Pp]ackages/repositories.config
+
+# Flutter path packages (generated OpenAPI client) - keep in source
+!mobile/packages/
+!mobile/packages/**
+!desktop/packages/
+!desktop/packages/**
 # NuGet v3's project.json files produces more ignorable files
 *.nuget.props
 *.nuget.targets

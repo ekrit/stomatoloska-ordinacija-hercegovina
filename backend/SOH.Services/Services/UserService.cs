@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
+using SOH.Model.Exceptions;
 using SOH.Model.Responses;
 using SOH.Model.SearchObjects;
 using SOH.Model.Requests;
@@ -136,12 +137,12 @@ namespace SOH.Services.Services
             // Check if user with same email or username already exists
             if (await _context.Users.AnyAsync(u => u.Email == request.Email))
             {
-                throw new InvalidOperationException("User with this email already exists.");
+                throw new BusinessException("User with this email already exists.");
             }
 
             if (await _context.Users.AnyAsync(u => u.Username == request.Username))
             {
-                throw new InvalidOperationException("User with this username already exists.");
+                throw new BusinessException("User with this username already exists.");
             }
 
             var roleNamesForDomain = request.RoleIds != null && request.RoleIds.Any()
@@ -205,7 +206,7 @@ namespace SOH.Services.Services
             return await GetUserResponseWithRolesAsync(user.Id);
         }
 
-        public async Task<UserResponse?> UpdateAsync(int id, UserUpsertRequest request)
+        public async Task<UserResponse?> UpdateAsync(int id, UserUpsertRequest request, bool callerIsAdmin)
         {
             var user = await _context.Users
                 .Include(u => u.UserRoles)
@@ -217,13 +218,13 @@ namespace SOH.Services.Services
             // Check if email is being changed and if it already exists
             if (request.Email != user.Email && await _context.Users.AnyAsync(u => u.Email == request.Email))
             {
-                throw new InvalidOperationException("User with this email already exists.");
+                throw new BusinessException("User with this email already exists.");
             }
 
             // Check if username is being changed and if it already exists
             if (request.Username != user.Username && await _context.Users.AnyAsync(u => u.Username == request.Username))
             {
-                throw new InvalidOperationException("User with this username already exists.");
+                throw new BusinessException("User with this username already exists.");
             }
 
             user.FirstName = request.FirstName;
@@ -233,7 +234,16 @@ namespace SOH.Services.Services
             user.PhoneNumber = request.PhoneNumber;
             user.GenderId = request.GenderId;
             user.CityId = request.CityId;
-            user.IsActive = request.IsActive;
+
+            // IsActive and RoleIds are admin-only knobs. Silently ignoring
+            // them on non-admin calls is intentional: the patient/doctor UI
+            // never exposes these fields, so the server treats stray values
+            // as benign noise rather than a 4xx response.
+            if (callerIsAdmin)
+            {
+                user.IsActive = request.IsActive;
+            }
+
             if (request.Picture != null)
             {
                 user.Picture = request.Picture;
@@ -246,8 +256,8 @@ namespace SOH.Services.Services
                 user.PasswordSalt = Convert.ToBase64String(salt);
             }
 
-            // Update roles if provided
-            if (request.RoleIds != null)
+            // Update roles only when an admin asked for it.
+            if (callerIsAdmin && request.RoleIds != null)
             {
                 // Remove existing roles
                 _context.UserRoles.RemoveRange(user.UserRoles);
@@ -327,7 +337,7 @@ namespace SOH.Services.Services
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
-                throw new InvalidOperationException("User not found.");
+                throw new NotFoundException("User not found.");
 
             return MapToResponse(user);
         }

@@ -1,3 +1,4 @@
+using SOH.Model.Exceptions;
 using SOH.Model.Requests;
 using SOH.Model.Responses;
 using SOH.Model.SearchObjects;
@@ -28,7 +29,7 @@ namespace SOH.Services.Services
         {
             if (await _context.Cities.AnyAsync(c => c.Name == request.Name))
             {
-                throw new InvalidOperationException("A city with this name already exists.");
+                throw new BusinessException("A city with this name already exists.");
             }
         }
 
@@ -36,7 +37,7 @@ namespace SOH.Services.Services
         {
             if (await _context.Cities.AnyAsync(c => c.Name == request.Name && c.Id != entity.Id))
             {
-                throw new InvalidOperationException("A city with this name already exists.");
+                throw new BusinessException("A city with this name already exists.");
             }
         }
     }

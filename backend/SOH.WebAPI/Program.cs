@@ -1,3 +1,4 @@
+using DotNetEnv;
 using SOH.Services.Database;
 using Mapster;
 using Microsoft.AspNetCore.Authentication;
@@ -14,6 +15,15 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
 using SOH.WebAPI.Hubs;
 using System.Text;
+
+// Load a .env file from the current directory (or any ancestor) before the
+// host builder reads configuration. In Docker the orchestrator already
+// injects the same variables, so .env is a no-op there; this is purely for
+// local `dotnet run` so secrets like JwtSettings__SecretKey,
+// SMTP__USERNAME, SMTP__PASSWORD, and RABBITMQ_* don't have to live in
+// appsettings.json. NoClobber respects values already exported in the
+// process environment (Docker, CI), so explicit env wins over .env.
+Env.NoClobber().TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,7 +68,10 @@ var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var jwtSecret = jwtSettings.GetValue<string>("SecretKey") ?? string.Empty;
 if (string.IsNullOrWhiteSpace(jwtSecret))
 {
-    throw new InvalidOperationException("JwtSettings:SecretKey is missing.");
+    // Secret is not allowed in appsettings.json (it'd be committed).
+    // Set JwtSettings__SecretKey via .env or the host environment.
+    throw new InvalidOperationException(
+        "JwtSettings:SecretKey is missing. Set JwtSettings__SecretKey via .env or environment variable.");
 }
 
 builder.Services.AddAuthentication(options =>

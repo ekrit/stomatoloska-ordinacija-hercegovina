@@ -1,16 +1,13 @@
--- Pokretanje image dockera sa imenom CallTaxi
+## Docker (backend/)
 
-docker build -t calltaxi .
+From repository root:
+cd backend
 
--- Pregled svih image-a
+First time:
+copy .env.example .env
 
-docker image ls
+Start API + SQL Server + RabbitMQ:
+docker compose up --build
 
--- Pokretanje instance image-a na portu calltaxi_dev naziv instance , calltaxi naziv image-a
- 
-docker run -p 5130:5130 --name calltaxi_dev calltaxi
-
--- Dizanje dockera
-
-docker-compose up --build -- 
-
+Stop:
+docker compose down

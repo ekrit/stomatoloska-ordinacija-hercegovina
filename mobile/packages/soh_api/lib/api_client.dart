@@ -1,0 +1,392 @@
+//
+// AUTO-GENERATED FILE, DO NOT MODIFY!
+//
+// @dart=2.18
+
+// ignore_for_file: unused_element, unused_import
+// ignore_for_file: always_put_required_named_parameters_first
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: lines_longer_than_80_chars
+
+part of openapi.api;
+
+class ApiClient {
+  ApiClient({this.basePath = 'http://localhost', this.authentication,});
+
+  final String basePath;
+  final Authentication? authentication;
+
+  var _client = Client();
+  final _defaultHeaderMap = <String, String>{};
+
+  /// Returns the current HTTP [Client] instance to use in this class.
+  ///
+  /// The return value is guaranteed to never be null.
+  Client get client => _client;
+
+  /// Requests to use a new HTTP [Client] in this class.
+  set client(Client newClient) {
+    _client = newClient;
+  }
+
+  Map<String, String> get defaultHeaderMap => _defaultHeaderMap;
+
+  void addDefaultHeader(String key, String value) {
+     _defaultHeaderMap[key] = value;
+  }
+
+  // We don't use a Map<String, String> for queryParams.
+  // If collectionFormat is 'multi', a key might appear multiple times.
+  Future<Response> invokeAPI(
+    String path,
+    String method,
+    List<QueryParam> queryParams,
+    Object? body,
+    Map<String, String> headerParams,
+    Map<String, String> formParams,
+    String? contentType,
+  ) async {
+    await authentication?.applyToParams(queryParams, headerParams);
+
+    headerParams.addAll(_defaultHeaderMap);
+    if (contentType != null) {
+      headerParams['Content-Type'] = contentType;
+    }
+
+    final urlEncodedQueryParams = queryParams.map((param) => '$param');
+    final queryString = urlEncodedQueryParams.isNotEmpty ? '?${urlEncodedQueryParams.join('&')}' : '';
+    final uri = Uri.parse('$basePath$path$queryString');
+
+    try {
+      // Special case for uploading a single file which isn't a 'multipart/form-data'.
+      if (
+        body is MultipartFile && (contentType == null ||
+        !contentType.toLowerCase().startsWith('multipart/form-data'))
+      ) {
+        final request = StreamedRequest(method, uri);
+        request.headers.addAll(headerParams);
+        request.contentLength = body.length;
+        body.finalize().listen(
+          request.sink.add,
+          onDone: request.sink.close,
+          // ignore: avoid_types_on_closure_parameters
+          onError: (Object error, StackTrace trace) => request.sink.close(),
+          cancelOnError: true,
+        );
+        final response = await _client.send(request);
+        return Response.fromStream(response);
+      }
+
+      if (body is MultipartRequest) {
+        final request = MultipartRequest(method, uri);
+        request.fields.addAll(body.fields);
+        request.files.addAll(body.files);
+        request.headers.addAll(body.headers);
+        request.headers.addAll(headerParams);
+        final response = await _client.send(request);
+        return Response.fromStream(response);
+      }
+
+      final msgBody = contentType == 'application/x-www-form-urlencoded'
+        ? formParams
+        : await serializeAsync(body);
+      final nullableHeaderParams = headerParams.isEmpty ? null : headerParams;
+
+      switch(method) {
+        case 'POST': return await _client.post(uri, headers: nullableHeaderParams, body: msgBody,);
+        case 'PUT': return await _client.put(uri, headers: nullableHeaderParams, body: msgBody,);
+        case 'DELETE': return await _client.delete(uri, headers: nullableHeaderParams, body: msgBody,);
+        case 'PATCH': return await _client.patch(uri, headers: nullableHeaderParams, body: msgBody,);
+        case 'HEAD': return await _client.head(uri, headers: nullableHeaderParams,);
+        case 'GET': return await _client.get(uri, headers: nullableHeaderParams,);
+      }
+    } on SocketException catch (error, trace) {
+      throw ApiException.withInner(
+        HttpStatus.badRequest,
+        'Socket operation failed: $method $path',
+        error,
+        trace,
+      );
+    } on TlsException catch (error, trace) {
+      throw ApiException.withInner(
+        HttpStatus.badRequest,
+        'TLS/SSL communication failed: $method $path',
+        error,
+        trace,
+      );
+    } on IOException catch (error, trace) {
+      throw ApiException.withInner(
+        HttpStatus.badRequest,
+        'I/O operation failed: $method $path',
+        error,
+        trace,
+      );
+    } on ClientException catch (error, trace) {
+      throw ApiException.withInner(
+        HttpStatus.badRequest,
+        'HTTP connection failed: $method $path',
+        error,
+        trace,
+      );
+    } on Exception catch (error, trace) {
+      throw ApiException.withInner(
+        HttpStatus.badRequest,
+        'Exception occurred: $method $path',
+        error,
+        trace,
+      );
+    }
+
+    throw ApiException(
+      HttpStatus.badRequest,
+      'Invalid HTTP operation: $method $path',
+    );
+  }
+
+  Future<dynamic> deserializeAsync(String value, String targetType, {bool growable = false,}) async =>
+    // ignore: deprecated_member_use_from_same_package
+    deserialize(value, targetType, growable: growable);
+
+  @Deprecated('Scheduled for removal in OpenAPI Generator 6.x. Use deserializeAsync() instead.')
+  dynamic deserialize(String value, String targetType, {bool growable = false,}) {
+    // Remove all spaces. Necessary for regular expressions as well.
+    targetType = targetType.replaceAll(' ', ''); // ignore: parameter_assignments
+
+    // If the expected target type is String, nothing to do...
+    return targetType == 'String'
+      ? value
+      : fromJson(json.decode(value), targetType, growable: growable);
+  }
+
+  // ignore: deprecated_member_use_from_same_package
+  Future<String> serializeAsync(Object? value) async => serialize(value);
+
+  @Deprecated('Scheduled for removal in OpenAPI Generator 6.x. Use serializeAsync() instead.')
+  String serialize(Object? value) => value == null ? '' : json.encode(value);
+
+  /// Returns a native instance of an OpenAPI class matching the [specified type][targetType].
+  static dynamic fromJson(dynamic value, String targetType, {bool growable = false,}) {
+    try {
+      switch (targetType) {
+        case 'String':
+          return value is String ? value : value.toString();
+        case 'int':
+          return value is int ? value : int.parse('$value');
+        case 'double':
+          return value is double ? value : double.parse('$value');
+        case 'bool':
+          if (value is bool) {
+            return value;
+          }
+          final valueString = '$value'.toLowerCase();
+          return valueString == 'true' || valueString == '1';
+        case 'DateTime':
+          return value is DateTime ? value : DateTime.tryParse(value);
+        case 'ActivityLogResponse':
+          return ActivityLogResponse.fromJson(value);
+        case 'ActivityLogResponsePagedResult':
+          return ActivityLogResponsePagedResult.fromJson(value);
+        case 'ActivityLogUpsertRequest':
+          return ActivityLogUpsertRequest.fromJson(value);
+        case 'AdminResponse':
+          return AdminResponse.fromJson(value);
+        case 'AdminResponsePagedResult':
+          return AdminResponsePagedResult.fromJson(value);
+        case 'AdminUpsertRequest':
+          return AdminUpsertRequest.fromJson(value);
+        case 'AppointmentResponse':
+          return AppointmentResponse.fromJson(value);
+        case 'AppointmentResponsePagedResult':
+          return AppointmentResponsePagedResult.fromJson(value);
+        case 'AppointmentStatus':
+          return AppointmentStatusTypeTransformer().decode(value);
+        case 'AppointmentUpsertRequest':
+          return AppointmentUpsertRequest.fromJson(value);
+        case 'AuthResponse':
+          return AuthResponse.fromJson(value);
+        case 'CityResponse':
+          return CityResponse.fromJson(value);
+        case 'CityResponsePagedResult':
+          return CityResponsePagedResult.fromJson(value);
+        case 'CityUpsertRequest':
+          return CityUpsertRequest.fromJson(value);
+        case 'DoctorNoteResponse':
+          return DoctorNoteResponse.fromJson(value);
+        case 'DoctorNoteResponsePagedResult':
+          return DoctorNoteResponsePagedResult.fromJson(value);
+        case 'DoctorNoteUpsertRequest':
+          return DoctorNoteUpsertRequest.fromJson(value);
+        case 'DoctorResponse':
+          return DoctorResponse.fromJson(value);
+        case 'DoctorResponsePagedResult':
+          return DoctorResponsePagedResult.fromJson(value);
+        case 'DoctorUpsertRequest':
+          return DoctorUpsertRequest.fromJson(value);
+        case 'GenderResponse':
+          return GenderResponse.fromJson(value);
+        case 'GenderResponsePagedResult':
+          return GenderResponsePagedResult.fromJson(value);
+        case 'GenderUpsertRequest':
+          return GenderUpsertRequest.fromJson(value);
+        case 'HygieneTrackerResponse':
+          return HygieneTrackerResponse.fromJson(value);
+        case 'HygieneTrackerResponsePagedResult':
+          return HygieneTrackerResponsePagedResult.fromJson(value);
+        case 'HygieneTrackerUpsertRequest':
+          return HygieneTrackerUpsertRequest.fromJson(value);
+        case 'MedicalRecordResponse':
+          return MedicalRecordResponse.fromJson(value);
+        case 'MedicalRecordResponsePagedResult':
+          return MedicalRecordResponsePagedResult.fromJson(value);
+        case 'MedicalRecordUpsertRequest':
+          return MedicalRecordUpsertRequest.fromJson(value);
+        case 'OrderItemResponse':
+          return OrderItemResponse.fromJson(value);
+        case 'OrderItemResponsePagedResult':
+          return OrderItemResponsePagedResult.fromJson(value);
+        case 'OrderItemUpsertRequest':
+          return OrderItemUpsertRequest.fromJson(value);
+        case 'OrderResponse':
+          return OrderResponse.fromJson(value);
+        case 'OrderResponsePagedResult':
+          return OrderResponsePagedResult.fromJson(value);
+        case 'OrderUpsertRequest':
+          return OrderUpsertRequest.fromJson(value);
+        case 'PatientResponse':
+          return PatientResponse.fromJson(value);
+        case 'PatientResponsePagedResult':
+          return PatientResponsePagedResult.fromJson(value);
+        case 'PatientUpsertRequest':
+          return PatientUpsertRequest.fromJson(value);
+        case 'PaymentResponse':
+          return PaymentResponse.fromJson(value);
+        case 'PaymentResponsePagedResult':
+          return PaymentResponsePagedResult.fromJson(value);
+        case 'PaymentStatus':
+          return PaymentStatusTypeTransformer().decode(value);
+        case 'PaymentUpsertRequest':
+          return PaymentUpsertRequest.fromJson(value);
+        case 'ProductResponse':
+          return ProductResponse.fromJson(value);
+        case 'ProductResponsePagedResult':
+          return ProductResponsePagedResult.fromJson(value);
+        case 'ProductUpsertRequest':
+          return ProductUpsertRequest.fromJson(value);
+        case 'ReminderResponse':
+          return ReminderResponse.fromJson(value);
+        case 'ReminderResponsePagedResult':
+          return ReminderResponsePagedResult.fromJson(value);
+        case 'ReminderUpsertRequest':
+          return ReminderUpsertRequest.fromJson(value);
+        case 'ReportResponse':
+          return ReportResponse.fromJson(value);
+        case 'ReportResponsePagedResult':
+          return ReportResponsePagedResult.fromJson(value);
+        case 'ReportUpsertRequest':
+          return ReportUpsertRequest.fromJson(value);
+        case 'ReviewResponse':
+          return ReviewResponse.fromJson(value);
+        case 'ReviewResponsePagedResult':
+          return ReviewResponsePagedResult.fromJson(value);
+        case 'ReviewUpsertRequest':
+          return ReviewUpsertRequest.fromJson(value);
+        case 'RoleResponse':
+          return RoleResponse.fromJson(value);
+        case 'RoleResponsePagedResult':
+          return RoleResponsePagedResult.fromJson(value);
+        case 'RoleUpsertRequest':
+          return RoleUpsertRequest.fromJson(value);
+        case 'RoomResponse':
+          return RoomResponse.fromJson(value);
+        case 'RoomResponsePagedResult':
+          return RoomResponsePagedResult.fromJson(value);
+        case 'RoomUpsertRequest':
+          return RoomUpsertRequest.fromJson(value);
+        case 'ServiceResponse':
+          return ServiceResponse.fromJson(value);
+        case 'ServiceResponsePagedResult':
+          return ServiceResponsePagedResult.fromJson(value);
+        case 'ServiceUpsertRequest':
+          return ServiceUpsertRequest.fromJson(value);
+        case 'UserLoginRequest':
+          return UserLoginRequest.fromJson(value);
+        case 'UserRegisterRequest':
+          return UserRegisterRequest.fromJson(value);
+        case 'UserResponse':
+          return UserResponse.fromJson(value);
+        case 'UserResponsePagedResult':
+          return UserResponsePagedResult.fromJson(value);
+        case 'UserUpsertRequest':
+          return UserUpsertRequest.fromJson(value);
+        default:
+          dynamic match;
+          if (value is List && (match = _regList.firstMatch(targetType)?.group(1)) != null) {
+            return value
+              .map<dynamic>((dynamic v) => fromJson(v, match, growable: growable,))
+              .toList(growable: growable);
+          }
+          if (value is Set && (match = _regSet.firstMatch(targetType)?.group(1)) != null) {
+            return value
+              .map<dynamic>((dynamic v) => fromJson(v, match, growable: growable,))
+              .toSet();
+          }
+          if (value is Map && (match = _regMap.firstMatch(targetType)?.group(1)) != null) {
+            return Map<String, dynamic>.fromIterables(
+              value.keys.cast<String>(),
+              value.values.map<dynamic>((dynamic v) => fromJson(v, match, growable: growable,)),
+            );
+          }
+      }
+    } on Exception catch (error, trace) {
+      throw ApiException.withInner(HttpStatus.internalServerError, 'Exception during deserialization.', error, trace,);
+    }
+    throw ApiException(HttpStatus.internalServerError, 'Could not find a suitable class for deserialization',);
+  }
+}
+
+/// Primarily intended for use in an isolate.
+class DeserializationMessage {
+  const DeserializationMessage({
+    required this.json,
+    required this.targetType,
+    this.growable = false,
+  });
+
+  /// The JSON value to deserialize.
+  final String json;
+
+  /// Target type to deserialize to.
+  final String targetType;
+
+  /// Whether to make deserialized lists or maps growable.
+  final bool growable;
+}
+
+/// Primarily intended for use in an isolate.
+Future<dynamic> decodeAsync(DeserializationMessage message) async {
+  // Remove all spaces. Necessary for regular expressions as well.
+  final targetType = message.targetType.replaceAll(' ', '');
+
+  // If the expected target type is String, nothing to do...
+  return targetType == 'String'
+    ? message.json
+    : json.decode(message.json);
+}
+
+/// Primarily intended for use in an isolate.
+Future<dynamic> deserializeAsync(DeserializationMessage message) async {
+  // Remove all spaces. Necessary for regular expressions as well.
+  final targetType = message.targetType.replaceAll(' ', '');
+
+  // If the expected target type is String, nothing to do...
+  return targetType == 'String'
+    ? message.json
+    : ApiClient.fromJson(
+        json.decode(message.json),
+        targetType,
+        growable: message.growable,
+      );
+}
+
+/// Primarily intended for use in an isolate.
+Future<String> serializeAsync(Object? value) async => value == null ? '' : json.encode(value);

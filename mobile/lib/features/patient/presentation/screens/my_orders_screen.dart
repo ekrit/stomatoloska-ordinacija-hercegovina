@@ -1,0 +1,120 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:soh_api/api.dart';
+
+import '../../../../core/api/api_providers.dart';
+import '../providers/patient_repository_providers.dart';
+
+String orderAmountLabel(num value) => '${value.toStringAsFixed(2)} KM';
+
+/// Resolves the id used as [OrderUpsertRequest.patientId]. In this API the [Patient] PK is [Patient.userId].
+final _patientIdProvider = FutureProvider.autoDispose<int?>((ref) async {
+  final userId = ref.watch(currentUserProvider)?.id;
+  if (userId == null) return null;
+  final patients = await ref.watch(patientSessionRepositoryProvider).listPatientsByUserId(userId);
+  if (patients.isEmpty) return null;
+  return patients.first.userId ?? userId;
+});
+
+final _ordersProvider = FutureProvider.autoDispose<List<OrderResponse>>((ref) async {
+  final patientId = await ref.watch(_patientIdProvider.future);
+  if (patientId == null) return [];
+  final r = await ref.watch(orderApiProvider).orderGet(patientId: patientId, retrieveAll: true);
+  return r?.items ?? [];
+});
+
+class MyOrdersScreen extends ConsumerWidget {
+  const MyOrdersScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(_ordersProvider);
+    return Scaffold(
+      appBar: AppBar(title: const Text('My orders')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final messenger = ScaffoldMessenger.of(context);
+          final userId = ref.read(currentUserProvider)?.id;
+          if (userId == null) {
+            messenger.showSnackBar(
+              const SnackBar(content: Text('Sign in to place an order.')),
+            );
+            return;
+          }
+          final patientId = await ref.read(_patientIdProvider.future);
+          if (patientId == null) {
+            if (!context.mounted) return;
+            messenger.showSnackBar(
+              const SnackBar(content: Text('Complete your patient profile before ordering.')),
+            );
+            return;
+          }
+          final products = await ref.read(patientCatalogRepositoryProvider).listProducts();
+          if (!context.mounted) return;
+          final priced = products.where((x) => (x.price ?? 0) > 0).toList();
+          final p = priced.isNotEmpty
+              ? priced.first
+              : (products.isNotEmpty ? products.first : null);
+          if (p == null) {
+            messenger.showSnackBar(
+              const SnackBar(content: Text('No products available yet.')),
+            );
+            return;
+          }
+          try {
+            await ref.read(orderApiProvider).orderPost(
+                  orderUpsertRequest: OrderUpsertRequest(
+                    patientId: patientId,
+                    totalAmount: p.price ?? 0,
+                  ),
+                );
+          } on ApiException catch (e) {
+            if (!context.mounted) return;
+            messenger.showSnackBar(
+              SnackBar(content: Text('Order failed: ${e.message ?? e}')),
+            );
+            return;
+          } catch (e) {
+            if (!context.mounted) return;
+            messenger.showSnackBar(
+              SnackBar(content: Text('Order failed: $e')),
+            );
+            return;
+          }
+          if (!context.mounted) return;
+          ref.invalidate(_ordersProvider);
+          messenger.showSnackBar(
+            const SnackBar(content: Text('Order created.')),
+          );
+        },
+        icon: const Icon(Icons.add_shopping_cart),
+        label: const Text('Quick order'),
+      ),
+      body: async.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('$e')),
+        data: (items) {
+          if (items.isEmpty) {
+            return const Center(
+              child: Text('No orders yet. Use Quick order to create one.'),
+            );
+          }
+          return ListView.separated(
+            padding: const EdgeInsets.all(12),
+            itemCount: items.length,
+            separatorBuilder: (_, _) => const Divider(height: 1),
+            itemBuilder: (context, i) {
+              final o = items[i];
+              return ListTile(
+                leading: const Icon(Icons.receipt_long_outlined),
+                title: Text('Order #${o.id ?? ''}'),
+                subtitle: Text('Patient #${o.patientId ?? ''}'),
+                trailing: Text(orderAmountLabel(o.totalAmount ?? 0)),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}

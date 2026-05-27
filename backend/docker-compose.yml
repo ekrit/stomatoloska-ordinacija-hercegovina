@@ -40,6 +40,13 @@ services:
       - RABBITMQ_USERNAME=${RABBITMQ__USERNAME}
       - RABBITMQ_PASSWORD=${RABBITMQ__PASSWORD}
       - RABBITMQ_VIRTUALHOST=/
+      - SMTP__HOST=${SMTP__HOST:-smtp.gmail.com}
+      - SMTP__PORT=${SMTP__PORT:-587}
+      - SMTP__ENABLESSL=${SMTP__ENABLESSL:-true}
+      - SMTP__USERNAME=${SMTP__USERNAME:-}
+      - SMTP__PASSWORD=${SMTP__PASSWORD:-}
+      - SMTP__FROM=${SMTP__FROM:-}
+      - APPOINTMENT_REMINDER_RECIPIENTS=${APPOINTMENT_REMINDER_RECIPIENTS:-}
     depends_on:
       - rabbitmq
       - soh-sql
@@ -48,7 +55,7 @@ services:
       - soh-2025
     ports:
       - 7111:80
-  
+
   soh-api:
     build:
       context: .
@@ -59,6 +66,10 @@ services:
       - RABBITMQ_USERNAME=${RABBITMQ__USERNAME}
       - RABBITMQ_PASSWORD=${RABBITMQ__PASSWORD}
       - RABBITMQ_VIRTUALHOST=/
+      - JwtSettings__SecretKey=${JwtSettings__SecretKey}
+      - JwtSettings__Issuer=${JwtSettings__Issuer:-SOH.WebAPI}
+      - JwtSettings__Audience=${JwtSettings__Audience:-SOH.App}
+      - JwtSettings__ExpirationMinutes=${JwtSettings__ExpirationMinutes:-60}
     ports:
       - "5130:5130"
     networks:
