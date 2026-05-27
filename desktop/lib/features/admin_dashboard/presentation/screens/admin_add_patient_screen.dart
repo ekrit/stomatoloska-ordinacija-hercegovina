@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
+import '../../../../core/utils/api_errors.dart';
 
 final _gendersAddPatientProvider = FutureProvider.autoDispose<List<GenderResponse>>((ref) async {
   final r = await ref.watch(genderApiProvider).genderGet(retrieveAll: true);
@@ -65,6 +66,32 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
       setState(() => _error = 'Please select gender and city.');
       return;
     }
+    final first = _first.text.trim();
+    final last = _last.text.trim();
+    final email = _email.text.trim();
+    final username = _username.text.trim();
+    final password = _password.text;
+    if (first.isEmpty || last.isEmpty) {
+      setState(() => _error = 'First and last name are required.');
+      return;
+    }
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
+      setState(() => _error = 'Please enter a valid email address.');
+      return;
+    }
+    if (username.length < 3) {
+      setState(() => _error = 'Username must be at least 3 characters.');
+      return;
+    }
+    if (password.length < 8) {
+      setState(() => _error = 'Password must be at least 8 characters.');
+      return;
+    }
+    if (_dob.isAfter(DateTime.now())) {
+      setState(() => _error = 'Date of birth cannot be in the future.');
+      return;
+    }
+
     setState(() {
       _loading = true;
       _error = null;
@@ -72,14 +99,14 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
     try {
       final user = await ref.read(usersApiProvider).usersRegisterPost(
             userRegisterRequest: UserRegisterRequest(
-              firstName: _first.text.trim(),
-              lastName: _last.text.trim(),
-              email: _email.text.trim(),
-              username: _username.text.trim(),
+              firstName: first,
+              lastName: last,
+              email: email,
+              username: username,
               phoneNumber: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
               genderId: gid,
               cityId: cid,
-              password: _password.text,
+              password: password,
             ),
           );
       final uid = user?.id;
@@ -90,8 +117,8 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
       await ref.read(patientApiProvider).patientPost(
             patientUpsertRequest: PatientUpsertRequest(
               userId: uid,
-              firstName: _first.text.trim(),
-              lastName: _last.text.trim(),
+              firstName: first,
+              lastName: last,
               phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
               dateOfBirth: _dob,
             ),
@@ -102,7 +129,8 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
       );
       Navigator.of(context).pop(true);
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = extractApiErrorMessage(e,
+          fallback: 'Could not create the patient account.'));
     } finally {
       if (mounted) setState(() => _loading = false);
     }

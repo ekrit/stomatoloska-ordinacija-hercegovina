@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
+import '../../../../core/utils/api_errors.dart';
 
 /// Edit a city name (office location label in the system).
 class AdminCityEditScreen extends ConsumerStatefulWidget {
@@ -56,7 +57,8 @@ class _AdminCityEditScreenState extends ConsumerState<AdminCityEditScreen> {
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = extractApiErrorMessage(e,
+          fallback: 'Could not save the city.'));
     } finally {
       if (mounted) setState(() => _saving = false);
     }

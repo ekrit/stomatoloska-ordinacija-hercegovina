@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
+import '../../../../core/utils/api_errors.dart';
 
 class UserEditScreen extends ConsumerStatefulWidget {
   const UserEditScreen({super.key, required this.userId});
@@ -121,7 +122,8 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = extractApiErrorMessage(e,
+            fallback: 'Could not load the user.');
         _loading = false;
       });
     }
@@ -212,7 +214,8 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        SnackBar(content: Text(extractApiErrorMessage(e,
+            fallback: 'Could not save the user.'))),
       );
     } finally {
       if (mounted) setState(() => _saving = false);

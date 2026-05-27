@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
+import '../../../../core/utils/api_errors.dart';
 import '../../../../core/utils/appointment_labels.dart';
 
 /// Admin: view and update an appointment (status, schedule, doctor note).
@@ -115,7 +116,8 @@ class _AdminAppointmentEditScreenState extends ConsumerState<AdminAppointmentEdi
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = extractApiErrorMessage(e,
+          fallback: 'Could not save the appointment changes.'));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -148,7 +150,8 @@ class _AdminAppointmentEditScreenState extends ConsumerState<AdminAppointmentEdi
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = extractApiErrorMessage(e,
+          fallback: 'Could not delete the appointment.'));
     } finally {
       if (mounted) setState(() => _saving = false);
     }

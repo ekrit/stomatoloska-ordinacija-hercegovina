@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
+import '../../../../core/utils/api_errors.dart';
 import 'user_edit_screen.dart';
 
 class UsersListScreen extends ConsumerStatefulWidget {
@@ -39,7 +40,8 @@ class _UsersListScreenState extends ConsumerState<UsersListScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = extractApiErrorMessage(e,
+            fallback: 'Could not load users.');
         _loading = false;
       });
     }

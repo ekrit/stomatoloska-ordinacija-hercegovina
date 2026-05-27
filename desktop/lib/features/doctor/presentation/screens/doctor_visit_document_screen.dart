@@ -5,6 +5,7 @@ import 'package:soh_api/api.dart';
 import '../../../../core/api/api_providers.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/storage/auth_storage.dart';
+import '../../../../core/utils/api_errors.dart';
 import '../../../../widgets/user_appbar_actions.dart' show showLogoutConfirm;
 import '../../../patient/presentation/providers/patient_repository_providers.dart';
 import '../../../patient/presentation/providers/patient_data_providers.dart';
@@ -157,7 +158,10 @@ class _DoctorVisitDocumentScreenState
         Navigator.of(context).pop();
       }
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) {
+        setState(() => _error = extractApiErrorMessage(e,
+            fallback: 'Could not save the visit document.'));
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
