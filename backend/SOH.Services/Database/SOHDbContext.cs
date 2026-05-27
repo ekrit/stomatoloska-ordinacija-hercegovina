@@ -20,7 +20,6 @@ namespace SOH.Services.Database
         public DbSet<Service> Services { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<MedicalRecord> MedicalRecords { get; set; }
-        public DbSet<DoctorNote> DoctorNotes { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Product> Products { get; set; }
@@ -154,12 +153,6 @@ namespace SOH.Services.Database
                 .WithMany(r => r.Appointments)
                 .HasForeignKey(a => a.RoomId)
                 .OnDelete(DeleteBehavior.NoAction);
-
-            modelBuilder.Entity<Appointment>()
-                .HasOne(a => a.DoctorNoteEntry)
-                .WithOne(n => n.Appointment)
-                .HasForeignKey<DoctorNote>(n => n.AppointmentId)
-                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Appointment>()
                 .HasOne(a => a.Payment)
