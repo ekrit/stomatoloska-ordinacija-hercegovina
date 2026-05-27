@@ -7,6 +7,6 @@ namespace SOH.Model.Responses
         public int Id { get; set; }
         public string Type { get; set; } = string.Empty;
         public DateTime GeneratedAt { get; set; }
-        public string FilePath { get; set; } = string.Empty;
+        public string Parameters { get; set; } = string.Empty;
     }
 }

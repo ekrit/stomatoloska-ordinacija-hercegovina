@@ -86,6 +86,7 @@ class AdminReportsListScreen extends ConsumerWidget {
                       final path =
                           '${dir.path}/appointments-summary-${DateTime.now().millisecondsSinceEpoch}.pdf';
                       await File(path).writeAsBytes(bytes);
+                      ref.invalidate(_allReportsAdminProvider);
                       messenger.showSnackBar(SnackBar(content: Text('PDF saved: $path')));
                     } catch (e) {
                       messenger.showSnackBar(SnackBar(content: Text('$e')));
@@ -104,6 +105,7 @@ class AdminReportsListScreen extends ConsumerWidget {
                       final path =
                           '${dir.path}/revenue-by-service-${DateTime.now().millisecondsSinceEpoch}.pdf';
                       await File(path).writeAsBytes(bytes);
+                      ref.invalidate(_allReportsAdminProvider);
                       messenger.showSnackBar(SnackBar(content: Text('PDF saved: $path')));
                     } catch (e) {
                       messenger.showSnackBar(SnackBar(content: Text('$e')));
@@ -143,7 +145,7 @@ class AdminReportsListScreen extends ConsumerWidget {
                     child: Padding(
                       padding: EdgeInsets.all(24),
                       child: Text(
-                        'No report records yet. Use Generate summary to create one.',
+                        'No report records yet. Download a PDF above to create an audit entry.',
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -159,7 +161,7 @@ class AdminReportsListScreen extends ConsumerWidget {
                     return ListTile(
                       title: Text(r.type ?? 'Report #${r.id ?? ''}'),
                       subtitle: Text(
-                        '${r.filePath ?? '—'}\n${r.generatedAt != null ? df.format(r.generatedAt!) : ''}',
+                        '${r.parameters ?? r.filePath ?? '—'}\n${r.generatedAt != null ? df.format(r.generatedAt!) : ''}',
                       ),
                       isThreeLine: true,
                     );

@@ -14,6 +14,6 @@ namespace SOH.Model.Requests
 
         [Required]
         [MaxLength(300)]
-        public string FilePath { get; set; } = string.Empty;
+        public string Parameters { get; set; } = string.Empty;
     }
 }
