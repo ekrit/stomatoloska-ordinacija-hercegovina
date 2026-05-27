@@ -73,3 +73,27 @@ powershell -ExecutionPolicy Bypass -File .\scripts\desktop-build-windows.ps1
 Release binary: `desktop/build/windows/x64/runner/Release/desktop.exe`.
 
 See [`mobile/README.md`](mobile/README.md) and [`desktop/README.md`](desktop/README.md) for the per-project details and the `--dart-define=API_BASE_URL=...` examples.
+
+## Seeded credentials (development)
+
+The first time the API runs against an empty database, EF Core migrations
+seed the records below (defined in
+[`backend/SOH.Services/Database/DataSeeder.cs`](backend/SOH.Services/Database/DataSeeder.cs)).
+All seeded accounts share the same dev password.
+
+| Role          | Username | Password       | Lives in     |
+| ------------- | -------- | -------------- | ------------ |
+| Administrator | `admin`  | `SohDev2026!`  | Desktop      |
+| Doctor        | `admin2` | `SohDev2026!`  | Desktop      |
+| Patient       | `user`   | `SohDev2026!`  | Mobile       |
+| Patient       | `user2`  | `SohDev2026!`  | Mobile       |
+
+The desktop app rejects Patient logins ("This account is for patients...");
+the mobile app rejects Administrator and Doctor logins. Use the right
+account in the right client, or both will refuse to sign you in.
+
+## Documentation index
+
+- [`docs/recommender-dokumentacija.md`](docs/recommender-dokumentacija.md) - how the patient product recommender scores items and explains itself.
+- [`docs/Docker Commands.txt`](docs/Docker%20Commands.txt) / [`docs/Flutter Commands.txt`](docs/Flutter%20Commands.txt) / [`docs/C# Commands.txt`](docs/C%23%20Commands.txt) - command references.
+- [`backend/.env.example`](backend/.env.example) - required and optional environment variables.
