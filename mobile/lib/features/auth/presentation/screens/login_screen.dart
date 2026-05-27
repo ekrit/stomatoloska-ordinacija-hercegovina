@@ -6,6 +6,7 @@ import '../../../../core/api/api_providers.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../patient/presentation/providers/patient_repository_providers.dart';
 import '../../../../core/storage/auth_storage.dart';
+import '../../../../core/utils/api_errors.dart';
 import '../../../../core/utils/role_utils.dart';
 
 /// Patient mobile login. Staff accounts (Administrator / Doctor) are rejected
@@ -82,7 +83,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       Navigator.of(context).pushReplacementNamed(AppRoutes.patientShell);
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error =
+          extractApiErrorMessage(e, fallback: 'Wrong username or password.'));
     } finally {
       if (mounted) setState(() => _loading = false);
     }

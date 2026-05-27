@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
+import '../../../../core/utils/api_errors.dart';
 import '../providers/patient_data_providers.dart';
 import '../providers/patient_repository_providers.dart';
 
@@ -55,7 +56,8 @@ class _AppointmentReviewScreenState extends ConsumerState<AppointmentReviewScree
         Navigator.of(context).pop();
       }
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = extractApiErrorMessage(e,
+          fallback: 'Could not submit the review. Please try again.'));
     } finally {
       if (mounted) setState(() => _saving = false);
     }

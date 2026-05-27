@@ -4,6 +4,7 @@ import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/utils/api_errors.dart';
 
 class CompleteProfileScreen extends ConsumerStatefulWidget {
   const CompleteProfileScreen({super.key});
@@ -45,6 +46,16 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
       setState(() => _error = 'Not signed in.');
       return;
     }
+    final first = _first.text.trim();
+    final last = _last.text.trim();
+    if (first.isEmpty || last.isEmpty) {
+      setState(() => _error = 'Please enter your first and last name.');
+      return;
+    }
+    if (_dob.isAfter(DateTime.now())) {
+      setState(() => _error = 'Date of birth cannot be in the future.');
+      return;
+    }
     setState(() {
       _loading = true;
       _error = null;
@@ -53,8 +64,8 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
       await ref.read(patientApiProvider).patientPost(
             patientUpsertRequest: PatientUpsertRequest(
               userId: user!.id!,
-              firstName: _first.text.trim(),
-              lastName: _last.text.trim(),
+              firstName: first,
+              lastName: last,
               phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
               dateOfBirth: _dob,
             ),
@@ -62,7 +73,8 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed(AppRoutes.patientShell);
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = extractApiErrorMessage(e,
+          fallback: 'Could not save the profile. Please try again.'));
     } finally {
       if (mounted) setState(() => _loading = false);
     }

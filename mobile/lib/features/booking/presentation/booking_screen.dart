@@ -7,6 +7,7 @@ import 'package:table_calendar/table_calendar.dart';
 import '../../../core/api/api_providers.dart';
 import '../../../core/config/booking_config.dart';
 import '../../../core/domain/booking_slots.dart';
+import '../../../core/utils/api_errors.dart';
 import '../../../core/utils/appointment_labels.dart';
 import '../../patient/presentation/providers/patient_data_providers.dart';
 import '../../patient/presentation/providers/patient_repository_providers.dart';
@@ -61,6 +62,18 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       return;
     }
 
+    if (slot.isBefore(DateTime.now())) {
+      setState(() => _error = 'Pick a future time slot.');
+      return;
+    }
+
+    final confirmed = await _confirmBooking(
+      doctorName: '${doctor?.firstName ?? ''} ${doctor?.lastName ?? ''}'.trim(),
+      when: slot,
+      serviceName: svc?.name ?? '',
+    );
+    if (!confirmed) return;
+
     List<RoomResponse> rooms;
     try {
       rooms = await ref.read(roomsProvider.future);
@@ -107,10 +120,42 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       );
       Navigator.of(context).pop();
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = extractApiErrorMessage(e,
+          fallback: 'Could not request the appointment. Please try again.'));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
+  }
+
+  Future<bool> _confirmBooking({
+    required String doctorName,
+    required DateTime when,
+    required String serviceName,
+  }) async {
+    final df = DateFormat.yMMMEd();
+    final tf = DateFormat.Hm();
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Confirm appointment request'),
+        content: Text(
+          'Request appointment with $doctorName on ${df.format(when)} at ${tf.format(when)}'
+          '${serviceName.isEmpty ? '' : ' for "$serviceName"'}?\n\n'
+          'The dentist will confirm or decline your request.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Send request'),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 
   @override
