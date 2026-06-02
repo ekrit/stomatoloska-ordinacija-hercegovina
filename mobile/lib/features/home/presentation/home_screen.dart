@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../core/api/api_providers.dart';
-import '../../../core/api/soh_extra_api.dart';
 import '../../../core/widgets/async_body.dart';
 import '../../../core/widgets/section_header.dart';
 import '../../patient/presentation/providers/patient_data_providers.dart';
+import 'product_detail_screen.dart';
 import 'recommendations_providers.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -94,22 +94,15 @@ class HomeScreen extends ConsumerWidget {
                                 return _ProductCard(
                                   product: item.product,
                                   hint: item.reasons.isNotEmpty ? item.reasons.first : null,
-                                  onTap: () async {
-                                    final id = item.product.id;
-                                    if (id == null) return;
-                                    try {
-                                      await SohExtraApi(ref.read(apiClientProvider))
-                                          .trackProductInteraction(productId: id);
-                                    } catch (_) {}
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Logged interest in ${item.product.name ?? 'product'} — recommendations will improve over time.',
-                                          ),
+                                  onTap: () {
+                                    Navigator.of(context).push<void>(
+                                      MaterialPageRoute<void>(
+                                        builder: (_) => ProductDetailScreen(
+                                          product: item.product,
+                                          reasons: item.reasons,
                                         ),
-                                      );
-                                    }
+                                      ),
+                                    );
                                   },
                                 );
                               },

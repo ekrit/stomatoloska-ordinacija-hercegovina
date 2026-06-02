@@ -9,6 +9,7 @@ import '../../../../core/utils/api_errors.dart';
 import '../../../../core/utils/appointment_labels.dart';
 import '../providers/patient_data_providers.dart';
 import '../providers/patient_repository_providers.dart';
+import 'appointment_detail_screen.dart';
 import 'appointment_review_screen.dart';
 import 'patient_findings_screen.dart';
 
@@ -245,7 +246,17 @@ class _AppointmentPatientCard extends ConsumerWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
+      child: InkWell(
+        onTap: () => Navigator.of(context).push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => AppointmentDetailScreen(
+              appointment: a,
+              doctorName: doctorName,
+              serviceName: serviceName,
+            ),
+          ),
+        ),
+        child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -367,6 +378,7 @@ class _AppointmentPatientCard extends ConsumerWidget {
             ],
           ],
         ),
+      ),
       ),
     );
   }
