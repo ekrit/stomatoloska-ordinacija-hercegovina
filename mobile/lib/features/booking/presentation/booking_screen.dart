@@ -11,6 +11,7 @@ import '../../../core/utils/api_errors.dart';
 import '../../../core/utils/appointment_labels.dart';
 import '../../patient/presentation/providers/patient_data_providers.dart';
 import '../../patient/presentation/providers/patient_repository_providers.dart';
+import 'payment_screen.dart';
 
 class BookingScreen extends ConsumerStatefulWidget {
   const BookingScreen({super.key});
@@ -98,7 +99,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       _error = null;
     });
     try {
-      await ref.read(patientCareRepositoryProvider).createAppointment(
+      final created = await ref.read(patientCareRepositoryProvider).createAppointment(
             AppointmentUpsertRequest(
               patientId: user!.id!,
               doctorId: doctorId,
@@ -118,6 +119,27 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Appointment requested.')),
       );
+
+      final appointmentId = created?.id;
+      if (appointmentId != null) {
+        final paid = await Navigator.of(context).push<bool>(
+          MaterialPageRoute<bool>(
+            builder: (_) => PaymentScreen(
+              appointmentId: appointmentId,
+              serviceName: svc.name,
+            ),
+          ),
+        );
+        if (!mounted) return;
+        ref.invalidate(myAppointmentsProvider);
+        if (paid == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Payment completed.')),
+          );
+        }
+      }
+
+      if (!mounted) return;
       Navigator.of(context).pop();
     } catch (e) {
       setState(() => _error = extractApiErrorMessage(e,

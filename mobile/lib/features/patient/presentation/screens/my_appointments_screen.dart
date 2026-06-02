@@ -247,7 +247,36 @@ class _AppointmentPatientCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(when, style: Theme.of(context).textTheme.titleSmall),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(when, style: Theme.of(context).textTheme.titleSmall),
+                ),
+                if (a.isPaid == true)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.check_circle, size: 14, color: Colors.green.shade800),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Paid / Plaćeno',
+                          style: TextStyle(
+                            color: Colors.green.shade800,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
             Text('$doctorName · $serviceName'),
             const SizedBox(height: 4),
             Text(appointmentStatusLabel(a.status)),
