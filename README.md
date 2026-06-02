@@ -8,9 +8,10 @@ The project is developed for academic purposes and includes:
 - Presentation of dental services
 - Patient information management
 - Appointment scheduling (request, accept, complete, review, cancel)
+- In-app PayPal (sandbox) payment for appointments, with refund-while-not-completed
 - Hybrid product recommendations (content + collaborative + behavioral)
 - In-app notifications via SignalR
-- Admin reporting (PDF)
+- Admin reporting (PDF + print)
 - Patient mobile app and staff desktop app
 
 **Technologies:**
@@ -41,6 +42,13 @@ random chars). SMTP credentials are only needed if you want the appointment
 reminder worker to send real emails; leave blank to disable it. The API and
 the subscriber both call `DotNetEnv` at startup, so the same `.env` file is
 also picked up by `dotnet run` outside Docker.
+
+To enable appointment payments, set `PAYPAL__CLIENT_ID` and
+`PAYPAL__CLIENT_SECRET` from a PayPal **Sandbox** REST app
+(<https://developer.paypal.com>); `PAYPAL__BASE_URL` defaults to the sandbox.
+Leave them blank to disable payments (the payment endpoints then return a
+clear "PayPal is not configured" message). The amount is always taken from the
+service catalog server-side — the client never sends a price.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\backend-up.ps1
@@ -95,5 +103,6 @@ account in the right client, or both will refuse to sign you in.
 ## Documentation index
 
 - [`docs/recommender-dokumentacija.md`](docs/recommender-dokumentacija.md) - how the patient product recommender scores items and explains itself.
+- [`docs/plan-seminar-vs-solution-gap.md`](docs/plan-seminar-vs-solution-gap.md) - rubric/requirements coverage and gap report.
 - [`docs/Docker Commands.txt`](docs/Docker%20Commands.txt) / [`docs/Flutter Commands.txt`](docs/Flutter%20Commands.txt) / [`docs/C# Commands.txt`](docs/C%23%20Commands.txt) - command references.
 - [`backend/.env.example`](backend/.env.example) - required and optional environment variables.
