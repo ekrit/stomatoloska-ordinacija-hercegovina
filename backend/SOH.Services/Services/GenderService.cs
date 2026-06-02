@@ -22,6 +22,11 @@ namespace SOH.Services.Services
                 query = query.Where(x => x.Name.Contains(search.Name));
             }
 
+            if (!string.IsNullOrEmpty(search.FTS))
+            {
+                query = query.Where(x => x.Name.Contains(search.FTS));
+            }
+
             return query;
         }
 

@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../screens/admin_add_patient_screen.dart';
 import '../screens/admin_appointments_list_screen.dart';
+import '../screens/admin_genders_list_screen.dart';
 import '../screens/admin_office_locations_screen.dart';
 import '../screens/admin_payments_list_screen.dart';
 import '../screens/admin_products_list_screen.dart';
+import '../screens/admin_rooms_list_screen.dart';
+import '../screens/admin_services_list_screen.dart';
 import '../screens/admin_reports_list_screen.dart';
 import '../screens/admin_system_settings_screen.dart';
 import '../../../admin_users/presentation/screens/users_list_screen.dart';
@@ -24,6 +27,9 @@ class QuickActionsGrid extends StatelessWidget {
       _ActionItem('Manage Appointments', Icons.calendar_today_outlined),
       _ActionItem('Generate Reports', Icons.bar_chart_outlined),
       _ActionItem('Manage Products', Icons.inventory_2_outlined),
+      _ActionItem('Manage Services', Icons.design_services_outlined),
+      _ActionItem('Manage Rooms', Icons.meeting_room_outlined),
+      _ActionItem('Manage Genders', Icons.wc_outlined),
       _ActionItem('Payments', Icons.payments_outlined),
       _ActionItem('System Settings', Icons.settings_outlined),
     ];
@@ -91,9 +97,18 @@ class QuickActionsGrid extends StatelessWidget {
         push(const AdminProductsListScreen());
         break;
       case 6:
-        push(const AdminPaymentsListScreen());
+        push(const AdminServicesListScreen());
         break;
       case 7:
+        push(const AdminRoomsListScreen());
+        break;
+      case 8:
+        push(const AdminGendersListScreen());
+        break;
+      case 9:
+        push(const AdminPaymentsListScreen());
+        break;
+      case 10:
         push(const AdminSystemSettingsScreen());
         break;
     }
@@ -127,7 +142,7 @@ class QuickActionsCard extends StatelessWidget {
             const SizedBox(height: 12),
             LayoutBuilder(
               builder: (context, constraints) {
-                final rows = (8 / 2).ceil();
+                final rows = (11 / 2).ceil();
                 final h = rows * QuickActionsGrid.rowExtent + (rows - 1) * 8.0;
                 return SizedBox(
                   height: h,
