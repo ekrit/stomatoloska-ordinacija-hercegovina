@@ -6,6 +6,7 @@ import 'package:soh_api/api.dart';
 import '../../../../core/api/api_providers.dart';
 import '../../../../core/utils/appointment_labels.dart';
 import '../../../../core/widgets/paginated_search_view.dart';
+import '../providers/lookup_providers.dart';
 import 'admin_appointment_create_screen.dart';
 import 'admin_appointment_edit_screen.dart';
 
@@ -90,8 +91,8 @@ class _AppointmentTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final a = appointment;
-    final doctors = ref.watch(_doctorsLookupProvider);
-    final services = ref.watch(_servicesLookupProvider);
+    final doctors = ref.watch(doctorsLookupProvider);
+    final services = ref.watch(servicesLookupProvider);
 
     final doctorName = doctors.maybeWhen(
       data: (m) => m[a.doctorId] ?? 'Doctor #${a.doctorId ?? '—'}',
@@ -121,23 +122,3 @@ class _AppointmentTile extends ConsumerWidget {
     );
   }
 }
-
-final _doctorsLookupProvider = FutureProvider.autoDispose<Map<int, String>>((ref) async {
-  final r = await ref.watch(doctorApiProvider).doctorGet(retrieveAll: true);
-  final map = <int, String>{};
-  for (final d in r?.items ?? <DoctorResponse>[]) {
-    if (d.userId != null) {
-      map[d.userId!] = '${d.firstName ?? ''} ${d.lastName ?? ''}'.trim();
-    }
-  }
-  return map;
-});
-
-final _servicesLookupProvider = FutureProvider.autoDispose<Map<int, String>>((ref) async {
-  final r = await ref.watch(serviceApiProvider).serviceGet(retrieveAll: true);
-  final map = <int, String>{};
-  for (final s in r?.items ?? <ServiceResponse>[]) {
-    if (s.id != null) map[s.id!] = s.name ?? 'Service #${s.id}';
-  }
-  return map;
-});

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
+import '../../../../core/utils/api_errors.dart';
 import '../../../../core/utils/appointment_labels.dart';
-
-int? parseIdInput(String value) => int.tryParse(value.trim());
+import '../providers/lookup_providers.dart';
 
 class AdminAppointmentCreateScreen extends ConsumerStatefulWidget {
   const AdminAppointmentCreateScreen({super.key});
@@ -15,10 +16,11 @@ class AdminAppointmentCreateScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminAppointmentCreateScreenState extends ConsumerState<AdminAppointmentCreateScreen> {
-  final _patientId = TextEditingController();
-  final _doctorId = TextEditingController();
-  final _serviceId = TextEditingController();
-  final _roomId = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  int? _patientId;
+  int? _doctorId;
+  int? _serviceId;
+  int? _roomId;
   final _note = TextEditingController();
   DateTime _start = DateTime.now().add(const Duration(hours: 1));
   bool _saving = false;
@@ -26,10 +28,6 @@ class _AdminAppointmentCreateScreenState extends ConsumerState<AdminAppointmentC
 
   @override
   void dispose() {
-    _patientId.dispose();
-    _doctorId.dispose();
-    _serviceId.dispose();
-    _roomId.dispose();
     _note.dispose();
     super.dispose();
   }
@@ -53,15 +51,7 @@ class _AdminAppointmentCreateScreenState extends ConsumerState<AdminAppointmentC
   }
 
   Future<void> _save() async {
-    final pid = parseIdInput(_patientId.text);
-    final did = parseIdInput(_doctorId.text);
-    final sid = parseIdInput(_serviceId.text);
-    final rid = parseIdInput(_roomId.text);
-    if (pid == null || did == null || sid == null || rid == null) {
-      setState(() => _error = 'Patient, doctor, service and room IDs are required.');
-      return;
-    }
-
+    if (!_formKey.currentState!.validate()) return;
     setState(() {
       _saving = true;
       _error = null;
@@ -69,10 +59,10 @@ class _AdminAppointmentCreateScreenState extends ConsumerState<AdminAppointmentC
     try {
       await ref.read(appointmentApiProvider).appointmentPost(
             appointmentUpsertRequest: AppointmentUpsertRequest(
-              patientId: pid,
-              doctorId: did,
-              serviceId: sid,
-              roomId: rid,
+              patientId: _patientId!,
+              doctorId: _doctorId!,
+              serviceId: _serviceId!,
+              roomId: _roomId!,
               startTime: _start,
               endTime: _start.add(const Duration(minutes: 30)),
               status: AppointmentStatuses.requested,
@@ -82,7 +72,7 @@ class _AdminAppointmentCreateScreenState extends ConsumerState<AdminAppointmentC
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
-      setState(() => _error = '$e');
+      setState(() => _error = extractApiErrorMessage(e, fallback: 'Could not create the appointment.'));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -90,74 +80,108 @@ class _AdminAppointmentCreateScreenState extends ConsumerState<AdminAppointmentC
 
   @override
   Widget build(BuildContext context) {
+    final df = DateFormat.yMMMd().add_Hm();
+    final patients = ref.watch(patientsLookupProvider);
+    final doctors = ref.watch(doctorsLookupProvider);
+    final services = ref.watch(servicesLookupProvider);
+    final rooms = ref.watch(roomsLookupProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Create appointment')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          TextField(
-            controller: _patientId,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Patient (user) ID',
-              helperText: 'Same as the patient account user id (Patients.UserId), not a row number.',
-              border: OutlineInputBorder(),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            _lookupDropdown(
+              label: 'Patient',
+              async: patients,
+              value: _patientId,
+              onChanged: (v) => setState(() => _patientId = v),
             ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _doctorId,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Doctor ID', border: OutlineInputBorder()),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _serviceId,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Service ID', border: OutlineInputBorder()),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _roomId,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Room ID', border: OutlineInputBorder()),
-          ),
-          const SizedBox(height: 12),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Start time'),
-            subtitle: Text(_start.toString()),
-            trailing: OutlinedButton(
-              onPressed: _pickStart,
-              child: const Text('Pick'),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _note,
-            maxLines: 3,
-            decoration: const InputDecoration(
-              labelText: 'Doctor note (optional)',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          if (_error != null) ...[
             const SizedBox(height: 12),
-            Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            _lookupDropdown(
+              label: 'Doctor',
+              async: doctors,
+              value: _doctorId,
+              onChanged: (v) => setState(() => _doctorId = v),
+            ),
+            const SizedBox(height: 12),
+            _lookupDropdown(
+              label: 'Service',
+              async: services,
+              value: _serviceId,
+              onChanged: (v) => setState(() => _serviceId = v),
+            ),
+            const SizedBox(height: 12),
+            _lookupDropdown(
+              label: 'Room',
+              async: rooms,
+              value: _roomId,
+              onChanged: (v) => setState(() => _roomId = v),
+            ),
+            const SizedBox(height: 12),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Start time'),
+              subtitle: Text(df.format(_start)),
+              trailing: OutlinedButton(onPressed: _pickStart, child: const Text('Pick')),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _note,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: 'Doctor note (optional)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            ],
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: _saving ? null : _save,
+              child: _saving
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Text('Create'),
+            ),
           ],
-          const SizedBox(height: 16),
-          FilledButton(
-            onPressed: _saving ? null : _save,
-            child: _saving
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('Create'),
-          ),
-        ],
+        ),
       ),
+    );
+  }
+
+  Widget _lookupDropdown({
+    required String label,
+    required AsyncValue<Map<int, String>> async,
+    required int? value,
+    required ValueChanged<int?> onChanged,
+  }) {
+    return async.when(
+      loading: () => InputDecorator(
+        decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
+        child: const SizedBox(
+          height: 20,
+          child: Center(child: LinearProgressIndicator()),
+        ),
+      ),
+      error: (e, _) => Text(extractApiErrorMessage(e, fallback: 'Could not load $label list.')),
+      data: (map) {
+        final entries = map.entries.toList()
+          ..sort((a, b) => a.value.toLowerCase().compareTo(b.value.toLowerCase()));
+        return DropdownButtonFormField<int>(
+          value: value,
+          isExpanded: true,
+          decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
+          items: entries
+              .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value, overflow: TextOverflow.ellipsis)))
+              .toList(),
+          validator: (v) => v == null ? '$label is required.' : null,
+          onChanged: _saving ? null : onChanged,
+        );
+      },
     );
   }
 }
