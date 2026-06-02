@@ -137,6 +137,23 @@ class SohExtraApi {
     return false;
   }
 
+  /// Cancels the patient's own appointment. Uses the dedicated cancel route so
+  /// patients are not blocked by the admin/doctor-only update authorization.
+  Future<void> cancelAppointment(int appointmentId) async {
+    final resp = await _client.invokeAPI(
+      '/Appointment/$appointmentId/cancel',
+      'POST',
+      <QueryParam>[],
+      null,
+      <String, String>{},
+      <String, String>{},
+      null,
+    );
+    if (resp.statusCode < 200 || resp.statusCode >= 300) {
+      throw ApiException(resp.statusCode, resp.body);
+    }
+  }
+
   /// Refunds a paid payment (only allowed while the appointment is not completed).
   Future<void> refundPayment(int paymentId) async {
     final resp = await _client.invokeAPI(

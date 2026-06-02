@@ -9,7 +9,6 @@ import '../../../../core/utils/api_errors.dart';
 import '../../../../core/utils/appointment_labels.dart';
 import '../../../booking/presentation/payment_screen.dart';
 import '../providers/patient_data_providers.dart';
-import '../providers/patient_repository_providers.dart';
 import 'patient_findings_screen.dart';
 
 /// Full detail view for a single appointment: schedule, dentist, service,
@@ -196,29 +195,11 @@ class AppointmentDetailScreen extends ConsumerWidget {
       ),
     );
     if (ok != true) return;
-    if (a.id == null ||
-        a.patientId == null ||
-        a.doctorId == null ||
-        a.serviceId == null ||
-        a.roomId == null ||
-        a.startTime == null ||
-        a.endTime == null) {
+    if (a.id == null) {
       return;
     }
     try {
-      await ref.read(patientCareRepositoryProvider).updateAppointment(
-            a.id!,
-            AppointmentUpsertRequest(
-              patientId: a.patientId!,
-              doctorId: a.doctorId!,
-              serviceId: a.serviceId!,
-              roomId: a.roomId!,
-              startTime: a.startTime!,
-              endTime: a.endTime!,
-              status: AppointmentStatuses.cancelled,
-              doctorNote: a.doctorNote,
-            ),
-          );
+      await SohExtraApi(ref.read(apiClientProvider)).cancelAppointment(a.id!);
       ref.invalidate(myAppointmentsProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
