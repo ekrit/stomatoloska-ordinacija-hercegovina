@@ -20,7 +20,7 @@ namespace SOH.Services.Services
 
         // Hard ceiling on a single page so a client cannot pull the entire
         // table in one request (rubric flags unbounded list endpoints).
-        private const int MaxPageSize = 100;
+        protected const int MaxPageSize = 100;
 
         public virtual async Task<PagedResult<T>> GetAsync(TSearch search)
         {

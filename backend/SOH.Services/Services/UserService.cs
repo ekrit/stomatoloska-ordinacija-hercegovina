@@ -72,14 +72,11 @@ namespace SOH.Services.Services
 
             if (!search.RetrieveAll)
             {
-                if (search.Page.HasValue)
-                {
-                    query = query.Skip(search.Page.Value * search.PageSize.Value);
-                }
-                if (search.PageSize.HasValue)
-                {
-                    query = query.Take(search.PageSize.Value);
-                }
+                // Clamp to the shared ceiling so /Users cannot be used to pull
+                // the whole table in one request (consistent with BaseService).
+                var pageSize = Math.Clamp(search.PageSize ?? 30, 1, MaxPageSize);
+                var page = Math.Max(search.Page ?? 0, 0);
+                query = query.Skip(page * pageSize).Take(pageSize);
             }
 
             var users = await query.ToListAsync();
