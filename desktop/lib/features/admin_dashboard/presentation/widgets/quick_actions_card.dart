@@ -9,7 +9,6 @@ import '../screens/admin_products_list_screen.dart';
 import '../screens/admin_rooms_list_screen.dart';
 import '../screens/admin_services_list_screen.dart';
 import '../screens/admin_reports_list_screen.dart';
-import '../screens/admin_system_settings_screen.dart';
 import '../../../admin_users/presentation/screens/users_list_screen.dart';
 
 /// Action buttons only (no card chrome). Use inside a fixed-height panel with [Expanded].
@@ -31,7 +30,6 @@ class QuickActionsGrid extends StatelessWidget {
       _ActionItem('Manage Rooms', Icons.meeting_room_outlined),
       _ActionItem('Manage Genders', Icons.wc_outlined),
       _ActionItem('Payments', Icons.payments_outlined),
-      _ActionItem('System Settings', Icons.settings_outlined),
     ];
 
     final buttonStyle = OutlinedButton.styleFrom(
@@ -108,9 +106,6 @@ class QuickActionsGrid extends StatelessWidget {
       case 9:
         push(const AdminPaymentsListScreen());
         break;
-      case 10:
-        push(const AdminSystemSettingsScreen());
-        break;
     }
   }
 }
@@ -142,7 +137,7 @@ class QuickActionsCard extends StatelessWidget {
             const SizedBox(height: 12),
             LayoutBuilder(
               builder: (context, constraints) {
-                final rows = (11 / 2).ceil();
+                final rows = (10 / 2).ceil();
                 final h = rows * QuickActionsGrid.rowExtent + (rows - 1) * 8.0;
                 return SizedBox(
                   height: h,
