@@ -122,7 +122,7 @@ class _AppointmentListView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return async.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('$e')),
+      error: (e, _) => Center(child: Text(extractApiErrorMessage(e))),
       data: (all) {
         final now = DateTime.now();
         final filtered = _filter(all, now);
@@ -468,7 +468,9 @@ class _AppointmentPatientCard extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Could not cancel the appointment.'))),
+        );
       }
     }
   }

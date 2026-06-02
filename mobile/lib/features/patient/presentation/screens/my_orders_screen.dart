@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
+import '../../../../core/utils/api_errors.dart';
 import '../providers/patient_repository_providers.dart';
 
 String orderAmountLabel(num value) => '${value.toStringAsFixed(2)} KM';
@@ -100,7 +101,7 @@ class MyOrdersScreen extends ConsumerWidget {
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('$e')),
+        error: (e, _) => Center(child: Text(extractApiErrorMessage(e))),
         data: (items) {
           if (items.isEmpty) {
             return const Center(

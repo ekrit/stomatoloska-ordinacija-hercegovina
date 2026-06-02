@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
 
+import '../../../../core/utils/api_errors.dart';
 import '../providers/patient_repository_providers.dart';
 
 final _recordsForAppointmentPatientProvider =
@@ -25,7 +26,7 @@ class PatientFindingsScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Findings / documents')),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('$e')),
+        error: (e, _) => Center(child: Text(extractApiErrorMessage(e))),
         data: (records) {
           if (records.isEmpty) {
             return const Center(

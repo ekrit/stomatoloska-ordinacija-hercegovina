@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
+import '../../../../core/utils/api_errors.dart';
 import '../../../../core/utils/appointment_labels.dart';
 import '../providers/patient_data_providers.dart';
 
@@ -161,8 +162,9 @@ class RemindersHygieneScreen extends ConsumerWidget {
                               ref.invalidate(_todayHygieneProvider);
                             } catch (e) {
                               if (context.mounted) {
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(SnackBar(content: Text('$e')));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Could not log brushing.'))),
+                                );
                               }
                             }
                           },
@@ -173,7 +175,7 @@ class RemindersHygieneScreen extends ConsumerWidget {
               );
             },
             loading: () => const LinearProgressIndicator(),
-            error: (e, _) => Text('$e'),
+            error: (e, _) => Text(extractApiErrorMessage(e)),
           ),
           const SizedBox(height: 28),
           Text(

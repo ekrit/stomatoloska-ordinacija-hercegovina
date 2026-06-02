@@ -254,7 +254,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                         );
                       },
                       loading: () => const Center(child: CircularProgressIndicator()),
-                      error: (e, _) => Text('$e'),
+                      error: (e, _) => Text(extractApiErrorMessage(e)),
                     ),
                   if (_step == 1) ...[
                     Text(
@@ -394,7 +394,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                         );
                       },
                       loading: () => const Center(child: CircularProgressIndicator()),
-                      error: (e, _) => Text('$e'),
+                      error: (e, _) => Text(extractApiErrorMessage(e)),
                     ),
                   if (_step == 4 &&
                       _doctor != null &&
