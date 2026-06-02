@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
@@ -304,16 +306,42 @@ class _PatientNotificationsSheet extends ConsumerStatefulWidget {
 
 class _PatientNotificationsSheetState extends ConsumerState<_PatientNotificationsSheet> {
   late Future<List<UserNotificationItem>> _future;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _future = _load();
+    // Auto-refresh while the sheet is open so new events (status changes,
+    // payments) surface without a manual reopen.
+    _timer = Timer.periodic(const Duration(seconds: 20), (_) {
+      if (mounted) {
+        setState(() => _future = _load());
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<List<UserNotificationItem>> _load() {
     final api = SohExtraApi(ref.read(apiClientProvider));
     return api.fetchNotifications(take: 40);
+  }
+
+  Future<void> _refresh() async {
+    final next = _load();
+    setState(() => _future = next);
+    await next;
+  }
+
+  static String _formatTimestamp(DateTime utc) {
+    final dt = utc.toLocal();
+    String two(int v) => v.toString().padLeft(2, '0');
+    return '${two(dt.day)}.${two(dt.month)}.${dt.year}. ${two(dt.hour)}:${two(dt.minute)}';
   }
 
   @override
@@ -337,48 +365,69 @@ class _PatientNotificationsSheetState extends ConsumerState<_PatientNotification
         }
         final items = snap.data ?? [];
         if (items.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.all(24),
-            child: Text('No notifications yet.'),
+          return RefreshIndicator(
+            onRefresh: _refresh,
+            child: ListView(
+              controller: widget.scrollController,
+              children: const [
+                Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Text('No notifications yet.'),
+                ),
+              ],
+            ),
           );
         }
         final api = SohExtraApi(ref.read(apiClientProvider));
-        return ListView.builder(
-          controller: widget.scrollController,
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-          itemCount: items.length,
-          itemBuilder: (context, i) {
-            final n = items[i];
-            return Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                title: Text(
-                  n.title,
-                  style: TextStyle(fontWeight: n.isRead ? FontWeight.normal : FontWeight.w600),
-                ),
-                subtitle: Text(n.body),
-                isThreeLine: true,
-                trailing: n.isRead ? null : const Icon(Icons.circle, size: 10),
-                onTap: () async {
-                  if (!n.isRead) {
-                    try {
-                      await api.markNotificationRead(n.id);
-                      if (!context.mounted) return;
-                      ref.invalidate(notificationUnreadPollProvider);
-                    } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Could not mark as read: $e')),
-                        );
+        return RefreshIndicator(
+          onRefresh: _refresh,
+          child: ListView.builder(
+            controller: widget.scrollController,
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            itemCount: items.length,
+            itemBuilder: (context, i) {
+              final n = items[i];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ListTile(
+                  title: Text(
+                    n.title,
+                    style: TextStyle(fontWeight: n.isRead ? FontWeight.normal : FontWeight.w600),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(n.body),
+                      const SizedBox(height: 4),
+                      Text(
+                        _formatTimestamp(n.createdAt),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                  isThreeLine: true,
+                  trailing: n.isRead ? null : const Icon(Icons.circle, size: 10),
+                  onTap: () async {
+                    if (!n.isRead) {
+                      try {
+                        await api.markNotificationRead(n.id);
+                        if (!context.mounted) return;
+                        ref.invalidate(notificationUnreadPollProvider);
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Could not mark as read: $e')),
+                          );
+                        }
+                        return;
                       }
-                      return;
                     }
-                  }
-                  if (context.mounted) Navigator.of(context).pop();
-                },
-              ),
-            );
-          },
+                    if (context.mounted) Navigator.of(context).pop();
+                  },
+                ),
+              );
+            },
+          ),
         );
       },
     );
