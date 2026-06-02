@@ -8,6 +8,22 @@ class SohExtraApi {
 
   final ApiClient _client;
 
+  /// Refunds a paid payment (only allowed while the appointment is not completed).
+  Future<void> refundPayment(int paymentId) async {
+    final resp = await _client.invokeAPI(
+      '/Payment/$paymentId/refund',
+      'POST',
+      <QueryParam>[],
+      null,
+      <String, String>{},
+      <String, String>{},
+      null,
+    );
+    if (resp.statusCode < 200 || resp.statusCode >= 300) {
+      throw ApiException(resp.statusCode, resp.body);
+    }
+  }
+
   /// Server-side logout — revokes this JWT so it cannot be reused.
   Future<void> logout() async {
     final resp = await _client.invokeAPI(

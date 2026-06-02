@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../screens/admin_add_patient_screen.dart';
 import '../screens/admin_appointments_list_screen.dart';
 import '../screens/admin_office_locations_screen.dart';
+import '../screens/admin_payments_list_screen.dart';
 import '../screens/admin_products_list_screen.dart';
 import '../screens/admin_reports_list_screen.dart';
 import '../screens/admin_system_settings_screen.dart';
@@ -23,6 +24,7 @@ class QuickActionsGrid extends StatelessWidget {
       _ActionItem('Manage Appointments', Icons.calendar_today_outlined),
       _ActionItem('Generate Reports', Icons.bar_chart_outlined),
       _ActionItem('Manage Products', Icons.inventory_2_outlined),
+      _ActionItem('Payments', Icons.payments_outlined),
       _ActionItem('System Settings', Icons.settings_outlined),
     ];
 
@@ -89,6 +91,9 @@ class QuickActionsGrid extends StatelessWidget {
         push(const AdminProductsListScreen());
         break;
       case 6:
+        push(const AdminPaymentsListScreen());
+        break;
+      case 7:
         push(const AdminSystemSettingsScreen());
         break;
     }
@@ -122,7 +127,7 @@ class QuickActionsCard extends StatelessWidget {
             const SizedBox(height: 12),
             LayoutBuilder(
               builder: (context, constraints) {
-                final rows = (7 / 2).ceil();
+                final rows = (8 / 2).ceil();
                 final h = rows * QuickActionsGrid.rowExtent + (rows - 1) * 8.0;
                 return SizedBox(
                   height: h,

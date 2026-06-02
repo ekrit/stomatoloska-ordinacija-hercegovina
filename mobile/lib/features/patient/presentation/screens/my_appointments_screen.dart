@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:soh_api/api.dart';
 
+import '../../../../core/api/api_providers.dart';
+import '../../../../core/api/soh_extra_api.dart';
+import '../../../../core/utils/api_errors.dart';
 import '../../../../core/utils/appointment_labels.dart';
 import '../providers/patient_data_providers.dart';
 import '../providers/patient_repository_providers.dart';
@@ -301,6 +304,14 @@ class _AppointmentPatientCard extends ConsumerWidget {
                       icon: const Icon(Icons.cancel_outlined),
                       label: const Text('Cancel'),
                     ),
+                    if (a.isPaid == true &&
+                        a.paymentId != null &&
+                        a.status != AppointmentStatuses.completed)
+                      OutlinedButton.icon(
+                        onPressed: () => _confirmRefund(context, ref, a),
+                        icon: const Icon(Icons.currency_exchange),
+                        label: const Text('Request refund'),
+                      ),
                     OutlinedButton.icon(
                       onPressed: a.id == null
                           ? null
@@ -358,6 +369,45 @@ class _AppointmentPatientCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _confirmRefund(
+    BuildContext context,
+    WidgetRef ref,
+    AppointmentResponse a,
+  ) async {
+    final paymentId = a.paymentId;
+    if (paymentId == null) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Request refund?'),
+        content: const Text(
+          'We will refund your payment via PayPal and cancel this appointment. '
+          'This cannot be undone.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('No')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Yes, refund')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await SohExtraApi(ref.read(apiClientProvider)).refundPayment(paymentId);
+      ref.invalidate(myAppointmentsProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Refund completed. Appointment cancelled.')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Refund failed.'))),
+        );
+      }
+    }
   }
 
   Future<void> _confirmCancel(

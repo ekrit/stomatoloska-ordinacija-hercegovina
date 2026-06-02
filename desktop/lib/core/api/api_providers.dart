@@ -80,3 +80,7 @@ final reviewApiProvider = Provider<ReviewApi>(
 final reportApiProvider = Provider<ReportApi>(
   (ref) => ReportApi(ref.watch(apiClientProvider)),
 );
+
+final paymentApiProvider = Provider<PaymentApi>(
+  (ref) => PaymentApi(ref.watch(apiClientProvider)),
+);
