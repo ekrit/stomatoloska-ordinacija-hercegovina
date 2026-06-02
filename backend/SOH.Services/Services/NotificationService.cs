@@ -71,6 +71,20 @@ public class NotificationService : INotificationService
         await AddAndPushAsync(patientUserId, title, body, cancellationToken);
     }
 
+    public async Task NotifyPaymentCapturedAsync(int patientUserId, int appointmentId, decimal amount, CancellationToken cancellationToken = default)
+    {
+        var title = "Payment received";
+        var body = $"Your payment of {amount.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)} for appointment #{appointmentId} was confirmed.";
+        await AddAndPushAsync(patientUserId, title, body, cancellationToken);
+    }
+
+    public async Task NotifyPaymentRefundedAsync(int patientUserId, int appointmentId, CancellationToken cancellationToken = default)
+    {
+        var title = "Payment refunded";
+        var body = $"Your payment for appointment #{appointmentId} was refunded and the appointment was cancelled.";
+        await AddAndPushAsync(patientUserId, title, body, cancellationToken);
+    }
+
     private async Task AddAndPushAsync(int userId, string title, string body, CancellationToken cancellationToken)
     {
         var entity = new UserNotification

@@ -17,12 +17,14 @@ namespace SOH.Services.Services
 
         private readonly IPayPalGateway _payPal;
         private readonly IConfiguration _configuration;
+        private readonly INotificationService _notifications;
 
-        public PaymentService(SOHDbContext context, IMapper mapper, IPayPalGateway payPal, IConfiguration configuration)
+        public PaymentService(SOHDbContext context, IMapper mapper, IPayPalGateway payPal, IConfiguration configuration, INotificationService notifications)
             : base(context, mapper)
         {
             _payPal = payPal;
             _configuration = configuration;
+            _notifications = notifications;
         }
 
         protected override IQueryable<Payment> ApplyFilter(IQueryable<Payment> query, PaymentSearchObject search)
@@ -129,6 +131,9 @@ namespace SOH.Services.Services
             payment.TransactionRef = captureId;
             await _context.SaveChangesAsync(cancellationToken);
 
+            await _notifications.NotifyPaymentCapturedAsync(
+                payment.Appointment.PatientId, payment.AppointmentId, payment.Amount, cancellationToken);
+
             return new PaymentCaptureResponse { IsPaid = true, PaymentId = payment.Id, TransactionRef = captureId };
         }
 
@@ -161,6 +166,9 @@ namespace SOH.Services.Services
             payment.Status = PaymentStatus.Refunded;
             payment.Appointment.Status = AppointmentStatus.Cancelled;
             await _context.SaveChangesAsync(cancellationToken);
+
+            await _notifications.NotifyPaymentRefundedAsync(
+                payment.Appointment.PatientId, payment.AppointmentId, cancellationToken);
         }
 
         public async Task HandleWebhookAsync(string eventType, string? payPalOrderId, string? captureId, CancellationToken cancellationToken = default)
@@ -168,11 +176,15 @@ namespace SOH.Services.Services
             Payment? payment = null;
             if (!string.IsNullOrWhiteSpace(payPalOrderId))
             {
-                payment = await _context.Payments.FirstOrDefaultAsync(p => p.PayPalOrderId == payPalOrderId, cancellationToken);
+                payment = await _context.Payments
+                    .Include(p => p.Appointment)
+                    .FirstOrDefaultAsync(p => p.PayPalOrderId == payPalOrderId, cancellationToken);
             }
             if (payment == null && !string.IsNullOrWhiteSpace(captureId))
             {
-                payment = await _context.Payments.FirstOrDefaultAsync(p => p.TransactionRef == captureId, cancellationToken);
+                payment = await _context.Payments
+                    .Include(p => p.Appointment)
+                    .FirstOrDefaultAsync(p => p.TransactionRef == captureId, cancellationToken);
             }
             if (payment == null)
             {
@@ -190,6 +202,8 @@ namespace SOH.Services.Services
                             payment.TransactionRef = captureId;
                         }
                         await _context.SaveChangesAsync(cancellationToken);
+                        await _notifications.NotifyPaymentCapturedAsync(
+                            payment.Appointment.PatientId, payment.AppointmentId, payment.Amount, cancellationToken);
                     }
                     break;
 
@@ -197,7 +211,10 @@ namespace SOH.Services.Services
                     if (payment.Status != PaymentStatus.Refunded)
                     {
                         payment.Status = PaymentStatus.Refunded;
+                        payment.Appointment.Status = AppointmentStatus.Cancelled;
                         await _context.SaveChangesAsync(cancellationToken);
+                        await _notifications.NotifyPaymentRefundedAsync(
+                            payment.Appointment.PatientId, payment.AppointmentId, cancellationToken);
                     }
                     break;
             }

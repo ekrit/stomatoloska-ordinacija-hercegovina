@@ -19,4 +19,8 @@ public interface INotificationService
         AppointmentStatus fromStatus,
         AppointmentStatus toStatus,
         CancellationToken cancellationToken = default);
+
+    Task NotifyPaymentCapturedAsync(int patientUserId, int appointmentId, decimal amount, CancellationToken cancellationToken = default);
+
+    Task NotifyPaymentRefundedAsync(int patientUserId, int appointmentId, CancellationToken cancellationToken = default);
 }
