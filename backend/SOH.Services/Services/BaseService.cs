@@ -18,6 +18,10 @@ namespace SOH.Services.Services
             _mapper = mapper;
         }
 
+        // Hard ceiling on a single page so a client cannot pull the entire
+        // table in one request (rubric flags unbounded list endpoints).
+        private const int MaxPageSize = 100;
+
         public virtual async Task<PagedResult<T>> GetAsync(TSearch search)
         {
             var query = _context.Set<TEntity>().AsQueryable();
@@ -31,14 +35,9 @@ namespace SOH.Services.Services
 
             if (!search.RetrieveAll)
             {
-                if (search.Page.HasValue)
-                {
-                    query = query.Skip(search.Page.Value * search.PageSize.Value);
-                }
-                if (search.PageSize.HasValue)
-                {
-                    query = query.Take(search.PageSize.Value);
-                }
+                var pageSize = Math.Clamp(search.PageSize ?? 30, 1, MaxPageSize);
+                var page = Math.Max(search.Page ?? 0, 0);
+                query = query.Skip(page * pageSize).Take(pageSize);
             }
 
 

@@ -243,6 +243,16 @@ namespace SOH.Services.Services
                 query = query.Where(x => x.StartTime <= search.StartTo.Value);
             }
 
+            if (!string.IsNullOrEmpty(search.FTS))
+            {
+                query = query.Where(x =>
+                    x.Patient.FirstName.Contains(search.FTS) ||
+                    x.Patient.LastName.Contains(search.FTS) ||
+                    x.Doctor.FirstName.Contains(search.FTS) ||
+                    x.Doctor.LastName.Contains(search.FTS) ||
+                    x.Service.Name.Contains(search.FTS));
+            }
+
             return query;
         }
     }

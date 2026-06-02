@@ -9,14 +9,19 @@ import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
 import '../../../../core/api/soh_extra_api.dart';
+import '../../../../core/widgets/paginated_search_view.dart';
 
-final _allReportsAdminProvider = FutureProvider.autoDispose<List<ReportResponse>>((ref) async {
-  final r = await ref.watch(reportApiProvider).reportGet(retrieveAll: true);
-  return r?.items ?? [];
-});
-
-class AdminReportsListScreen extends ConsumerWidget {
+class AdminReportsListScreen extends ConsumerStatefulWidget {
   const AdminReportsListScreen({super.key});
+
+  @override
+  ConsumerState<AdminReportsListScreen> createState() => _AdminReportsListScreenState();
+}
+
+class _AdminReportsListScreenState extends ConsumerState<AdminReportsListScreen> {
+  int _refresh = 0;
+
+  void _reload() => setState(() => _refresh++);
 
   static String _buildAppointmentsCsv(List<AppointmentResponse> items) {
     final buf = StringBuffer();
@@ -32,16 +37,13 @@ class AdminReportsListScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(_allReportsAdminProvider);
+  Widget build(BuildContext context) {
+    final df = DateFormat.yMMMd().add_Hm();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reports'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(_allReportsAdminProvider),
-          ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _reload),
         ],
       ),
       body: Column(
@@ -53,125 +55,90 @@ class AdminReportsListScreen extends ConsumerWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                FilledButton.icon(
-                  icon: const Icon(Icons.add_chart),
-                  label: const Text('Generate summary'),
-                  onPressed: () async {
-                    final messenger = ScaffoldMessenger.of(context);
-                    try {
-                      await ref.read(reportApiProvider).reportPost(
-                            reportUpsertRequest: ReportUpsertRequest(
-                              type: 'AdminSummary',
-                              generatedAt: DateTime.now().toUtc(),
-                              parameters:
-                                  'manual=true;at=${DateTime.now().toUtc().toIso8601String()}',
-                            ),
-                          );
-                      ref.invalidate(_allReportsAdminProvider);
-                      messenger.showSnackBar(const SnackBar(content: Text('Report generated.')));
-                    } catch (e) {
-                      messenger.showSnackBar(SnackBar(content: Text('$e')));
-                    }
-                  },
-                ),
                 FilledButton.tonalIcon(
                   icon: const Icon(Icons.picture_as_pdf_outlined),
                   label: const Text('PDF: Appointments summary'),
-                  onPressed: () async {
-                    final messenger = ScaffoldMessenger.of(context);
-                    try {
-                      final bytes = await SohExtraApi(ref.read(apiClientProvider))
-                          .downloadAppointmentsSummaryPdf();
-                      final dir = await getTemporaryDirectory();
-                      final path =
-                          '${dir.path}/appointments-summary-${DateTime.now().millisecondsSinceEpoch}.pdf';
-                      await File(path).writeAsBytes(bytes);
-                      ref.invalidate(_allReportsAdminProvider);
-                      messenger.showSnackBar(SnackBar(content: Text('PDF saved: $path')));
-                    } catch (e) {
-                      messenger.showSnackBar(SnackBar(content: Text('$e')));
-                    }
-                  },
+                  onPressed: () => _downloadPdf(
+                    () => SohExtraApi(ref.read(apiClientProvider)).downloadAppointmentsSummaryPdf(),
+                    'appointments-summary',
+                  ),
                 ),
                 FilledButton.tonalIcon(
                   icon: const Icon(Icons.pie_chart_outline),
                   label: const Text('PDF: Revenue by service'),
-                  onPressed: () async {
-                    final messenger = ScaffoldMessenger.of(context);
-                    try {
-                      final bytes = await SohExtraApi(ref.read(apiClientProvider))
-                          .downloadRevenueByServicePdf(months: 6);
-                      final dir = await getTemporaryDirectory();
-                      final path =
-                          '${dir.path}/revenue-by-service-${DateTime.now().millisecondsSinceEpoch}.pdf';
-                      await File(path).writeAsBytes(bytes);
-                      ref.invalidate(_allReportsAdminProvider);
-                      messenger.showSnackBar(SnackBar(content: Text('PDF saved: $path')));
-                    } catch (e) {
-                      messenger.showSnackBar(SnackBar(content: Text('$e')));
-                    }
-                  },
+                  onPressed: () => _downloadPdf(
+                    () => SohExtraApi(ref.read(apiClientProvider)).downloadRevenueByServicePdf(months: 6),
+                    'revenue-by-service',
+                  ),
                 ),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.content_copy),
                   label: const Text('Export appointments CSV'),
-                  onPressed: () async {
-                    final messenger = ScaffoldMessenger.of(context);
-                    try {
-                      final r =
-                          await ref.read(appointmentApiProvider).appointmentGet(retrieveAll: true);
-                      final items = r?.items ?? [];
-                      final csv = _buildAppointmentsCsv(items);
-                      await Clipboard.setData(ClipboardData(text: csv));
-                      messenger.showSnackBar(
-                        SnackBar(content: Text('Copied ${items.length} row(s) to clipboard.')),
-                      );
-                    } catch (e) {
-                      messenger.showSnackBar(SnackBar(content: Text('$e')));
-                    }
-                  },
+                  onPressed: _exportCsv,
                 ),
               ],
             ),
           ),
           const SizedBox(height: 8),
           Expanded(
-            child: async.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('$e')),
-              data: (items) {
-                if (items.isEmpty) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Text(
-                        'No report records yet. Download a PDF above to create an audit entry.',
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  );
-                }
-                final df = DateFormat.yMMMd();
-                return ListView.separated(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: items.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (context, i) {
-                    final r = items[i];
-                    return ListTile(
-                      title: Text(r.type ?? 'Report #${r.id ?? ''}'),
-                      subtitle: Text(
-                        '${r.parameters ?? r.filePath ?? '—'}\n${r.generatedAt != null ? df.format(r.generatedAt!) : ''}',
-                      ),
-                      isThreeLine: true,
+            child: PaginatedSearchView<ReportResponse>(
+              refreshKey: _refresh,
+              searchHint: 'Search reports by type or parameters…',
+              emptyLabel: 'No report records yet. Download a PDF above to create an audit entry.',
+              fetch: (query, page, pageSize) async {
+                final r = await ref.read(reportApiProvider).reportGet(
+                      FTS: query.isEmpty ? null : query,
+                      page: page,
+                      pageSize: pageSize,
+                      includeTotalCount: true,
                     );
-                  },
-                );
+                final items = r?.items ?? [];
+                // Newest first.
+                items.sort((a, b) => (b.generatedAt ?? DateTime(0)).compareTo(a.generatedAt ?? DateTime(0)));
+                return PagedData(items: items, total: r?.totalCount);
               },
+              itemBuilder: (context, r) => ListTile(
+                leading: const Icon(Icons.description_outlined),
+                title: Text(r.type ?? 'Report #${r.id ?? ''}'),
+                subtitle: Text(
+                  '${r.parameters ?? r.filePath ?? '—'}'
+                  '${r.generatedAt != null ? '\n${df.format(r.generatedAt!)}' : ''}',
+                ),
+                isThreeLine: true,
+              ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _downloadPdf(Future<List<int>> Function() download, String prefix) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final bytes = await download();
+      final dir = await getTemporaryDirectory();
+      final path = '${dir.path}/$prefix-${DateTime.now().millisecondsSinceEpoch}.pdf';
+      await File(path).writeAsBytes(bytes);
+      _reload();
+      messenger.showSnackBar(SnackBar(content: Text('PDF saved: $path')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+    }
+  }
+
+  Future<void> _exportCsv() async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final r = await ref.read(appointmentApiProvider).appointmentGet(retrieveAll: true);
+      final items = r?.items ?? [];
+      final csv = _buildAppointmentsCsv(items);
+      await Clipboard.setData(ClipboardData(text: csv));
+      messenger.showSnackBar(
+        SnackBar(content: Text('Copied ${items.length} row(s) to clipboard.')),
+      );
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+    }
   }
 }

@@ -25,6 +25,14 @@ namespace SOH.Services.Services
                 query = query.Where(x => x.Category.Contains(search.Category));
             }
 
+            if (!string.IsNullOrEmpty(search.FTS))
+            {
+                query = query.Where(x =>
+                    x.Name.Contains(search.FTS) ||
+                    x.Category.Contains(search.FTS) ||
+                    x.Description.Contains(search.FTS));
+            }
+
             return query;
         }
     }
