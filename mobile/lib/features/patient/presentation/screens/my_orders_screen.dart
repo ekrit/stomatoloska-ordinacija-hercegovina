@@ -68,6 +68,23 @@ class MyOrdersScreen extends ConsumerWidget {
             );
             return;
           }
+          // Placing an order is an irreversible action, so confirm first
+          // (rubric: confirmation dialog required for orders/payments).
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Place order?'),
+              content: Text(
+                'Order ${p.name ?? 'this product'} for ${orderAmountLabel(p.price ?? 0)}? '
+                'The clinic confirms the final price from its catalog.',
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+                FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Order')),
+              ],
+            ),
+          );
+          if (confirmed != true) return;
           try {
             await ref.read(orderApiProvider).orderPost(
                   orderUpsertRequest: OrderUpsertRequest(
