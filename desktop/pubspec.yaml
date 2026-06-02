@@ -19,6 +19,7 @@ dependencies:
   path_provider: ^2.1.5
   soh_api:
     path: packages/soh_api
+  printing: ^5.14.3
 
 dev_dependencies:
   flutter_test:

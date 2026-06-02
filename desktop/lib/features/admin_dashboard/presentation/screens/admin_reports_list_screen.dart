@@ -1,10 +1,12 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:printing/printing.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
@@ -63,12 +65,28 @@ class _AdminReportsListScreenState extends ConsumerState<AdminReportsListScreen>
                     'appointments-summary',
                   ),
                 ),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.print_outlined),
+                  label: const Text('Print: Appointments summary'),
+                  onPressed: () => _printPdf(
+                    () => SohExtraApi(ref.read(apiClientProvider)).downloadAppointmentsSummaryPdf(),
+                    'Appointments summary',
+                  ),
+                ),
                 FilledButton.tonalIcon(
                   icon: const Icon(Icons.pie_chart_outline),
                   label: const Text('PDF: Revenue by service'),
                   onPressed: () => _downloadPdf(
                     () => SohExtraApi(ref.read(apiClientProvider)).downloadRevenueByServicePdf(months: 6),
                     'revenue-by-service',
+                  ),
+                ),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.print_outlined),
+                  label: const Text('Print: Revenue by service'),
+                  onPressed: () => _printPdf(
+                    () => SohExtraApi(ref.read(apiClientProvider)).downloadRevenueByServicePdf(months: 6),
+                    'Revenue by service',
                   ),
                 ),
                 OutlinedButton.icon(
@@ -122,6 +140,20 @@ class _AdminReportsListScreenState extends ConsumerState<AdminReportsListScreen>
       await File(path).writeAsBytes(bytes);
       _reload();
       messenger.showSnackBar(SnackBar(content: Text('PDF saved: $path')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+    }
+  }
+
+  Future<void> _printPdf(Future<List<int>> Function() download, String label) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final bytes = await download();
+      await Printing.layoutPdf(
+        name: label,
+        onLayout: (_) async => Uint8List.fromList(bytes),
+      );
+      _reload();
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('$e')));
     }
