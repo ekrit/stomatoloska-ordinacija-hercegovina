@@ -26,12 +26,14 @@ class PaymentStatus {
   static const number1 = PaymentStatus._(1);
   static const number2 = PaymentStatus._(2);
   static const number3 = PaymentStatus._(3);
+  static const number4 = PaymentStatus._(4);
 
   /// List of all possible values in this [enum][PaymentStatus].
   static const values = <PaymentStatus>[
     number1,
     number2,
     number3,
+    number4,
   ];
 
   static PaymentStatus? fromJson(dynamic value) => PaymentStatusTypeTransformer().decode(value);
@@ -73,6 +75,7 @@ class PaymentStatusTypeTransformer {
         case 1: return PaymentStatus.number1;
         case 2: return PaymentStatus.number2;
         case 3: return PaymentStatus.number3;
+        case 4: return PaymentStatus.number4;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');

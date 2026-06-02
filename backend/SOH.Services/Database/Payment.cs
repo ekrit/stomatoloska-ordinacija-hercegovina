@@ -23,6 +23,9 @@ namespace SOH.Services.Database
         [MaxLength(100)]
         public string? TransactionRef { get; set; }
 
+        [MaxLength(100)]
+        public string? PayPalOrderId { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [ForeignKey(nameof(AppointmentId))]

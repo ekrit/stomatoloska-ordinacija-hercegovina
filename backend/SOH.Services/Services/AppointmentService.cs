@@ -184,8 +184,29 @@ namespace SOH.Services.Services
             await _context.SaveChangesAsync();
         }
 
+        protected override AppointmentResponse MapToResponse(Appointment entity)
+        {
+            var response = base.MapToResponse(entity);
+            if (entity.Payment != null)
+            {
+                response.PaymentId = entity.Payment.Id;
+                response.IsPaid = entity.Payment.Status == PaymentStatus.Paid;
+            }
+            return response;
+        }
+
+        public override async Task<AppointmentResponse?> GetByIdAsync(int id)
+        {
+            var entity = await _context.Appointments
+                .Include(a => a.Payment)
+                .FirstOrDefaultAsync(a => a.Id == id);
+            return entity == null ? null : MapToResponse(entity);
+        }
+
         protected override IQueryable<Appointment> ApplyFilter(IQueryable<Appointment> query, AppointmentSearchObject search)
         {
+            query = query.Include(x => x.Payment);
+
             if (search.PatientId.HasValue)
             {
                 query = query.Where(x => x.PatientId == search.PatientId.Value);

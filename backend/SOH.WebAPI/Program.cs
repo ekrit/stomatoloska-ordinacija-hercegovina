@@ -48,6 +48,7 @@ builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IReportPdfService, ReportPdfService>();
+builder.Services.AddHttpClient<IPayPalGateway, PayPalGateway>();
 builder.Services.AddSingleton<INotificationRealtimePublisher, SignalRNotificationPublisher>();
 builder.Services.AddSignalR();
 

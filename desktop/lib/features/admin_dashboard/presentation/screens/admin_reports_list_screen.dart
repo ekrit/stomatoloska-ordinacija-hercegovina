@@ -63,8 +63,8 @@ class AdminReportsListScreen extends ConsumerWidget {
                             reportUpsertRequest: ReportUpsertRequest(
                               type: 'AdminSummary',
                               generatedAt: DateTime.now().toUtc(),
-                              filePath:
-                                  'virtual/admin-summary-${DateTime.now().millisecondsSinceEpoch}.json',
+                              parameters:
+                                  'manual=true;at=${DateTime.now().toUtc().toIso8601String()}',
                             ),
                           );
                       ref.invalidate(_allReportsAdminProvider);

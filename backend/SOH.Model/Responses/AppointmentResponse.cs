@@ -14,5 +14,7 @@ namespace SOH.Model.Responses
         public DateTime EndTime { get; set; }
         public AppointmentStatus Status { get; set; }
         public string? DoctorNote { get; set; }
+        public bool IsPaid { get; set; }
+        public int? PaymentId { get; set; }
     }
 }
