@@ -9,8 +9,8 @@ The project is developed for academic purposes and includes:
 - Patient information management
 - Appointment scheduling (request, accept, complete, review, cancel)
 - In-app PayPal (sandbox) payment for appointments, with refund-while-not-completed
-- Hybrid product recommendations (content + collaborative + behavioral)
-- In-app notifications via SignalR
+- Hybrid product recommendations (content + popularity + behavioral)
+- In-app notifications (SignalR hub on the backend; the mobile app uses polling for the unread badge and refreshes the list)
 - Admin reporting (PDF + print)
 - Patient mobile app and staff desktop app
 
