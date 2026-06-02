@@ -137,6 +137,23 @@ class SohExtraApi {
     return false;
   }
 
+  /// Cancels the patient's own appointment. Uses the dedicated cancel route so
+  /// patients are not blocked by the admin/doctor-only update authorization.
+  Future<void> cancelAppointment(int appointmentId) async {
+    final resp = await _client.invokeAPI(
+      '/Appointment/$appointmentId/cancel',
+      'POST',
+      <QueryParam>[],
+      null,
+      <String, String>{},
+      <String, String>{},
+      null,
+    );
+    if (resp.statusCode < 200 || resp.statusCode >= 300) {
+      throw ApiException(resp.statusCode, resp.body);
+    }
+  }
+
   /// Refunds a paid payment (only allowed while the appointment is not completed).
   Future<void> refundPayment(int paymentId) async {
     final resp = await _client.invokeAPI(
@@ -147,6 +164,24 @@ class SohExtraApi {
       <String, String>{},
       <String, String>{},
       null,
+    );
+    if (resp.statusCode < 200 || resp.statusCode >= 300) {
+      throw ApiException(resp.statusCode, resp.body);
+    }
+  }
+
+  /// Changes the signed-in user's password after verifying the current one.
+  /// The server rejects the change if the old password is wrong.
+  Future<void> changePassword(int userId, String oldPassword, String newPassword) async {
+    final body = jsonEncode({'oldPassword': oldPassword, 'newPassword': newPassword});
+    final resp = await _client.invokeAPI(
+      '/Users/$userId/change-password',
+      'POST',
+      <QueryParam>[],
+      body,
+      <String, String>{},
+      <String, String>{},
+      'application/json',
     );
     if (resp.statusCode < 200 || resp.statusCode >= 300) {
       throw ApiException(resp.statusCode, resp.body);

@@ -14,12 +14,14 @@ namespace SOH.WebAPI.Controllers
     public class AppointmentController : BaseCRUDController<AppointmentResponse, AppointmentSearchObject, AppointmentUpsertRequest, AppointmentUpsertRequest>
     {
         private readonly IAppointmentReminderPublisher _publisher;
+        private readonly IAppointmentService _appointments;
 
         public AppointmentController(
             IAppointmentService service,
             IAppointmentReminderPublisher publisher) : base(service)
         {
             _publisher = publisher;
+            _appointments = service;
         }
 
         // Patients see only their own visits. Doctors see appointments where
@@ -74,5 +76,18 @@ namespace SOH.WebAPI.Controllers
 
         [Authorize(Roles = RoleNames.Administrator)]
         public override Task<bool> Delete(int id) => base.Delete(id);
+
+        // Dedicated cancel path so patients can cancel their own bookings
+        // without the broad Update authorization. Ownership and the legal
+        // status transition are enforced in the service.
+        [HttpPost("{id:int}/cancel")]
+        [Authorize(Roles = RoleNames.Administrator + "," + RoleNames.Doctor + "," + RoleNames.Patient)]
+        public async Task<ActionResult<AppointmentResponse>> Cancel(int id)
+        {
+            var uid = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var v) ? v : 0;
+            var privileged = User.IsInRole(RoleNames.Administrator) || User.IsInRole(RoleNames.Doctor);
+            var result = await _appointments.CancelOwnAsync(id, uid, privileged);
+            return Ok(result);
+        }
     }
 }

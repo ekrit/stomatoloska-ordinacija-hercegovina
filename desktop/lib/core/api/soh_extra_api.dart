@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:soh_api/api.dart';
@@ -7,6 +8,23 @@ class SohExtraApi {
   SohExtraApi(this._client);
 
   final ApiClient _client;
+
+  /// Changes the signed-in user's password after verifying the current one.
+  Future<void> changePassword(int userId, String oldPassword, String newPassword) async {
+    final body = jsonEncode({'oldPassword': oldPassword, 'newPassword': newPassword});
+    final resp = await _client.invokeAPI(
+      '/Users/$userId/change-password',
+      'POST',
+      <QueryParam>[],
+      body,
+      <String, String>{},
+      <String, String>{},
+      'application/json',
+    );
+    if (resp.statusCode < 200 || resp.statusCode >= 300) {
+      throw ApiException(resp.statusCode, resp.body);
+    }
+  }
 
   /// Refunds a paid payment (only allowed while the appointment is not completed).
   Future<void> refundPayment(int paymentId) async {

@@ -17,5 +17,11 @@ namespace SOH.Services.Interfaces
         /// </summary>
         Task<UserResponse?> UpdateAsync(int id, UserUpsertRequest request, bool callerIsAdmin);
         Task<bool> DeleteAsync(int id);
+
+        /// <summary>
+        /// Changes a user's own password after verifying the current one.
+        /// Used by the self-service change-password flow on both clients.
+        /// </summary>
+        Task ChangeOwnPasswordAsync(int userId, string oldPassword, string newPassword);
     }
 }

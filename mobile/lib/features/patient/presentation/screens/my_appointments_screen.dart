@@ -439,29 +439,11 @@ class _AppointmentPatientCard extends ConsumerWidget {
       ),
     );
     if (ok != true) return;
-    if (a.id == null ||
-        a.patientId == null ||
-        a.doctorId == null ||
-        a.serviceId == null ||
-        a.roomId == null ||
-        a.startTime == null ||
-        a.endTime == null) {
+    if (a.id == null) {
       return;
     }
     try {
-      await ref.read(patientCareRepositoryProvider).updateAppointment(
-            a.id!,
-            AppointmentUpsertRequest(
-              patientId: a.patientId!,
-              doctorId: a.doctorId!,
-              serviceId: a.serviceId!,
-              roomId: a.roomId!,
-              startTime: a.startTime!,
-              endTime: a.endTime!,
-              status: AppointmentStatuses.cancelled,
-              doctorNote: a.doctorNote,
-            ),
-          );
+      await SohExtraApi(ref.read(apiClientProvider)).cancelAppointment(a.id!);
       ref.invalidate(myAppointmentsProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Appointment cancelled.')));

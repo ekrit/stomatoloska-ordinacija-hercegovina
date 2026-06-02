@@ -36,9 +36,14 @@ namespace SOH.Model.Requests
         
         public bool IsActive { get; set; } = true;
         
-        // Only used when creating a new user
+        // Set when creating a user or changing a password.
         [MinLength(4)]
         public string? Password { get; set; }
+
+        // Required only when a user changes their OWN password; the server
+        // verifies it before applying the new password. Ignored for admins
+        // editing another user.
+        public string? OldPassword { get; set; }
         
         // Collection of role IDs to assign to the user
         public List<int> RoleIds { get; set; } = new List<int>();

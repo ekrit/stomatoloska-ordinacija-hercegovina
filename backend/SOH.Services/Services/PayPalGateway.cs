@@ -192,19 +192,69 @@ public class PayPalGateway : IPayPalGateway
         }
     }
 
-    public bool VerifyWebhook(string? transmissionId, string? transmissionTime, string? certUrl, string? authAlgo, string? transmissionSig, string? webhookId, string rawBody)
+    public async Task<bool> VerifyWebhookAsync(string? transmissionId, string? transmissionTime, string? certUrl, string? authAlgo, string? transmissionSig, string rawBody, CancellationToken cancellationToken = default)
     {
-        // Sandbox-friendly verification: when no webhook id is configured we
-        // accept the event (dev convenience). When configured we require the
-        // header webhook id to match ours. A full crypto verification against
-        // PayPal's /v1/notifications/verify-webhook-signature can replace this
-        // when going to production.
-        if (string.IsNullOrWhiteSpace(_webhookId))
+        // Sandbox convenience: with no webhook id (or no credentials) configured
+        // there is nothing to verify against, so accept the event. This keeps a
+        // bare sandbox usable without a registered webhook.
+        if (string.IsNullOrWhiteSpace(_webhookId) || !IsConfigured)
         {
             return true;
         }
 
-        return !string.IsNullOrWhiteSpace(webhookId) &&
-               string.Equals(webhookId, _webhookId, StringComparison.Ordinal);
+        // Production-grade verification: ask PayPal to validate the signature of
+        // the raw event against the configured webhook id. We never trust the
+        // payload until verification_status comes back SUCCESS.
+        if (string.IsNullOrWhiteSpace(rawBody) ||
+            string.IsNullOrWhiteSpace(transmissionId) ||
+            string.IsNullOrWhiteSpace(transmissionTime) ||
+            string.IsNullOrWhiteSpace(certUrl) ||
+            string.IsNullOrWhiteSpace(authAlgo) ||
+            string.IsNullOrWhiteSpace(transmissionSig))
+        {
+            return false;
+        }
+
+        JsonElement webhookEvent;
+        try
+        {
+            using var eventDoc = JsonDocument.Parse(rawBody);
+            webhookEvent = eventDoc.RootElement.Clone();
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+
+        var token = await GetAccessTokenAsync(cancellationToken);
+        var payload = new
+        {
+            transmission_id = transmissionId,
+            transmission_time = transmissionTime,
+            cert_url = certUrl,
+            auth_algo = authAlgo,
+            transmission_sig = transmissionSig,
+            webhook_id = _webhookId,
+            webhook_event = webhookEvent,
+        };
+
+        using var req = new HttpRequestMessage(HttpMethod.Post, "v1/notifications/verify-webhook-signature")
+        {
+            Content = JsonContent.Create(payload),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        using var resp = await _http.SendAsync(req, cancellationToken);
+        if (!resp.IsSuccessStatusCode)
+        {
+            return false;
+        }
+
+        var body = await resp.Content.ReadAsStringAsync(cancellationToken);
+        using var doc = JsonDocument.Parse(body);
+        var status = doc.RootElement.TryGetProperty("verification_status", out var vs)
+            ? vs.GetString()
+            : null;
+        return string.Equals(status, "SUCCESS", StringComparison.OrdinalIgnoreCase);
     }
 }

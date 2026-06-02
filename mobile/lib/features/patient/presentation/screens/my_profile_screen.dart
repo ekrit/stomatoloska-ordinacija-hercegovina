@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
+import '../../../../core/api/soh_extra_api.dart';
 import '../../../../core/utils/api_errors.dart';
 
 /// Patient self-edit profile screen for the mobile app.
@@ -30,6 +31,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
   final _email = TextEditingController();
   final _username = TextEditingController();
   final _phone = TextEditingController();
+  final _currentPassword = TextEditingController();
   final _newPassword = TextEditingController();
   final _confirmPassword = TextEditingController();
 
@@ -60,6 +62,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
     _email.dispose();
     _username.dispose();
     _phone.dispose();
+    _currentPassword.dispose();
     _newPassword.dispose();
     _confirmPassword.dispose();
     super.dispose();
@@ -154,6 +157,12 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
     return v.isEmpty ? '$field is required.' : null;
   }
 
+  String? _validateCurrentPassword(String? raw) {
+    if (!_changePassword) return null;
+    if ((raw ?? '').isEmpty) return 'Enter your current password.';
+    return null;
+  }
+
   String? _validatePassword(String? raw) {
     if (!_changePassword) return null;
     final v = raw ?? '';
@@ -192,9 +201,9 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
         cityId: cid,
         // Patients cannot deactivate themselves from the UI.
         isActive: _user?.isActive ?? true,
-        password: _changePassword && _newPassword.text.isNotEmpty
-            ? _newPassword.text
-            : null,
+        // Password changes go through the dedicated change-password endpoint
+        // (which verifies the current password), never the profile update.
+        password: null,
         // Patients cannot edit roles — leave the list empty so the server
         // keeps existing roles. The backend also blocks role escalation.
         roleIds: const [],
@@ -205,6 +214,14 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
             widget.userId,
             userUpsertRequest: req,
           );
+
+      if (_changePassword && _newPassword.text.isNotEmpty) {
+        await SohExtraApi(ref.read(apiClientProvider)).changePassword(
+          widget.userId,
+          _currentPassword.text,
+          _newPassword.text,
+        );
+      }
 
       final fresh =
           await ref.read(usersApiProvider).usersIdGet(widget.userId);
@@ -218,7 +235,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not update profile: $e')),
+        SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Could not update profile.'))),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -407,6 +424,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                         onChanged: (v) => setState(() {
                           _changePassword = v;
                           if (!v) {
+                            _currentPassword.clear();
                             _newPassword.clear();
                             _confirmPassword.clear();
                           }
@@ -414,6 +432,16 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                       ),
                       if (_changePassword) ...[
                         const SizedBox(height: 4),
+                        TextFormField(
+                          controller: _currentPassword,
+                          decoration: const InputDecoration(
+                            labelText: 'Current password',
+                            border: OutlineInputBorder(),
+                          ),
+                          obscureText: true,
+                          validator: _validateCurrentPassword,
+                        ),
+                        const SizedBox(height: 12),
                         TextFormField(
                           controller: _newPassword,
                           decoration: const InputDecoration(

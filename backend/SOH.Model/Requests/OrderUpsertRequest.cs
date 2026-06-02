@@ -13,7 +13,8 @@ namespace SOH.Model.Requests
         [Range(1, 1000)]
         public int Quantity { get; set; } = 1;
 
-        [Required]
-        public decimal TotalAmount { get; set; }
+        // TotalAmount is intentionally not accepted from the client. The server
+        // computes it from the product catalog price (rubric 7.1: the server
+        // owns the price and must not trust the client).
     }
 }

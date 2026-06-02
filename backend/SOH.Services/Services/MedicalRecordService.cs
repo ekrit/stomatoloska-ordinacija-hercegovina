@@ -20,6 +20,11 @@ namespace SOH.Services.Services
                 query = query.Where(x => x.AppointmentId == search.AppointmentId.Value);
             }
 
+            if (search.PatientId.HasValue)
+            {
+                query = query.Where(x => x.Appointment.PatientId == search.PatientId.Value);
+            }
+
             return query;
         }
     }

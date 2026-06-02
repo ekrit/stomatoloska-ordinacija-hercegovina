@@ -1,6 +1,8 @@
 # Analysis: seminar document vs Stomatološka Ordinacija Hercegovina solution
 
-_Source: gap review after the RSII 2025/26 cleanup + rubric compliance pass._
+_Source: gap review after the RSII 2025/26 cleanup + rubric compliance pass,
+updated after the Phase 2 residuals pass (see
+[`plan-phase-2-residuals-and-rubric.md`](plan-phase-2-residuals-and-rubric.md))._
 
 **Status:** The cleanup pass closed the remaining rubric gaps. Online **PayPal
 (sandbox) payment with refund** is now implemented end-to-end, the desktop
@@ -8,8 +10,19 @@ admin lists are **paginated + searchable** with **FK dropdowns**, reference
 data (**services, rooms, genders**) has full **CRUD**, report PDFs can be
 **printed**, the recommender now also scores **DetailOpened**, and the mobile
 app gained a **global 401 handler**, **appointment/product detail screens**,
-and friendlier error handling. The only deliberately deferred item is
-**collaborative filtering** (the document itself frames it as a later phase).
+and friendlier error handling.
+
+**Phase 2 (residuals) is now complete:** the patient appointment **cancel**
+uses a dedicated ownership-checked endpoint (no more 403); **payment events
+raise notifications** and the mobile list shows timestamps and auto-refreshes;
+changing your **own password requires the current one**; **`GET /MedicalRecord`
+and `GET /Patient`** are scoped by role/ownership; **`UserService` paging** is
+clamped to the shared 100-row ceiling; **order totals are computed
+server-side** with a mobile confirmation dialog; the **PayPal webhook signature
+is verified** and refunds are idempotent; the desktop dead **Settings**
+placeholder was removed; Docker images are **version-pinned**. The only
+deliberately deferred items remain **collaborative filtering** and a full
+**product checkout** (both framed as later/optional by the source document).
 
 ---
 
@@ -97,7 +110,7 @@ flowchart LR
 | Registration / complete patient profile | **Done** (`register_screen.dart`, `complete_profile_screen.dart`) |
 | Patient shell (navigation after login) | **Done** (`patient_shell_screen.dart`) |
 | View free slots + book appointment | **Done** (`booking_screen.dart` + `booking_slots.dart` + providers) |
-| Cancel appointment (patient) | **Done** (UI → status cancelled) |
+| Cancel appointment (patient) | **Done** (`POST /Appointment/{id}/cancel`, ownership + state machine) |
 | My appointments (upcoming / completed / cancelled + actions) | **Done** (`my_appointments_screen.dart`) |
 | Patient: view findings / documents | **Done** (`patient_findings_screen.dart`) |
 | Doctor: add findings + opinion | **Done** |
@@ -111,15 +124,21 @@ flowchart LR
 | Admin: per-field validators + discard-changes guard | **Done** |
 | Reports from desktop (list + PDF + print) | **Done** (audit rows persisted, print via `printing`) |
 | Reminders + hygiene mockup screen | **Done** in app (subscriber email remains env-driven) |
-| Payment in app (PayPal sandbox) | **Done** (order/capture/refund/webhook) |
-| Refund while appointment not completed | **Done** (mobile + desktop admin Payments screen) |
+| Payment in app (PayPal sandbox) | **Done** (order/capture/refund; webhook signature verified when configured) |
+| Payment notifications (patient) | **Done** (capture + refund; mobile list shows `createdAt`, auto-refresh) |
+| Refund while appointment not completed | **Done** (mobile + desktop admin Payments screen; idempotent refund) |
+| Self password change requires current password | **Done** (API + mobile profile + desktop self edit) |
+| Scoped reads (`MedicalRecord`, `Patient`, `Role`) | **Done** (patient sees own records only; role list admin-only) |
 | Mobile: global 401 handler + detail screens | **Done** (`AuthAwareApiClient`, appointment/product detail) |
-| Orders / product purchase UI | **Partial** (backend + orders list; no full checkout) |
+| Orders / product purchase UI | **Partial** (server-priced Quick order + list; no cart/multi-item checkout) |
 
 ---
 
 ## 4. Recommended next steps (residual)
 
-1. **Collaborative recommendations** when enough usage data exists; keep the current content + popularity + behavioral blend as the baseline.
-2. **Patient shop checkout:** optional full **orders** purchase flow if the seminar is interpreted as e‑commerce for products.
-3. **Webhook hardening:** replace the sandbox-friendly webhook check with PayPal’s full signature verification for production.
+Deliberately **out of scope** for rubric/seminar (see
+[`plan-phase-2-residuals-and-rubric.md`](plan-phase-2-residuals-and-rubric.md)):
+
+1. **Collaborative recommendations** — seminar doc frames as a later phase; current hybrid already satisfies the rubric.
+2. **Full product shop / cart checkout** — optional in the proposal; appointment PayPal flow is the primary order path.
+3. **Mobile SignalR client** — polling + server push on write is sufficient per rubric (“SignalR ili polling”).

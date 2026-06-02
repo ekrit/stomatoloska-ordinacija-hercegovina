@@ -184,6 +184,52 @@ namespace SOH.Services.Services
             await _context.SaveChangesAsync();
         }
 
+        public async Task<AppointmentResponse> CancelOwnAsync(int appointmentId, int callerUserId, bool isPrivileged, CancellationToken cancellationToken = default)
+        {
+            var entity = await _context.Appointments
+                .Include(a => a.Payment)
+                .FirstOrDefaultAsync(a => a.Id == appointmentId, cancellationToken)
+                ?? throw new NotFoundException("Appointment not found.");
+
+            // Patients can only cancel their own bookings; the Patient PK is the
+            // user id, so PatientId already equals the JWT user id.
+            if (!isPrivileged && entity.PatientId != callerUserId)
+            {
+                throw new BusinessException("You can only cancel your own appointments.");
+            }
+
+            // Already cancelled is a no-op so a double tap does not error.
+            if (entity.Status == AppointmentStatus.Cancelled)
+            {
+                return MapToResponse(entity);
+            }
+
+            // A paid appointment must go through the refund flow (which also
+            // cancels it) so the payment and appointment never drift apart.
+            if (entity.Payment != null && entity.Payment.Status == PaymentStatus.Paid)
+            {
+                throw new BusinessException("This appointment is paid. Request a refund to cancel it.");
+            }
+
+            var fromStatus = entity.Status;
+            ValidateStatusTransition(fromStatus, AppointmentStatus.Cancelled);
+            entity.Status = AppointmentStatus.Cancelled;
+
+            _context.ActivityLogs.Add(new ActivityLog
+            {
+                Action = "AppointmentCancelled",
+                EntityName = "Appointment",
+                EntityId = entity.Id.ToString(),
+                CreatedAt = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync(cancellationToken);
+            await _notifications.NotifyAppointmentStatusChangedAsync(
+                entity.PatientId, entity.Id, fromStatus, AppointmentStatus.Cancelled, cancellationToken);
+
+            return MapToResponse(entity);
+        }
+
         protected override AppointmentResponse MapToResponse(Appointment entity)
         {
             var response = base.MapToResponse(entity);
