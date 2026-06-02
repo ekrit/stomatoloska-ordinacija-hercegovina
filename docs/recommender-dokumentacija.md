@@ -12,6 +12,10 @@ poslovna logika*).
 - Controller: [`backend/SOH.WebAPI/Controllers/RecommendationController.cs`](../backend/SOH.WebAPI/Controllers/RecommendationController.cs)
 - Frontend consumer (patient home): [`mobile/lib/features/home/presentation/home_screen.dart`](../mobile/lib/features/home/presentation/home_screen.dart)
   via [`mobile/lib/core/api/soh_extra_api.dart`](../mobile/lib/core/api/soh_extra_api.dart) (`fetchRecommendations`).
+- Detail + interaction: tapping a recommended card opens
+  [`mobile/lib/features/home/presentation/product_detail_screen.dart`](../mobile/lib/features/home/presentation/product_detail_screen.dart),
+  which lists every reason and posts a `DetailOpened` interaction (scored
+  higher than a plain `View`).
 
 ## API surface
 
