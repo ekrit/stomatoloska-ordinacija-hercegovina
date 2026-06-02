@@ -146,6 +146,12 @@ namespace SOH.Services.Services
 
             await EnsureCallerOwnsAppointmentAsync(payment.Appointment, callerUserId, isAdmin, cancellationToken);
 
+            // Idempotent: a payment already refunded is a no-op rather than an error.
+            if (payment.Status == PaymentStatus.Refunded)
+            {
+                return;
+            }
+
             if (payment.Status != PaymentStatus.Paid)
             {
                 throw new BusinessException("Only a paid payment can be refunded.");

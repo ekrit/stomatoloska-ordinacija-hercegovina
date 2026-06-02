@@ -78,13 +78,12 @@ namespace SOH.WebAPI.Controllers
                 rawBody = await reader.ReadToEndAsync();
             }
 
-            var ok = _payPal.VerifyWebhook(
+            var ok = await _payPal.VerifyWebhookAsync(
                 Request.Headers["PAYPAL-TRANSMISSION-ID"],
                 Request.Headers["PAYPAL-TRANSMISSION-TIME"],
                 Request.Headers["PAYPAL-CERT-URL"],
                 Request.Headers["PAYPAL-AUTH-ALGO"],
                 Request.Headers["PAYPAL-TRANSMISSION-SIG"],
-                Request.Headers["PAYPAL-WEBHOOK-ID"],
                 rawBody);
 
             if (!ok)
