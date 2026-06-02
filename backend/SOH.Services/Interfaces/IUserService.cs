@@ -1,7 +1,6 @@
 using SOH.Model.Responses;
 using SOH.Model.Requests;
 using SOH.Model.SearchObjects;
-using SOH.Services.Services;
 
 namespace SOH.Services.Interfaces
 {

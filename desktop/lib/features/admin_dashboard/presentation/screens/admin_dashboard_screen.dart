@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/api/api_providers.dart';
+import '../../../../core/api/soh_extra_api.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/storage/auth_storage.dart';
 import '../../../admin_users/presentation/screens/user_edit_screen.dart';
@@ -42,6 +43,9 @@ class AdminDashboardScreen extends ConsumerWidget {
     Future<void> logout() async {
       final ok = await showLogoutConfirm(context);
       if (!ok) return;
+      try {
+        await SohExtraApi(ref.read(apiClientProvider)).logout();
+      } catch (_) {}
       await AuthStorage.clear();
       ref.read(currentUserProvider.notifier).state = null;
       if (!context.mounted) return;

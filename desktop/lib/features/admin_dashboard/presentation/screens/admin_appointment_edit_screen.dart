@@ -6,6 +6,7 @@ import 'package:soh_api/api.dart';
 import '../../../../core/api/api_providers.dart';
 import '../../../../core/utils/api_errors.dart';
 import '../../../../core/utils/appointment_labels.dart';
+import '../providers/lookup_providers.dart';
 
 /// Admin: view and update an appointment (status, schedule, doctor note).
 class AdminAppointmentEditScreen extends ConsumerStatefulWidget {
@@ -178,8 +179,15 @@ class _AdminAppointmentEditScreenState extends ConsumerState<AdminAppointmentEdi
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          Text('Patient ID: ${a.patientId ?? '—'} · Doctor ID: ${a.doctorId ?? '—'}'),
-          Text('Service ID: ${a.serviceId ?? '—'} · Room ID: ${a.roomId ?? '—'}'),
+          _NamedRow(label: 'Patient', id: a.patientId, async: ref.watch(patientsLookupProvider)),
+          _NamedRow(label: 'Doctor', id: a.doctorId, async: ref.watch(doctorsLookupProvider)),
+          _NamedRow(label: 'Service', id: a.serviceId, async: ref.watch(servicesLookupProvider)),
+          _NamedRow(label: 'Room', id: a.roomId, async: ref.watch(roomsLookupProvider)),
+          if (a.isPaid == true)
+            const Padding(
+              padding: EdgeInsets.only(top: 4),
+              child: Text('Payment: Paid', style: TextStyle(color: Colors.green)),
+            ),
           const SizedBox(height: 20),
           Text('Status', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
@@ -237,6 +245,28 @@ class _AdminAppointmentEditScreenState extends ConsumerState<AdminAppointmentEdi
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Shows "Label: Name" resolving the id via a lookup map, falling back to the
+/// raw id only while the map is loading or missing the entry.
+class _NamedRow extends StatelessWidget {
+  const _NamedRow({required this.label, required this.id, required this.async});
+
+  final String label;
+  final int? id;
+  final AsyncValue<Map<int, String>> async;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = async.maybeWhen(
+      data: (m) => (id != null ? m[id] : null) ?? '#${id ?? '—'}',
+      orElse: () => '#${id ?? '—'}',
+    );
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Text('$label: $text'),
     );
   }
 }

@@ -17,12 +17,3 @@ bool userIsDoctor(UserResponse? user) {
   }
   return false;
 }
-
-bool userIsPatient(UserResponse? user) {
-  if (user?.roles == null) return false;
-  for (final role in user!.roles!) {
-    final n = (role.name ?? '').toLowerCase();
-    if (n == 'patient' || n == 'user') return true;
-  }
-  return false;
-}

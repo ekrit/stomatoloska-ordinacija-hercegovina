@@ -3,9 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:soh_api/api.dart';
 
+import '../../../../core/api/api_providers.dart';
+import '../../../../core/api/soh_extra_api.dart';
+import '../../../../core/utils/api_errors.dart';
 import '../../../../core/utils/appointment_labels.dart';
 import '../providers/patient_data_providers.dart';
 import '../providers/patient_repository_providers.dart';
+import 'appointment_detail_screen.dart';
 import 'appointment_review_screen.dart';
 import 'patient_findings_screen.dart';
 
@@ -118,7 +122,7 @@ class _AppointmentListView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return async.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('$e')),
+      error: (e, _) => Center(child: Text(extractApiErrorMessage(e))),
       data: (all) {
         final now = DateTime.now();
         final filtered = _filter(all, now);
@@ -242,12 +246,51 @@ class _AppointmentPatientCard extends ConsumerWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
+      child: InkWell(
+        onTap: () => Navigator.of(context).push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => AppointmentDetailScreen(
+              appointment: a,
+              doctorName: doctorName,
+              serviceName: serviceName,
+            ),
+          ),
+        ),
+        child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(when, style: Theme.of(context).textTheme.titleSmall),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(when, style: Theme.of(context).textTheme.titleSmall),
+                ),
+                if (a.isPaid == true)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.check_circle, size: 14, color: Colors.green.shade800),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Paid / Plaćeno',
+                          style: TextStyle(
+                            color: Colors.green.shade800,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
             Text('$doctorName · $serviceName'),
             const SizedBox(height: 4),
             Text(appointmentStatusLabel(a.status)),
@@ -272,6 +315,14 @@ class _AppointmentPatientCard extends ConsumerWidget {
                       icon: const Icon(Icons.cancel_outlined),
                       label: const Text('Cancel'),
                     ),
+                    if (a.isPaid == true &&
+                        a.paymentId != null &&
+                        a.status != AppointmentStatuses.completed)
+                      OutlinedButton.icon(
+                        onPressed: () => _confirmRefund(context, ref, a),
+                        icon: const Icon(Icons.currency_exchange),
+                        label: const Text('Request refund'),
+                      ),
                     OutlinedButton.icon(
                       onPressed: a.id == null
                           ? null
@@ -328,7 +379,47 @@ class _AppointmentPatientCard extends ConsumerWidget {
           ],
         ),
       ),
+      ),
     );
+  }
+
+  Future<void> _confirmRefund(
+    BuildContext context,
+    WidgetRef ref,
+    AppointmentResponse a,
+  ) async {
+    final paymentId = a.paymentId;
+    if (paymentId == null) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Request refund?'),
+        content: const Text(
+          'We will refund your payment via PayPal and cancel this appointment. '
+          'This cannot be undone.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('No')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Yes, refund')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await SohExtraApi(ref.read(apiClientProvider)).refundPayment(paymentId);
+      ref.invalidate(myAppointmentsProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Refund completed. Appointment cancelled.')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Refund failed.'))),
+        );
+      }
+    }
   }
 
   Future<void> _confirmCancel(
@@ -377,7 +468,9 @@ class _AppointmentPatientCard extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Could not cancel the appointment.'))),
+        );
       }
     }
   }

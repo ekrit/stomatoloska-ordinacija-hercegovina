@@ -1,7 +1,6 @@
 using DotNetEnv;
 using SOH.Services.Database;
 using Mapster;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Models;
 using SOH.WebAPI.Filters;
@@ -34,18 +33,14 @@ builder.Services.AddScoped<IGenderService, GenderService>();
 builder.Services.AddScoped<ICityService, CityService>();
 builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
-builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 builder.Services.AddScoped<IServiceService, ServiceService>();
 builder.Services.AddScoped<IRoomService, RoomService>();
 builder.Services.AddScoped<IMedicalRecordService, MedicalRecordService>();
-builder.Services.AddScoped<IDoctorNoteService, DoctorNoteService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<IOrderItemService, OrderItemService>();
-builder.Services.AddScoped<IReminderService, ReminderService>();
 builder.Services.AddScoped<IHygieneTrackerService, HygieneTrackerService>();
 builder.Services.AddScoped<IActivityLogService, ActivityLogService>();
 builder.Services.AddScoped<IReportService, ReportService>();
@@ -53,6 +48,7 @@ builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IReportPdfService, ReportPdfService>();
+builder.Services.AddHttpClient<IPayPalGateway, PayPalGateway>();
 builder.Services.AddSingleton<INotificationRealtimePublisher, SignalRNotificationPublisher>();
 builder.Services.AddSignalR();
 
@@ -63,6 +59,7 @@ builder.Services.AddDatabaseServices(connectionString);
 
 builder.Services.AddMapster();
 builder.Services.AddSingleton<IAppointmentReminderPublisher, AppointmentReminderPublisher>();
+builder.Services.AddSingleton<IRevokedTokenStore, RevokedTokenStore>();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var jwtSecret = jwtSettings.GetValue<string>("SecretKey") ?? string.Empty;
@@ -103,10 +100,28 @@ builder.Services.AddAuthentication(options =>
                     context.Token = accessToken;
                 }
                 return Task.CompletedTask;
+            },
+            // Block logged-out tokens server-side. JwtBearer normally only checks
+            // signature + lifetime, so without this hook a stolen JWT keeps
+            // working even after the user clicks "log out". We trust the jti
+            // claim issued by GenerateJwtToken and reject anything the store
+            // remembers.
+            OnTokenValidated = context =>
+            {
+                var jti = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Sid)?.Value
+                    ?? context.Principal?.FindFirst("jti")?.Value;
+                if (!string.IsNullOrEmpty(jti))
+                {
+                    var store = context.HttpContext.RequestServices.GetRequiredService<IRevokedTokenStore>();
+                    if (store.IsRevoked(jti))
+                    {
+                        context.Fail("Token has been revoked.");
+                    }
+                }
+                return Task.CompletedTask;
             }
         };
-    })
-    .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
+    });
 
 builder.Services.AddAuthorization(options =>
 {

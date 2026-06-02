@@ -22,6 +22,8 @@ class AppointmentResponse {
     this.endTime,
     this.status,
     this.doctorNote,
+    this.isPaid,
+    this.paymentId,
   });
 
   ///
@@ -90,6 +92,10 @@ class AppointmentResponse {
 
   String? doctorNote;
 
+  bool? isPaid;
+
+  int? paymentId;
+
   @override
   bool operator ==(Object other) => identical(this, other) || other is AppointmentResponse &&
     other.id == id &&
@@ -100,7 +106,9 @@ class AppointmentResponse {
     other.startTime == startTime &&
     other.endTime == endTime &&
     other.status == status &&
-    other.doctorNote == doctorNote;
+    other.doctorNote == doctorNote &&
+    other.isPaid == isPaid &&
+    other.paymentId == paymentId;
 
   @override
   int get hashCode =>
@@ -113,10 +121,12 @@ class AppointmentResponse {
     (startTime == null ? 0 : startTime!.hashCode) +
     (endTime == null ? 0 : endTime!.hashCode) +
     (status == null ? 0 : status!.hashCode) +
-    (doctorNote == null ? 0 : doctorNote!.hashCode);
+    (doctorNote == null ? 0 : doctorNote!.hashCode) +
+    (isPaid == null ? 0 : isPaid!.hashCode) +
+    (paymentId == null ? 0 : paymentId!.hashCode);
 
   @override
-  String toString() => 'AppointmentResponse[id=$id, patientId=$patientId, doctorId=$doctorId, serviceId=$serviceId, roomId=$roomId, startTime=$startTime, endTime=$endTime, status=$status, doctorNote=$doctorNote]';
+  String toString() => 'AppointmentResponse[id=$id, patientId=$patientId, doctorId=$doctorId, serviceId=$serviceId, roomId=$roomId, startTime=$startTime, endTime=$endTime, status=$status, doctorNote=$doctorNote, isPaid=$isPaid, paymentId=$paymentId]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -165,6 +175,16 @@ class AppointmentResponse {
     } else {
       json[r'doctorNote'] = null;
     }
+    if (this.isPaid != null) {
+      json[r'isPaid'] = this.isPaid;
+    } else {
+      json[r'isPaid'] = null;
+    }
+    if (this.paymentId != null) {
+      json[r'paymentId'] = this.paymentId;
+    } else {
+      json[r'paymentId'] = null;
+    }
     return json;
   }
 
@@ -196,6 +216,8 @@ class AppointmentResponse {
         endTime: mapDateTime(json, r'endTime', r''),
         status: AppointmentStatus.fromJson(json[r'status']),
         doctorNote: mapValueOfType<String>(json, r'doctorNote'),
+        isPaid: mapValueOfType<bool>(json, r'isPaid'),
+        paymentId: mapValueOfType<int>(json, r'paymentId'),
       );
     }
     return null;

@@ -34,7 +34,6 @@ namespace SOH.Services.Database
         public Room Room { get; set; } = null!;
 
         public MedicalRecord? MedicalRecord { get; set; }
-        public DoctorNote? DoctorNoteEntry { get; set; }
         public Payment? Payment { get; set; }
         public Review? Review { get; set; }
     }

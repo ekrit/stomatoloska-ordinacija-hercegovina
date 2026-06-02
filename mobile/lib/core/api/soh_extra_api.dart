@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:http/http.dart' show Response;
 import 'package:soh_api/api.dart';
@@ -99,6 +98,77 @@ class SohExtraApi {
     }
   }
 
+  /// Creates a PayPal order for the appointment. The server reads the price
+  /// from the service catalog; the client never sends an amount.
+  Future<PaymentOrderInfo> createPaymentOrder(int appointmentId) async {
+    final body = jsonEncode({'appointmentId': appointmentId});
+    final resp = await _client.invokeAPI(
+      r'/Payment/orders',
+      'POST',
+      <QueryParam>[],
+      body,
+      <String, String>{},
+      <String, String>{},
+      'application/json',
+    );
+    if (resp.statusCode < 200 || resp.statusCode >= 300) {
+      throw ApiException(resp.statusCode, resp.body);
+    }
+    final j = jsonDecode(utf8.decode(resp.bodyBytes)) as Map<String, dynamic>;
+    return PaymentOrderInfo.fromJson(j);
+  }
+
+  /// Captures (finalizes) the PayPal order tied to a payment. Idempotent.
+  Future<bool> capturePayment(int paymentId) async {
+    final resp = await _client.invokeAPI(
+      '/Payment/orders/$paymentId/capture',
+      'POST',
+      <QueryParam>[],
+      null,
+      <String, String>{},
+      <String, String>{},
+      null,
+    );
+    if (resp.statusCode < 200 || resp.statusCode >= 300) {
+      throw ApiException(resp.statusCode, resp.body);
+    }
+    final j = jsonDecode(utf8.decode(resp.bodyBytes));
+    if (j is Map && (j['isPaid'] == true || j['IsPaid'] == true)) return true;
+    return false;
+  }
+
+  /// Refunds a paid payment (only allowed while the appointment is not completed).
+  Future<void> refundPayment(int paymentId) async {
+    final resp = await _client.invokeAPI(
+      '/Payment/$paymentId/refund',
+      'POST',
+      <QueryParam>[],
+      null,
+      <String, String>{},
+      <String, String>{},
+      null,
+    );
+    if (resp.statusCode < 200 || resp.statusCode >= 300) {
+      throw ApiException(resp.statusCode, resp.body);
+    }
+  }
+
+  /// Server-side logout — revokes this JWT so it cannot be reused.
+  Future<void> logout() async {
+    final resp = await _client.invokeAPI(
+      r'/Users/logout',
+      'POST',
+      <QueryParam>[],
+      null,
+      <String, String>{},
+      <String, String>{},
+      null,
+    );
+    if (resp.statusCode < 200 || resp.statusCode >= 300) {
+      throw Exception('Logout failed (${resp.statusCode}): ${resp.body}');
+    }
+  }
+
   Future<int> unreadNotificationCount() async {
     final resp = await _client.invokeAPI(
       r'/notifications/unread-count',
@@ -116,45 +186,6 @@ class SohExtraApi {
     if (v is int) return v;
     if (v is num) return v.toInt();
     return 0;
-  }
-
-  Future<Uint8List> downloadAppointmentsSummaryPdf({DateTime? fromUtc, DateTime? toUtc}) async {
-    final qp = <QueryParam>[];
-    if (fromUtc != null) {
-      qp.add(QueryParam('fromUtc', fromUtc.toUtc().toIso8601String()));
-    }
-    if (toUtc != null) {
-      qp.add(QueryParam('toUtc', toUtc.toUtc().toIso8601String()));
-    }
-    final resp = await _client.invokeAPI(
-      r'/report/pdf/appointments-summary',
-      'GET',
-      qp,
-      null,
-      <String, String>{},
-      <String, String>{},
-      null,
-    );
-    if (resp.statusCode < 200 || resp.statusCode >= 300) {
-      throw Exception('PDF download failed (${resp.statusCode}): ${resp.body}');
-    }
-    return resp.bodyBytes;
-  }
-
-  Future<Uint8List> downloadRevenueByServicePdf({int months = 6}) async {
-    final resp = await _client.invokeAPI(
-      r'/report/pdf/revenue-by-service',
-      'GET',
-      <QueryParam>[QueryParam('months', '$months')],
-      null,
-      <String, String>{},
-      <String, String>{},
-      null,
-    );
-    if (resp.statusCode < 200 || resp.statusCode >= 300) {
-      throw Exception('PDF download failed (${resp.statusCode}): ${resp.body}');
-    }
-    return resp.bodyBytes;
   }
 }
 
@@ -213,6 +244,33 @@ class UserNotificationItem {
       if (s == 'false' || s == '0') return false;
     }
     return null;
+  }
+}
+
+class PaymentOrderInfo {
+  PaymentOrderInfo({
+    required this.paymentId,
+    required this.orderId,
+    required this.approvalUrl,
+    required this.amount,
+  });
+
+  final int paymentId;
+  final String orderId;
+  final String approvalUrl;
+  final double amount;
+
+  static PaymentOrderInfo fromJson(Map<String, dynamic> j) {
+    final paymentId = j['paymentId'] ?? j['PaymentId'];
+    final orderId = j['orderId'] ?? j['OrderId'];
+    final approvalUrl = j['approvalUrl'] ?? j['ApprovalUrl'];
+    final amount = j['amount'] ?? j['Amount'];
+    return PaymentOrderInfo(
+      paymentId: paymentId is int ? paymentId : int.parse('$paymentId'),
+      orderId: orderId as String? ?? '',
+      approvalUrl: approvalUrl as String? ?? '',
+      amount: amount is num ? amount.toDouble() : double.tryParse('$amount') ?? 0,
+    );
   }
 }
 

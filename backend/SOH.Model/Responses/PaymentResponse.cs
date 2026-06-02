@@ -11,6 +11,7 @@ namespace SOH.Model.Responses
         public string Method { get; set; } = string.Empty;
         public PaymentStatus Status { get; set; }
         public string? TransactionRef { get; set; }
+        public string? PayPalOrderId { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

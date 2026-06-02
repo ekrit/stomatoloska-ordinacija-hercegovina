@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
+import '../../../../core/utils/api_errors.dart';
 import '../providers/patient_repository_providers.dart';
 
 String orderAmountLabel(num value) => '${value.toStringAsFixed(2)} KM';
@@ -23,12 +24,18 @@ final _ordersProvider = FutureProvider.autoDispose<List<OrderResponse>>((ref) as
   return r?.items ?? [];
 });
 
+final _productsCache = FutureProvider.autoDispose<Map<int, String>>((ref) async {
+  final products = await ref.watch(patientCatalogRepositoryProvider).listProducts();
+  return {for (final p in products) if (p.id != null) p.id!: p.name ?? 'Product #${p.id}'};
+});
+
 class MyOrdersScreen extends ConsumerWidget {
   const MyOrdersScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(_ordersProvider);
+    final productsAsync = ref.watch(_productsCache);
     return Scaffold(
       appBar: AppBar(title: const Text('My orders')),
       floatingActionButton: FloatingActionButton.extended(
@@ -55,7 +62,7 @@ class MyOrdersScreen extends ConsumerWidget {
           final p = priced.isNotEmpty
               ? priced.first
               : (products.isNotEmpty ? products.first : null);
-          if (p == null) {
+          if (p == null || p.id == null) {
             messenger.showSnackBar(
               const SnackBar(content: Text('No products available yet.')),
             );
@@ -65,6 +72,8 @@ class MyOrdersScreen extends ConsumerWidget {
             await ref.read(orderApiProvider).orderPost(
                   orderUpsertRequest: OrderUpsertRequest(
                     patientId: patientId,
+                    productId: p.id!,
+                    quantity: 1,
                     totalAmount: p.price ?? 0,
                   ),
                 );
@@ -92,23 +101,31 @@ class MyOrdersScreen extends ConsumerWidget {
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('$e')),
+        error: (e, _) => Center(child: Text(extractApiErrorMessage(e))),
         data: (items) {
           if (items.isEmpty) {
             return const Center(
               child: Text('No orders yet. Use Quick order to create one.'),
             );
           }
+          final names = productsAsync.maybeWhen(
+            data: (m) => m,
+            orElse: () => const <int, String>{},
+          );
           return ListView.separated(
             padding: const EdgeInsets.all(12),
             itemCount: items.length,
             separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (context, i) {
               final o = items[i];
+              final productName = (o.productId != null && names.containsKey(o.productId))
+                  ? names[o.productId]!
+                  : 'Product #${o.productId ?? ''}';
+              final qty = o.quantity ?? 1;
               return ListTile(
                 leading: const Icon(Icons.receipt_long_outlined),
-                title: Text('Order #${o.id ?? ''}'),
-                subtitle: Text('Patient #${o.patientId ?? ''}'),
+                title: Text('Order #${o.id ?? ''} · $productName'),
+                subtitle: Text('Quantity: $qty'),
                 trailing: Text(orderAmountLabel(o.totalAmount ?? 0)),
               );
             },

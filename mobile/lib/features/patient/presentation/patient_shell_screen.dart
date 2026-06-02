@@ -27,6 +27,11 @@ class _PatientShellScreenState extends ConsumerState<PatientShellScreen> {
   Future<void> _logout(BuildContext context) async {
     final ok = await showLogoutConfirm(context);
     if (!ok) return;
+    try {
+      await SohExtraApi(ref.read(apiClientProvider)).logout();
+    } catch (_) {
+      // Best-effort: clear local session even if the server call fails.
+    }
     await AuthStorage.clear();
     ref.read(authTokenProvider.notifier).state = null;
     ref.read(currentUserProvider.notifier).state = null;

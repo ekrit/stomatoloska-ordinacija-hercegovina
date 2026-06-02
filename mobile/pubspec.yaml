@@ -18,6 +18,7 @@ dependencies:
   file_picker: ^8.1.7
   soh_api:
     path: packages/soh_api
+  webview_flutter: ^4.13.1
 
 dev_dependencies:
   flutter_test:

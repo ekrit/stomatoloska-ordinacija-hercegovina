@@ -4,6 +4,7 @@ import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/utils/api_errors.dart';
 
 final _citiesGuestProvider = FutureProvider.autoDispose<List<CityResponse>>((ref) async {
   final api = ref.watch(cityApiProvider);
@@ -23,7 +24,7 @@ class GuestLocationsScreen extends ConsumerWidget {
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('$e')),
+        error: (e, _) => Center(child: Text(extractApiErrorMessage(e))),
         data: (cities) {
           if (cities.isEmpty) {
             return const Center(

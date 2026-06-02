@@ -15,18 +15,14 @@ namespace SOH.Services.Database
         public DbSet<City> Cities { get; set; }
         public DbSet<Patient> Patients { get; set; }
         public DbSet<Doctor> Doctors { get; set; }
-        public DbSet<Admin> Admins { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<Service> Services { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<MedicalRecord> MedicalRecords { get; set; }
-        public DbSet<DoctorNote> DoctorNotes { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Order> Orders { get; set; }
-        public DbSet<OrderItem> OrderItems { get; set; }
-        public DbSet<Reminder> Reminders { get; set; }
         public DbSet<HygieneTracker> HygieneTrackers { get; set; }
         public DbSet<ActivityLog> ActivityLogs { get; set; }
         public DbSet<Report> Reports { get; set; }
@@ -119,12 +115,6 @@ namespace SOH.Services.Database
                 .HasForeignKey<Doctor>(d => d.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<User>()
-                .HasOne(u => u.Admin)
-                .WithOne(a => a.User)
-                .HasForeignKey<Admin>(a => a.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
             modelBuilder.Entity<Appointment>()
                 .HasOne(a => a.MedicalRecord)
                 .WithOne(m => m.Appointment)
@@ -156,12 +146,6 @@ namespace SOH.Services.Database
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Appointment>()
-                .HasOne(a => a.DoctorNoteEntry)
-                .WithOne(n => n.Appointment)
-                .HasForeignKey<DoctorNote>(n => n.AppointmentId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Appointment>()
                 .HasOne(a => a.Payment)
                 .WithOne(p => p.Appointment)
                 .HasForeignKey<Payment>(p => p.AppointmentId)
@@ -186,15 +170,15 @@ namespace SOH.Services.Database
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Order>()
-                .HasMany(o => o.Items)
-                .WithOne(i => i.Order)
-                .HasForeignKey(i => i.OrderId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasOne(o => o.Product)
+                .WithMany(p => p.Orders)
+                .HasForeignKey(o => o.ProductId)
+                .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<Product>()
-                .HasMany(p => p.OrderItems)
-                .WithOne(i => i.Product)
-                .HasForeignKey(i => i.ProductId)
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Patient)
+                .WithMany(p => p.Orders)
+                .HasForeignKey(o => o.PatientId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<ProductInteraction>()

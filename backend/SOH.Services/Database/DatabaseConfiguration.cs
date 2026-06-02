@@ -10,11 +10,5 @@ namespace SOH.Services.Database
             services.AddDbContext<SOHDbContext>(options =>
                 options.UseSqlServer(connectionString));
         }
-
-        public static void AddDatabaseSOH(this IServiceCollection services, string connectionString)
-        {
-            services.AddDbContext<SOHDbContext>(options =>
-                options.UseSqlServer(connectionString));
-        }
     }
 }

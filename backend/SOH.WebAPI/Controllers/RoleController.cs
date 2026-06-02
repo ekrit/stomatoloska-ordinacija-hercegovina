@@ -15,16 +15,17 @@ namespace SOH.WebAPI.Controllers
         {
         }
         
-        // Allow anonymous access to GET endpoints only
+        // Roles are visible to any authenticated user (so the admin UI dropdown
+        // works) but never to anonymous callers - role IDs are sensitive metadata.
         [HttpGet]
-        [AllowAnonymous]
+        [Authorize]
         public override async Task<PagedResult<RoleResponse>> Get([FromQuery] RoleSearchObject? search = null)
         {
             return await _service.GetAsync(search ?? new RoleSearchObject());
         }
-        
+
         [HttpGet("{id}")]
-        [AllowAnonymous]
+        [Authorize]
         public override async Task<RoleResponse?> GetById(int id)
         {
             return await _service.GetByIdAsync(id);

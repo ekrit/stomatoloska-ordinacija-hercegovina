@@ -17,6 +17,7 @@ class ReportResponse {
     this.type,
     this.generatedAt,
     this.filePath,
+    this.parameters,
   });
 
   ///
@@ -39,12 +40,15 @@ class ReportResponse {
 
   String? filePath;
 
+  String? parameters;
+
   @override
   bool operator ==(Object other) => identical(this, other) || other is ReportResponse &&
     other.id == id &&
     other.type == type &&
     other.generatedAt == generatedAt &&
-    other.filePath == filePath;
+    other.filePath == filePath &&
+    other.parameters == parameters;
 
   @override
   int get hashCode =>
@@ -52,10 +56,11 @@ class ReportResponse {
     (id == null ? 0 : id!.hashCode) +
     (type == null ? 0 : type!.hashCode) +
     (generatedAt == null ? 0 : generatedAt!.hashCode) +
-    (filePath == null ? 0 : filePath!.hashCode);
+    (filePath == null ? 0 : filePath!.hashCode) +
+    (parameters == null ? 0 : parameters!.hashCode);
 
   @override
-  String toString() => 'ReportResponse[id=$id, type=$type, generatedAt=$generatedAt, filePath=$filePath]';
+  String toString() => 'ReportResponse[id=$id, type=$type, generatedAt=$generatedAt, filePath=$filePath, parameters=$parameters]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -78,6 +83,11 @@ class ReportResponse {
       json[r'filePath'] = this.filePath;
     } else {
       json[r'filePath'] = null;
+    }
+    if (this.parameters != null) {
+      json[r'parameters'] = this.parameters;
+    } else {
+      json[r'parameters'] = null;
     }
     return json;
   }
@@ -105,6 +115,7 @@ class ReportResponse {
         type: mapValueOfType<String>(json, r'type'),
         generatedAt: mapDateTime(json, r'generatedAt', r''),
         filePath: mapValueOfType<String>(json, r'filePath'),
+        parameters: mapValueOfType<String>(json, r'parameters'),
       );
     }
     return null;

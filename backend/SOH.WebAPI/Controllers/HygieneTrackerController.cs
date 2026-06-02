@@ -5,6 +5,7 @@ using SOH.Services.Interfaces;
 using SOH.WebAPI.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace SOH.WebAPI.Controllers
 {
@@ -12,6 +13,18 @@ namespace SOH.WebAPI.Controllers
     {
         public HygieneTrackerController(IHygieneTrackerService service) : base(service)
         {
+        }
+
+        // Hygiene history is private to each patient; admins can audit it all.
+        public override Task<PagedResult<HygieneTrackerResponse>> Get([FromQuery] HygieneTrackerSearchObject? search = null)
+        {
+            search ??= new HygieneTrackerSearchObject();
+            if (!User.IsInRole(RoleNames.Administrator))
+            {
+                var uid = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
+                search.PatientId = uid;
+            }
+            return base.Get(search);
         }
 
         [Authorize(Roles = RoleNames.Administrator + "," + RoleNames.Patient)]

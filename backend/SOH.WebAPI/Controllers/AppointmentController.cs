@@ -7,6 +7,7 @@ using SOH.WebAPI.Authorization;
 using SOH.WebAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace SOH.WebAPI.Controllers
 {
@@ -19,6 +20,27 @@ namespace SOH.WebAPI.Controllers
             IAppointmentReminderPublisher publisher) : base(service)
         {
             _publisher = publisher;
+        }
+
+        // Patients see only their own visits. Doctors see appointments where
+        // they are the assigned doctor. Admins see everything. We pin the
+        // filter server-side so the IDs in JWT win over the query string.
+        public override Task<PagedResult<AppointmentResponse>> Get([FromQuery] AppointmentSearchObject? search = null)
+        {
+            search ??= new AppointmentSearchObject();
+            if (!User.IsInRole(RoleNames.Administrator))
+            {
+                var uid = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
+                if (User.IsInRole(RoleNames.Doctor))
+                {
+                    search.DoctorId = uid;
+                }
+                else
+                {
+                    search.PatientId = uid;
+                }
+            }
+            return base.Get(search);
         }
 
         [Authorize(Roles = RoleNames.Administrator + "," + RoleNames.Patient)]

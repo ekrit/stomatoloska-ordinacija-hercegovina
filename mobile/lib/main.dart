@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/app_globals.dart';
 import 'core/router/app_routes.dart';
 import 'features/auth/presentation/screens/complete_profile_screen.dart';
 import 'features/auth/presentation/screens/guest_locations_screen.dart';
@@ -32,6 +33,7 @@ class SohMobileApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Dental Clinic Herzegovina',
+      navigatorKey: rootNavigatorKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(

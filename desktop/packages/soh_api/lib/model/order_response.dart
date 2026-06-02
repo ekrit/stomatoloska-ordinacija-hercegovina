@@ -15,46 +15,30 @@ class OrderResponse {
   OrderResponse({
     this.id,
     this.patientId,
+    this.productId,
+    this.quantity,
     this.totalAmount,
     this.createdAt,
   });
 
-  ///
-  /// Please note: This property should have been non-nullable! Since the specification file
-  /// does not include a default value (using the "default:" property), however, the generated
-  /// source code must fall back to having a nullable type.
-  /// Consider adding a "default:" property in the specification file to hide this note.
-  ///
   int? id;
 
-  ///
-  /// Please note: This property should have been non-nullable! Since the specification file
-  /// does not include a default value (using the "default:" property), however, the generated
-  /// source code must fall back to having a nullable type.
-  /// Consider adding a "default:" property in the specification file to hide this note.
-  ///
   int? patientId;
 
-  ///
-  /// Please note: This property should have been non-nullable! Since the specification file
-  /// does not include a default value (using the "default:" property), however, the generated
-  /// source code must fall back to having a nullable type.
-  /// Consider adding a "default:" property in the specification file to hide this note.
-  ///
+  int? productId;
+
+  int? quantity;
+
   double? totalAmount;
 
-  ///
-  /// Please note: This property should have been non-nullable! Since the specification file
-  /// does not include a default value (using the "default:" property), however, the generated
-  /// source code must fall back to having a nullable type.
-  /// Consider adding a "default:" property in the specification file to hide this note.
-  ///
   DateTime? createdAt;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is OrderResponse &&
     other.id == id &&
     other.patientId == patientId &&
+    other.productId == productId &&
+    other.quantity == quantity &&
     other.totalAmount == totalAmount &&
     other.createdAt == createdAt;
 
@@ -63,11 +47,13 @@ class OrderResponse {
     // ignore: unnecessary_parenthesis
     (id == null ? 0 : id!.hashCode) +
     (patientId == null ? 0 : patientId!.hashCode) +
+    (productId == null ? 0 : productId!.hashCode) +
+    (quantity == null ? 0 : quantity!.hashCode) +
     (totalAmount == null ? 0 : totalAmount!.hashCode) +
     (createdAt == null ? 0 : createdAt!.hashCode);
 
   @override
-  String toString() => 'OrderResponse[id=$id, patientId=$patientId, totalAmount=$totalAmount, createdAt=$createdAt]';
+  String toString() => 'OrderResponse[id=$id, patientId=$patientId, productId=$productId, quantity=$quantity, totalAmount=$totalAmount, createdAt=$createdAt]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -80,6 +66,16 @@ class OrderResponse {
       json[r'patientId'] = this.patientId;
     } else {
       json[r'patientId'] = null;
+    }
+    if (this.productId != null) {
+      json[r'productId'] = this.productId;
+    } else {
+      json[r'productId'] = null;
+    }
+    if (this.quantity != null) {
+      json[r'quantity'] = this.quantity;
+    } else {
+      json[r'quantity'] = null;
     }
     if (this.totalAmount != null) {
       json[r'totalAmount'] = this.totalAmount;
@@ -115,6 +111,8 @@ class OrderResponse {
       return OrderResponse(
         id: mapValueOfType<int>(json, r'id'),
         patientId: mapValueOfType<int>(json, r'patientId'),
+        productId: mapValueOfType<int>(json, r'productId'),
+        quantity: mapValueOfType<int>(json, r'quantity'),
         totalAmount: mapValueOfType<double>(json, r'totalAmount'),
         createdAt: mapDateTime(json, r'createdAt', r''),
       );
@@ -166,4 +164,3 @@ class OrderResponse {
   static const requiredKeys = <String>{
   };
 }
-

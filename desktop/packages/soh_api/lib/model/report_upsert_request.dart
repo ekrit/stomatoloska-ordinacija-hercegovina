@@ -15,36 +15,36 @@ class ReportUpsertRequest {
   ReportUpsertRequest({
     required this.type,
     required this.generatedAt,
-    required this.filePath,
+    required this.parameters,
   });
 
   String type;
 
   DateTime generatedAt;
 
-  String filePath;
+  String parameters;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is ReportUpsertRequest &&
     other.type == type &&
     other.generatedAt == generatedAt &&
-    other.filePath == filePath;
+    other.parameters == parameters;
 
   @override
   int get hashCode =>
     // ignore: unnecessary_parenthesis
     (type.hashCode) +
     (generatedAt.hashCode) +
-    (filePath.hashCode);
+    (parameters.hashCode);
 
   @override
-  String toString() => 'ReportUpsertRequest[type=$type, generatedAt=$generatedAt, filePath=$filePath]';
+  String toString() => 'ReportUpsertRequest[type=$type, generatedAt=$generatedAt, parameters=$parameters]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
       json[r'type'] = this.type;
       json[r'generatedAt'] = this.generatedAt.toUtc().toIso8601String();
-      json[r'filePath'] = this.filePath;
+      json[r'parameters'] = this.parameters;
     return json;
   }
 
@@ -69,7 +69,7 @@ class ReportUpsertRequest {
       return ReportUpsertRequest(
         type: mapValueOfType<String>(json, r'type')!,
         generatedAt: mapDateTime(json, r'generatedAt', r'')!,
-        filePath: mapValueOfType<String>(json, r'filePath')!,
+        parameters: mapValueOfType<String>(json, r'parameters')!,
       );
     }
     return null;
@@ -119,7 +119,7 @@ class ReportUpsertRequest {
   static const requiredKeys = <String>{
     'type',
     'generatedAt',
-    'filePath',
+    'parameters',
   };
 }
 

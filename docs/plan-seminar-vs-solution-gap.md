@@ -1,9 +1,15 @@
 # Analysis: seminar document vs Stomatološka Ordinacija Hercegovina solution
 
-_Source: gap review (excluding online payment)._
+_Source: gap review after the RSII 2025/26 cleanup + rubric compliance pass._
 
-**Yes or no — “If I ran the same deep analysis again, would it be the same?”**  
-**No.** After the Flutter work on `feat/seminar-requirements-ui`, many rows that were *Missing* or *Partial* are now *Done* or better *Partial*. What stays different is mostly scope the doc mentions but we still skip or only lightly cover (payment, collaborative recommendations, full admin CRUD, storefront/orders UI).
+**Status:** The cleanup pass closed the remaining rubric gaps. Online **PayPal
+(sandbox) payment with refund** is now implemented end-to-end, the desktop
+admin lists are **paginated + searchable** with **FK dropdowns**, reference
+data (**services, rooms, genders**) has full **CRUD**, report PDFs can be
+**printed**, the recommender now also scores **DetailOpened**, and the mobile
+app gained a **global 401 handler**, **appointment/product detail screens**,
+and friendlier error handling. The only deliberately deferred item is
+**collaborative filtering** (the document itself frames it as a later phase).
 
 ---
 
@@ -17,7 +23,7 @@ _Source: gap review (excluding online payment)._
 
 - View **free appointment slots**; **book and cancel**; view **scheduled** and **historical** appointments.
 - **Doctor:** add **findings and professional opinion**; **patient:** view them.
-- **Payment via app** (PayPal narrative in mockup) — **out of scope** for gap scoring in this plan.
+- **Payment via app** (PayPal narrative in mockup) — **implemented** (sandbox order/capture/refund).
 - **Reviews and ratings** after service.
 - **Doctor response** to booking requests: accepted/declined **with notes**.
 - **Reminders** for check-ups and **oral hygiene** (mockup: days until next visit, daily brushing habit indicator, list of things to avoid).
@@ -47,7 +53,13 @@ _Source: gap review (excluding online payment)._
 
 **Flutter app** (`app/lib`, current seminar-aligned client on **`feat/seminar-requirements-ui`**): Riverpod + OpenAPI (`soh_api`). **Auth & shell:** splash (with patient-profile check), login, **guest** city list, **register**, **complete patient profile**, **patient shell** (bottom nav: home, appointments, care, profile with logout / user edit). **Patient:** `HomeScreen` (welcome, **content-based** product strip, book CTA, dentists), `BookingScreen` (doctor → date → slots → service → confirm), **my appointments** (three tabs, cancel, findings, review), **reminders & hygiene** (next visit text, brushing log via HygieneTracker API, static avoid list), **patient findings** reader. **Doctor:** pending / upcoming / completed, accept–reject with note, medical record / findings on completed visits. **Admin:** dashboard stats/charts/recent activity; **quick actions** open **users** list (add/manage patients & staff via existing user UI), **office locations** (city list), **all appointments** list, **reports** list; settings action is still a placeholder snackbar.
 
-**Backend vs document (excluding payment):** Entity set matches the paper’s list closely (including **Orders**, **Reminders**, **HygieneTrackers**, **ActivityLogs**, **Reports**, **Payments** as data/API). **Payment** remains **CRUD** only (`backend/SOH.WebAPI/Controllers/PaymentController.cs`), not PayPal.
+**Backend vs document:** Entity set matches the paper’s list closely. After the
+cleanup pass the schema was trimmed (dropped `DoctorNote`, `Admin`, the unused
+`Reminder` CRUD, and `OrderItem`; `Order` now references a product directly).
+**Payment** is now a real flow: `PaymentController` exposes PayPal sandbox
+order / capture / refund / webhook endpoints backed by `PayPalGateway`
+(`backend/SOH.Services/Services/PayPalGateway.cs`); the price always comes from
+the service catalog server-side.
 
 ```mermaid
 flowchart LR
@@ -77,7 +89,7 @@ flowchart LR
 
 ---
 
-## 3. Coverage table (re-audit — excluding online payment)
+## 3. Coverage table (re-audit after cleanup pass)
 
 | Topic | Status |
 | --- | --- |
@@ -91,21 +103,23 @@ flowchart LR
 | Doctor: add findings + opinion | **Done** |
 | Doctor: accept/decline with notes | **Done** |
 | Reviews and ratings (patient UI) | **Done** (`appointment_review_screen.dart`) |
-| Recommended products (content-based) | **Done** on home; **collaborative** | **Missing** (doc phase 2) |
+| Recommended products (content + popularity + behavioral incl. DetailOpened) | **Done**; **collaborative** **Deferred** (doc phase 2) |
 | Admin: dashboard KPIs + charts + recent activity | **Done** |
-| Admin: quick actions wired | **Partial** (navigation + lists; not every mockup action is a full editor) |
-| Admin: user management | **Partial** (users list/edit; role-specific “add patient only” flow not separate) |
-| Reports from Flutter | **Partial** (list existing reports; no “generate file” wizard) |
-| Reminders + hygiene mockup screen | **Done** in app + **Partial** (subscriber email remains env-driven) |
-| Orders / product purchase UI | **Partial** (backend; no shop/checkout in Flutter) |
-| Activity log vs doc examples (e.g. backup) | **Partial** (real API events; not every mockup line item) |
-| Payment in app (PayPal) | **Out of scope** for this document version |
+| Admin: paginated + searchable lists | **Done** (`PaginatedSearchView`, server caps page size at 100, FTS) |
+| Admin: FK dropdowns + human-readable labels | **Done** (appointment create/edit, lookup providers) |
+| Admin: reference-data CRUD (services, rooms, genders) | **Done** (validated add/edit dialogs + delete confirm) |
+| Admin: per-field validators + discard-changes guard | **Done** |
+| Reports from desktop (list + PDF + print) | **Done** (audit rows persisted, print via `printing`) |
+| Reminders + hygiene mockup screen | **Done** in app (subscriber email remains env-driven) |
+| Payment in app (PayPal sandbox) | **Done** (order/capture/refund/webhook) |
+| Refund while appointment not completed | **Done** (mobile + desktop admin Payments screen) |
+| Mobile: global 401 handler + detail screens | **Done** (`AuthAwareApiClient`, appointment/product detail) |
+| Orders / product purchase UI | **Partial** (backend + orders list; no full checkout) |
 
 ---
 
 ## 4. Recommended next steps (residual)
 
-1. **Payment:** only if product scope expands — integrate a real provider or keep CRUD-only payments.
-2. **Collaborative recommendations** when enough usage data exists; keep content-based as baseline.
-3. **Admin depth:** dedicated “add patient” wizard, edit office hours/contacts beyond city list, report **generation/export** UI, settings screen instead of snackbar.
-4. **Patient shop:** optional **orders** UI if the seminar is interpreted as e‑commerce for products.
+1. **Collaborative recommendations** when enough usage data exists; keep the current content + popularity + behavioral blend as the baseline.
+2. **Patient shop checkout:** optional full **orders** purchase flow if the seminar is interpreted as e‑commerce for products.
+3. **Webhook hardening:** replace the sandbox-friendly webhook check with PayPal’s full signature verification for production.

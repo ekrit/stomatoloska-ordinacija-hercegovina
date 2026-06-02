@@ -5,6 +5,7 @@ using SOH.Services.Interfaces;
 using SOH.WebAPI.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace SOH.WebAPI.Controllers
 {
@@ -12,6 +13,26 @@ namespace SOH.WebAPI.Controllers
     {
         public ReviewController(IReviewService service) : base(service)
         {
+        }
+
+        // Patients see only the reviews they authored; doctors see reviews
+        // they received; admins see the whole feed.
+        public override Task<PagedResult<ReviewResponse>> Get([FromQuery] ReviewSearchObject? search = null)
+        {
+            search ??= new ReviewSearchObject();
+            if (!User.IsInRole(RoleNames.Administrator))
+            {
+                var uid = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
+                if (User.IsInRole(RoleNames.Doctor))
+                {
+                    search.DoctorId = uid;
+                }
+                else
+                {
+                    search.PatientId = uid;
+                }
+            }
+            return base.Get(search);
         }
 
         [Authorize(Roles = RoleNames.Administrator + "," + RoleNames.Patient)]

@@ -11,6 +11,10 @@ namespace SOH.Services.Database
 
         public int PatientId { get; set; }
 
+        public int ProductId { get; set; }
+
+        public int Quantity { get; set; } = 1;
+
         [Precision(18, 2)]
         public decimal TotalAmount { get; set; }
 
@@ -19,6 +23,7 @@ namespace SOH.Services.Database
         [ForeignKey(nameof(PatientId))]
         public Patient Patient { get; set; } = null!;
 
-        public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
+        [ForeignKey(nameof(ProductId))]
+        public Product Product { get; set; } = null!;
     }
 }
