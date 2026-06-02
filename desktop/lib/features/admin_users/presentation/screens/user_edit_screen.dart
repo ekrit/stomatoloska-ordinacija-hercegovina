@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
+import '../../../../core/api/soh_extra_api.dart';
 import '../../../../core/utils/api_errors.dart';
 
 class UserEditScreen extends ConsumerStatefulWidget {
@@ -23,6 +24,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
   final _email = TextEditingController();
   final _username = TextEditingController();
   final _phone = TextEditingController();
+  final _currentPassword = TextEditingController();
   final _password = TextEditingController();
   final _confirmPassword = TextEditingController();
 
@@ -49,6 +51,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
     _email.dispose();
     _username.dispose();
     _phone.dispose();
+    _currentPassword.dispose();
     _password.dispose();
     _confirmPassword.dispose();
     super.dispose();
@@ -154,6 +157,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
   Future<void> _save() async {
     final pwd = _password.text;
     final confirm = _confirmPassword.text;
+    final isSelf = ref.read(currentUserProvider)?.id == widget.userId;
     if (pwd.isNotEmpty || confirm.isNotEmpty) {
       if (pwd != confirm) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -164,6 +168,13 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
       if (pwd.length < 4) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Password must be at least 4 characters.')),
+        );
+        return;
+      }
+      // Changing your own password requires confirming the current one.
+      if (isSelf && _currentPassword.text.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Enter your current password to change it.')),
         );
         return;
       }
@@ -180,6 +191,9 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
 
     setState(() => _saving = true);
     try {
+      // Self password change goes through the dedicated endpoint (verifies the
+      // current password); admins editing another user set it via the upsert.
+      final setPasswordViaUpsert = pwd.isNotEmpty && !isSelf;
       final req = UserUpsertRequest(
         firstName: _firstName.text.trim(),
         lastName: _lastName.text.trim(),
@@ -189,7 +203,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
         genderId: gid,
         cityId: cid,
         isActive: _isActive,
-        password: pwd.isEmpty ? null : pwd,
+        password: setPasswordViaUpsert ? pwd : null,
         roleIds: _roleIds.toList(),
         picture: _pictureUpdated ? _pictureBase64 : null,
       );
@@ -198,6 +212,14 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
             widget.userId,
             userUpsertRequest: req,
           );
+
+      if (isSelf && pwd.isNotEmpty) {
+        await SohExtraApi(ref.read(apiClientProvider)).changePassword(
+          widget.userId,
+          _currentPassword.text,
+          pwd,
+        );
+      }
 
       final me = ref.read(currentUserProvider);
       if (me?.id == widget.userId) {
@@ -495,6 +517,20 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                                             ?.copyWith(fontWeight: FontWeight.w600),
                                       ),
                                       const SizedBox(height: 8),
+                                      if (ref.read(currentUserProvider)?.id ==
+                                          widget.userId) ...[
+                                        TextField(
+                                          controller: _currentPassword,
+                                          decoration: const InputDecoration(
+                                            labelText: 'Current password',
+                                            helperText:
+                                                'Required only when changing your own password.',
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          obscureText: true,
+                                        ),
+                                        const SizedBox(height: 12),
+                                      ],
                                       TextField(
                                         controller: _password,
                                         decoration: const InputDecoration(

@@ -170,6 +170,24 @@ class SohExtraApi {
     }
   }
 
+  /// Changes the signed-in user's password after verifying the current one.
+  /// The server rejects the change if the old password is wrong.
+  Future<void> changePassword(int userId, String oldPassword, String newPassword) async {
+    final body = jsonEncode({'oldPassword': oldPassword, 'newPassword': newPassword});
+    final resp = await _client.invokeAPI(
+      '/Users/$userId/change-password',
+      'POST',
+      <QueryParam>[],
+      body,
+      <String, String>{},
+      <String, String>{},
+      'application/json',
+    );
+    if (resp.statusCode < 200 || resp.statusCode >= 300) {
+      throw ApiException(resp.statusCode, resp.body);
+    }
+  }
+
   /// Server-side logout — revokes this JWT so it cannot be reused.
   Future<void> logout() async {
     final resp = await _client.invokeAPI(

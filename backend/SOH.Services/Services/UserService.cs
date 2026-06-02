@@ -249,9 +249,23 @@ namespace SOH.Services.Services
                 user.Picture = request.Picture;
             }
 
-            // Update password if provided
+            // Update password if provided. When a user changes their own
+            // password they must confirm the current one; an admin editing
+            // another user does not (rubric section 4).
             if (!string.IsNullOrEmpty(request.Password))
             {
+                if (!callerIsAdmin)
+                {
+                    if (string.IsNullOrEmpty(request.OldPassword))
+                    {
+                        throw new BusinessException("Enter your current password to change it.");
+                    }
+                    if (!VerifyPassword(request.OldPassword, user.PasswordHash, user.PasswordSalt))
+                    {
+                        throw new BusinessException("Your current password is incorrect.");
+                    }
+                }
+
                 user.PasswordHash = HashPassword(request.Password, out byte[] salt);
                 user.PasswordSalt = Convert.ToBase64String(salt);
             }
@@ -285,6 +299,27 @@ namespace SOH.Services.Services
 
             await _context.SaveChangesAsync();
             return await GetUserResponseWithRolesAsync(user.Id);
+        }
+
+        public async Task ChangeOwnPasswordAsync(int userId, string oldPassword, string newPassword)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId)
+                ?? throw new NotFoundException("User not found.");
+
+            if (string.IsNullOrEmpty(oldPassword) ||
+                !VerifyPassword(oldPassword, user.PasswordHash, user.PasswordSalt))
+            {
+                throw new BusinessException("Your current password is incorrect.");
+            }
+
+            if (string.IsNullOrEmpty(newPassword) || newPassword.Length < 4)
+            {
+                throw new BusinessException("New password must be at least 4 characters.");
+            }
+
+            user.PasswordHash = HashPassword(newPassword, out byte[] salt);
+            user.PasswordSalt = Convert.ToBase64String(salt);
+            await _context.SaveChangesAsync();
         }
 
         public async Task<bool> DeleteAsync(int id)

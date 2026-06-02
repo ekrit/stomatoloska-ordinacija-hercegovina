@@ -152,6 +152,24 @@ namespace SOH.WebAPI.Controllers
             return updatedUser;
         }
 
+        /// <summary>
+        /// Self-service password change. The caller must be the user in the
+        /// route and must supply the current password. Admins change other
+        /// users' passwords via PUT /Users/{id} (no old password needed).
+        /// </summary>
+        [HttpPost("{id}/change-password")]
+        public async Task<ActionResult> ChangePassword(int id, [FromBody] ChangePasswordRequest request)
+        {
+            var uid = CurrentUserId;
+            if (uid == null)
+                return Unauthorized();
+            if (uid != id)
+                return Forbid();
+
+            await _userService.ChangeOwnPasswordAsync(id, request.OldPassword, request.NewPassword);
+            return NoContent();
+        }
+
         [HttpDelete("{id}")]
         [Authorize(Roles = RoleNames.Administrator)]
         public async Task<ActionResult> Delete(int id)
