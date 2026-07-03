@@ -24,6 +24,12 @@ placeholder was removed; Docker images are **version-pinned**. The only
 deliberately deferred items remain **collaborative filtering** and a full
 **product checkout** (both framed as later/optional by the source document).
 
+**Final rubric compliance (submission prep):** database name changed to student
+ID `180202`; rubric-compliant test credentials added (`desktop`/`test`,
+`mobile`/`test`, `doctor`/`test`); PayPal environment variables added to
+`docker-compose.yml` for the API container; README updated with rubric-format
+credentials table.
+
 ---
 
 ## 1. Document (Fakultet Informacijskih Tehnologija (1).docx) — substance

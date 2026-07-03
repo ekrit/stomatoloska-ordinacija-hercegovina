@@ -116,6 +116,58 @@ namespace SOH.Services.Database
                     GenderId = 2, // Female
                     CityId = 1, // Sarajevo
                     //Picture = ImageConversion.ConvertImageToByteArray("Assets", "test.png")
+                },
+                // Rubric-compliant test credentials (password: test)
+                new User 
+                { 
+                    Id = 5, 
+                    FirstName = "Desktop", 
+                    LastName = "Admin", 
+                    Email = "desktop@test.local", 
+                    Username = "desktop",
+                    Role = UserRoleType.Admin,
+                    // Rubric password: test
+                    PasswordHash = "6WQE4xWXatQu77nogrh2raYN+GAxq4kcCpJS3mvU56U=", 
+                    PasswordSalt = "4Ey5Av2EasR6kBLnGz2eIg==", 
+                    IsActive = true, 
+                    CreatedAt = fixedDate,
+                    PhoneNumber = DefaultPhoneNumber,
+                    GenderId = 1,
+                    CityId = 5
+                },
+                new User 
+                { 
+                    Id = 6, 
+                    FirstName = "Mobile", 
+                    LastName = "Patient", 
+                    Email = "mobile@test.local", 
+                    Username = "mobile",
+                    Role = UserRoleType.Patient,
+                    // Rubric password: test
+                    PasswordHash = "6WQE4xWXatQu77nogrh2raYN+GAxq4kcCpJS3mvU56U=", 
+                    PasswordSalt = "4Ey5Av2EasR6kBLnGz2eIg==", 
+                    IsActive = true, 
+                    CreatedAt = fixedDate,
+                    PhoneNumber = DefaultPhoneNumber,
+                    GenderId = 1,
+                    CityId = 5
+                },
+                new User 
+                { 
+                    Id = 7, 
+                    FirstName = "Test", 
+                    LastName = "Doctor", 
+                    Email = "doctor@test.local", 
+                    Username = "doctor",
+                    Role = UserRoleType.Doctor,
+                    // Rubric password: test
+                    PasswordHash = "6WQE4xWXatQu77nogrh2raYN+GAxq4kcCpJS3mvU56U=", 
+                    PasswordSalt = "4Ey5Av2EasR6kBLnGz2eIg==", 
+                    IsActive = true, 
+                    CreatedAt = fixedDate,
+                    PhoneNumber = DefaultPhoneNumber,
+                    GenderId = 1,
+                    CityId = 5
                 }
             );
 
@@ -124,10 +176,14 @@ namespace SOH.Services.Database
                 new UserRole { Id = 1, UserId = 1, RoleId = 1, DateAssigned = fixedDate }, 
                 new UserRole { Id = 2, UserId = 2, RoleId = 2, DateAssigned = fixedDate }, 
                 new UserRole { Id = 3, UserId = 3, RoleId = 3, DateAssigned = fixedDate }, 
-                new UserRole { Id = 4, UserId = 4, RoleId = 2, DateAssigned = fixedDate }
+                new UserRole { Id = 4, UserId = 4, RoleId = 2, DateAssigned = fixedDate },
+                // Rubric-compliant test accounts
+                new UserRole { Id = 5, UserId = 5, RoleId = 1, DateAssigned = fixedDate }, // desktop -> Administrator
+                new UserRole { Id = 6, UserId = 6, RoleId = 2, DateAssigned = fixedDate }, // mobile -> Patient
+                new UserRole { Id = 7, UserId = 7, RoleId = 3, DateAssigned = fixedDate }  // doctor -> Doctor
             );
 
-            // Doctor profile for seeded stomatologist (UserId 3)
+            // Doctor profiles for seeded stomatologists
             modelBuilder.Entity<Doctor>().HasData(
                 new Doctor
                 {
@@ -136,6 +192,39 @@ namespace SOH.Services.Database
                     LastName = "Joldić",
                     Specialization = "Oral surgery",
                     Rating = 4.85m
+                },
+                new Doctor
+                {
+                    UserId = 7,
+                    FirstName = "Test",
+                    LastName = "Doctor",
+                    Specialization = "General dentistry",
+                    Rating = 4.50m
+                }
+            );
+            
+            // Patient profiles for seeded patients
+            modelBuilder.Entity<Patient>().HasData(
+                new Patient
+                {
+                    UserId = 2,
+                    FirstName = "Amel",
+                    LastName = "Musić",
+                    DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Patient
+                {
+                    UserId = 4,
+                    FirstName = "Test",
+                    LastName = "Test",
+                    DateOfBirth = new DateTime(1995, 6, 15, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new Patient
+                {
+                    UserId = 6,
+                    FirstName = "Mobile",
+                    LastName = "Patient",
+                    DateOfBirth = new DateTime(1992, 3, 20, 0, 0, 0, DateTimeKind.Utc)
                 }
             );
 
