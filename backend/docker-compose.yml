@@ -72,6 +72,12 @@ services:
       - JwtSettings__Issuer=${JwtSettings__Issuer:-SOH.WebAPI}
       - JwtSettings__Audience=${JwtSettings__Audience:-SOH.App}
       - JwtSettings__ExpirationMinutes=${JwtSettings__ExpirationMinutes:-60}
+      - PAYPAL__BASE_URL=${PAYPAL__BASE_URL:-https://api-m.sandbox.paypal.com}
+      - PAYPAL__CLIENT_ID=${PAYPAL__CLIENT_ID:-}
+      - PAYPAL__CLIENT_SECRET=${PAYPAL__CLIENT_SECRET:-}
+      - PAYPAL__WEBHOOK_ID=${PAYPAL__WEBHOOK_ID:-}
+      - PAYPAL__RETURN_URL=${PAYPAL__RETURN_URL:-}
+      - PAYPAL__CANCEL_URL=${PAYPAL__CANCEL_URL:-}
     ports:
       - "5130:5130"
     networks:

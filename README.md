@@ -82,12 +82,21 @@ Release binary: `desktop/build/windows/x64/runner/Release/desktop.exe`.
 
 See [`mobile/README.md`](mobile/README.md) and [`desktop/README.md`](desktop/README.md) for the per-project details and the `--dart-define=API_BASE_URL=...` examples.
 
-## Seeded credentials (development)
+## Seeded credentials
 
-The first time the API runs against an empty database, EF Core migrations
-seed the records below (defined in
+The first time the API runs against an empty database (named `180202` per
+the `.env` setting), EF Core migrations seed the records below (defined in
 [`backend/SOH.Services/Database/DataSeeder.cs`](backend/SOH.Services/Database/DataSeeder.cs)).
-All seeded accounts share the same dev password.
+
+### Rubric-compliant credentials
+
+| Context       | Username  | Password | Role          |
+| ------------- | --------- | -------- | ------------- |
+| Desktop       | `desktop` | `test`   | Administrator |
+| Mobile        | `mobile`  | `test`   | Patient       |
+| Doctor role   | `doctor`  | `test`   | Doctor        |
+
+### Additional development accounts
 
 | Role          | Username | Password       | Lives in     |
 | ------------- | -------- | -------------- | ------------ |
