@@ -40,6 +40,10 @@ namespace SOH.Services.Services
 
         protected override IQueryable<Order> ApplyFilter(IQueryable<Order> query, OrderSearchObject search)
         {
+            query = query
+                .Include(x => x.Product)
+                .Include(x => x.Patient);
+
             if (search.PatientId.HasValue)
             {
                 query = query.Where(x => x.PatientId == search.PatientId.Value);
@@ -55,7 +59,19 @@ namespace SOH.Services.Services
                 query = query.Where(x => x.CreatedAt <= search.CreatedTo.Value);
             }
 
-            return query;
+            return query.OrderByDescending(x => x.CreatedAt);
+        }
+
+        public override async Task<OrderResponse?> GetByIdAsync(int id)
+        {
+            var entity = await _context.Orders
+                .Include(x => x.Product)
+                .Include(x => x.Patient)
+                .FirstOrDefaultAsync(x => x.Id == id);
+            if (entity == null)
+                return null;
+
+            return MapToResponse(entity);
         }
     }
 }

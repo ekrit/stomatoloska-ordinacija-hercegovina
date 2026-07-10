@@ -72,7 +72,10 @@ public class RecommendationService : IRecommendationService
 
         var serviceKeywords = await LoadRecentServiceKeywordsAsync(userId, cancellationToken);
 
-        var products = await _context.Products.AsNoTracking().ToListAsync(cancellationToken);
+        var products = await _context.Products
+            .AsNoTracking()
+            .Include(p => p.ProductCategory)
+            .ToListAsync(cancellationToken);
         var scored = new List<RecommendedProductResponse>();
 
         foreach (var p in products)
@@ -88,26 +91,26 @@ public class RecommendationService : IRecommendationService
             {
                 var popPart = Math.Log(1 + pop);
                 score += WeightPopularity * popPart;
-                reasons.Add($"Popular in the clinic lately ({pop} recent orders referencing this product).");
+                reasons.Add($"Popularan proizvod u posljednje vrijeme ({pop} nedavnih narudžbi).");
             }
 
             var views = viewCounts.TryGetValue(p.Id, out var vc) ? vc : 0;
             if (views > 0)
             {
                 score += WeightPersonalViews * Math.Log(1 + views);
-                reasons.Add($"You viewed this product {views} time(s); we prioritize items you already explored.");
+                reasons.Add($"Pregledali ste ovaj proizvod {views} put(a); dajemo prednost artiklima koje ste već istraživali.");
             }
 
             var details = detailCounts.TryGetValue(p.Id, out var dc) ? dc : 0;
             if (details > 0)
             {
                 score += WeightDetailOpened * Math.Log(1 + details);
-                reasons.Add($"You opened detail for this product {details} time(s), so we surface it higher.");
+                reasons.Add($"Otvorili ste detalje ovog proizvoda {details} put(a), pa ga prikazujemo više.");
             }
 
             if (reasons.Count == 0)
             {
-                reasons.Add("Baseline catalog item — explore the shop to personalize future picks.");
+                reasons.Add("Artikal iz kataloga — istražite ponudu kako bismo personalizovali buduće preporuke.");
             }
 
             scored.Add(new RecommendedProductResponse
@@ -137,13 +140,13 @@ public class RecommendationService : IRecommendationService
         if (serviceKeywords.Count == 0)
             return 0;
 
-        var productTokens = TokenizeToSet($"{p.Name} {p.Category} {p.Description}");
+        var productTokens = TokenizeToSet($"{p.Name} {p.ProductCategory.Name} {p.Description}");
         var overlap = productTokens.Intersect(serviceKeywords).ToList();
         if (overlap.Count == 0)
             return 0;
 
         reasons.Add(
-            $"Matches themes from your recent visits (shared terms: {string.Join(", ", overlap.Take(4))}).");
+            $"Odgovara temama vaših nedavnih posjeta (zajednički pojmovi: {string.Join(", ", overlap.Take(4))}).");
         return Math.Min(1 + overlap.Count * 0.35, 4);
     }
 
