@@ -32,7 +32,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<List<ActivityLogEntry>> fetchRecentActivity({int take = 30}) {
+  Future<RecentActivity> fetchRecentActivity({int take = 30}) {
     return _dashboardApi.fetchRecentActivity(take: take);
   }
 }

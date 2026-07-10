@@ -17,7 +17,7 @@ class PatientCareApiServiceImpl implements PatientCareApiService {
   Future<List<AppointmentResponse>> listAppointmentsForPatient(int patientId) async {
     final r = await _appointments.appointmentGet(
       patientId: patientId,
-      retrieveAll: true,
+      pageSize: 100,
     );
     return r?.items ?? [];
   }
@@ -32,7 +32,7 @@ class PatientCareApiServiceImpl implements PatientCareApiService {
       doctorId: doctorId,
       startFrom: startInclusive,
       startTo: endExclusive,
-      retrieveAll: true,
+      pageSize: 100,
     );
     return r?.items ?? [];
   }
@@ -52,7 +52,7 @@ class PatientCareApiServiceImpl implements PatientCareApiService {
 
   @override
   Future<List<MedicalRecordResponse>> listMedicalRecords() async {
-    final r = await _medicalRecords.medicalRecordGet(retrieveAll: true);
+    final r = await _medicalRecords.medicalRecordGet(pageSize: 100);
     return r?.items ?? [];
   }
 
@@ -62,7 +62,7 @@ class PatientCareApiServiceImpl implements PatientCareApiService {
   ) async {
     final r = await _medicalRecords.medicalRecordGet(
       appointmentId: appointmentId,
-      retrieveAll: true,
+      pageSize: 100,
     );
     return r?.items ?? [];
   }
@@ -71,7 +71,7 @@ class PatientCareApiServiceImpl implements PatientCareApiService {
   Future<List<ReviewResponse>> listReviewsForAppointment(int appointmentId) async {
     final r = await _reviews.reviewGet(
       appointmentId: appointmentId,
-      retrieveAll: true,
+      pageSize: 100,
     );
     return r?.items ?? [];
   }

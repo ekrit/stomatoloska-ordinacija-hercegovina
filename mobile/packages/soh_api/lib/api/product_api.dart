@@ -21,7 +21,7 @@ class ProductApi {
   ///
   /// * [String] name:
   ///
-  /// * [String] category:
+  /// * [int] productCategoryId:
   ///
   /// * [String] FTS:
   ///
@@ -30,9 +30,7 @@ class ProductApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<Response> productGetWithHttpInfo({ String? name, String? category, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
+  Future<Response> productGetWithHttpInfo({ String? name, int? productCategoryId, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
     // ignore: prefer_const_declarations
     final path = r'/Product';
 
@@ -46,8 +44,8 @@ class ProductApi {
     if (name != null) {
       queryParams.addAll(_queryParams('', 'Name', name));
     }
-    if (category != null) {
-      queryParams.addAll(_queryParams('', 'Category', category));
+    if (productCategoryId != null) {
+      queryParams.addAll(_queryParams('', 'ProductCategoryId', productCategoryId));
     }
     if (FTS != null) {
       queryParams.addAll(_queryParams('', 'FTS', FTS));
@@ -60,9 +58,6 @@ class ProductApi {
     }
     if (includeTotalCount != null) {
       queryParams.addAll(_queryParams('', 'IncludeTotalCount', includeTotalCount));
-    }
-    if (retrieveAll != null) {
-      queryParams.addAll(_queryParams('', 'RetrieveAll', retrieveAll));
     }
 
     const contentTypes = <String>[];
@@ -83,7 +78,7 @@ class ProductApi {
   ///
   /// * [String] name:
   ///
-  /// * [String] category:
+  /// * [int] productCategoryId:
   ///
   /// * [String] FTS:
   ///
@@ -92,10 +87,8 @@ class ProductApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<ProductResponsePagedResult?> productGet({ String? name, String? category, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
-    final response = await productGetWithHttpInfo( name: name, category: category, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, retrieveAll: retrieveAll, );
+  Future<ProductResponsePagedResult?> productGet({ String? name, int? productCategoryId, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
+    final response = await productGetWithHttpInfo( name: name, productCategoryId: productCategoryId, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }

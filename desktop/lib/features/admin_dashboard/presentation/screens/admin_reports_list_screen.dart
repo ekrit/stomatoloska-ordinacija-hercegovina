@@ -119,7 +119,7 @@ class _AdminReportsListScreenState extends ConsumerState<AdminReportsListScreen>
                 leading: const Icon(Icons.description_outlined),
                 title: Text(r.type ?? 'Report #${r.id ?? ''}'),
                 subtitle: Text(
-                  '${r.parameters ?? r.filePath ?? '—'}'
+                  '${r.parameters ?? '—'}'
                   '${r.generatedAt != null ? '\n${df.format(r.generatedAt!)}' : ''}',
                 ),
                 isThreeLine: true,
@@ -162,7 +162,7 @@ class _AdminReportsListScreenState extends ConsumerState<AdminReportsListScreen>
   Future<void> _exportCsv() async {
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final r = await ref.read(appointmentApiProvider).appointmentGet(retrieveAll: true);
+      final r = await ref.read(appointmentApiProvider).appointmentGet(pageSize: 100);
       final items = r?.items ?? [];
       final csv = _buildAppointmentsCsv(items);
       await Clipboard.setData(ClipboardData(text: csv));

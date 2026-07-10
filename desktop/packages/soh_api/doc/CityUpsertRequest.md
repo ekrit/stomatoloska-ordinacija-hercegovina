@@ -9,6 +9,10 @@ import 'package:soh_api/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **String** |  | 
+**address** | **String** |  | [optional] 
+**contactPhone** | **String** |  | [optional] 
+**contactEmail** | **String** |  | [optional] 
+**workingHours** | **String** |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

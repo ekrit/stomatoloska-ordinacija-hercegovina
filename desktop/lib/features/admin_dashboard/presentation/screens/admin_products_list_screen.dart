@@ -5,6 +5,7 @@ import 'package:soh_api/api.dart';
 import '../../../../core/api/api_providers.dart';
 import '../../../../core/utils/api_errors.dart';
 import '../../../../core/widgets/paginated_search_view.dart';
+import '../../../../widgets/user_appbar_actions.dart' show decodeUserPictureBytes;
 import 'admin_product_edit_screen.dart';
 
 class AdminProductsListScreen extends ConsumerStatefulWidget {
@@ -52,9 +53,10 @@ class _AdminProductsListScreenState extends ConsumerState<AdminProductsListScree
           return PagedData(items: r?.items ?? [], total: r?.totalCount);
         },
         itemBuilder: (context, p) => ListTile(
-          title: Text(p.name ?? 'Product #${p.id ?? ''}'),
+          leading: _productThumb(context, p),
+          title: Text(p.name ?? 'Product'),
           subtitle: Text(
-            '${p.category ?? 'General'} - ${p.price?.toStringAsFixed(2) ?? '0.00'} KM',
+            '${p.productCategoryName ?? 'General'} - ${p.price?.toStringAsFixed(2) ?? '0.00'} KM',
           ),
           trailing: IconButton(
             icon: const Icon(Icons.delete_outline),
@@ -71,6 +73,20 @@ class _AdminProductsListScreenState extends ConsumerState<AdminProductsListScree
           },
         ),
       ),
+    );
+  }
+
+  Widget _productThumb(BuildContext context, ProductResponse p) {
+    final bytes = decodeUserPictureBytes(p.picture);
+    if (bytes == null) {
+      return CircleAvatar(
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+        child: const Icon(Icons.medical_services_outlined),
+      );
+    }
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Image.memory(bytes, width: 44, height: 44, fit: BoxFit.cover),
     );
   }
 

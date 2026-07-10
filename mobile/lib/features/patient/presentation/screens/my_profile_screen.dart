@@ -80,8 +80,8 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
 
       final results = await Future.wait([
         usersApi.usersIdGet(widget.userId),
-        genderApi.genderGet(retrieveAll: true),
-        cityApi.cityGet(retrieveAll: true),
+        genderApi.genderGet(pageSize: 100),
+        cityApi.cityGet(pageSize: 100),
       ]);
 
       final user = results[0] as UserResponse?;

@@ -45,6 +45,6 @@ final doctorsProvider = FutureProvider<List<Doctor>>((ref) {
   return ref.watch(doctorRepositoryProvider).fetchDoctors();
 });
 
-final recentActivityProvider = FutureProvider<List<ActivityLogEntry>>((ref) {
+final recentActivityProvider = FutureProvider<RecentActivity>((ref) {
   return ref.watch(dashboardRepositoryProvider).fetchRecentActivity(take: 30);
 });

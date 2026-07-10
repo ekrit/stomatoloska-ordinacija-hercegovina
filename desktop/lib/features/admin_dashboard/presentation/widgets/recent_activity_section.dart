@@ -34,8 +34,8 @@ class RecentActivitySection extends ConsumerWidget {
             ),
             const SizedBox(height: 6),
             async.maybeWhen(
-              data: (items) => Text(
-                activityCountLabel(items.length),
+              data: (activity) => Text(
+                activityCountLabel(activity.totalCount),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).hintColor,
                       fontWeight: FontWeight.w600,
@@ -50,7 +50,8 @@ class RecentActivitySection extends ConsumerWidget {
                 child: Center(child: CircularProgressIndicator()),
               ),
               error: (e, _) => Text('Error loading activity: $e'),
-              data: (items) {
+              data: (activity) {
+                final items = activity.items;
                 if (items.isEmpty) {
                   return Text(
                     'No activity recorded yet.',
@@ -66,9 +67,7 @@ class RecentActivitySection extends ConsumerWidget {
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final e = items[index];
-                    final idPart = e.entityId != null && e.entityId!.isNotEmpty
-                        ? ' #${e.entityId}'
-                        : '';
+                    final actor = (e.username ?? '').trim();
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Row(
@@ -79,11 +78,18 @@ class RecentActivitySection extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  '${e.action} · ${e.entityName}$idPart',
+                                  '${e.action} · ${e.entityName}',
                                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                         fontWeight: FontWeight.w500,
                                       ),
                                 ),
+                                if (actor.isNotEmpty)
+                                  Text(
+                                    actor,
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: Theme.of(context).hintColor,
+                                        ),
+                                  ),
                               ],
                             ),
                           ),

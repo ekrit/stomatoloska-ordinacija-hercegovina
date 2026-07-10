@@ -17,6 +17,8 @@ class ActivityLogResponse {
     this.action,
     this.entityName,
     this.entityId,
+    this.userId,
+    this.username,
     this.createdAt,
   });
 
@@ -34,6 +36,10 @@ class ActivityLogResponse {
 
   String? entityId;
 
+  int? userId;
+
+  String? username;
+
   ///
   /// Please note: This property should have been non-nullable! Since the specification file
   /// does not include a default value (using the "default:" property), however, the generated
@@ -48,6 +54,8 @@ class ActivityLogResponse {
     other.action == action &&
     other.entityName == entityName &&
     other.entityId == entityId &&
+    other.userId == userId &&
+    other.username == username &&
     other.createdAt == createdAt;
 
   @override
@@ -57,10 +65,12 @@ class ActivityLogResponse {
     (action == null ? 0 : action!.hashCode) +
     (entityName == null ? 0 : entityName!.hashCode) +
     (entityId == null ? 0 : entityId!.hashCode) +
+    (userId == null ? 0 : userId!.hashCode) +
+    (username == null ? 0 : username!.hashCode) +
     (createdAt == null ? 0 : createdAt!.hashCode);
 
   @override
-  String toString() => 'ActivityLogResponse[id=$id, action=$action, entityName=$entityName, entityId=$entityId, createdAt=$createdAt]';
+  String toString() => 'ActivityLogResponse[id=$id, action=$action, entityName=$entityName, entityId=$entityId, userId=$userId, username=$username, createdAt=$createdAt]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -83,6 +93,16 @@ class ActivityLogResponse {
       json[r'entityId'] = this.entityId;
     } else {
       json[r'entityId'] = null;
+    }
+    if (this.userId != null) {
+      json[r'userId'] = this.userId;
+    } else {
+      json[r'userId'] = null;
+    }
+    if (this.username != null) {
+      json[r'username'] = this.username;
+    } else {
+      json[r'username'] = null;
     }
     if (this.createdAt != null) {
       json[r'createdAt'] = this.createdAt!.toUtc().toIso8601String();
@@ -115,6 +135,8 @@ class ActivityLogResponse {
         action: mapValueOfType<String>(json, r'action'),
         entityName: mapValueOfType<String>(json, r'entityName'),
         entityId: mapValueOfType<String>(json, r'entityId'),
+        userId: mapValueOfType<int>(json, r'userId'),
+        username: mapValueOfType<String>(json, r'username'),
         createdAt: mapDateTime(json, r'createdAt', r''),
       );
     }

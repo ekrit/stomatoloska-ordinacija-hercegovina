@@ -34,9 +34,7 @@ class PatientApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<Response> patientGetWithHttpInfo({ int? userId, String? firstName, String? lastName, String? phone, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
+  Future<Response> patientGetWithHttpInfo({ int? userId, String? firstName, String? lastName, String? phone, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
     // ignore: prefer_const_declarations
     final path = r'/Patient';
 
@@ -71,9 +69,6 @@ class PatientApi {
     if (includeTotalCount != null) {
       queryParams.addAll(_queryParams('', 'IncludeTotalCount', includeTotalCount));
     }
-    if (retrieveAll != null) {
-      queryParams.addAll(_queryParams('', 'RetrieveAll', retrieveAll));
-    }
 
     const contentTypes = <String>[];
 
@@ -106,10 +101,8 @@ class PatientApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<PatientResponsePagedResult?> patientGet({ int? userId, String? firstName, String? lastName, String? phone, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
-    final response = await patientGetWithHttpInfo( userId: userId, firstName: firstName, lastName: lastName, phone: phone, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, retrieveAll: retrieveAll, );
+  Future<PatientResponsePagedResult?> patientGet({ int? userId, String? firstName, String? lastName, String? phone, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
+    final response = await patientGetWithHttpInfo( userId: userId, firstName: firstName, lastName: lastName, phone: phone, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }

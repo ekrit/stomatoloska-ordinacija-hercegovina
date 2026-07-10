@@ -32,7 +32,7 @@ class DashboardApiServiceImpl implements DashboardApiService {
   }
 
   @override
-  Future<List<ActivityLogEntry>> fetchRecentActivity({int take = 30}) async {
+  Future<RecentActivity> fetchRecentActivity({int take = 30}) async {
     final response = await _apiClient.invokeAPI(
       '/admin-dashboard/activity/recent',
       'GET',
@@ -48,11 +48,9 @@ class DashboardApiServiceImpl implements DashboardApiService {
     }
 
     final decoded = jsonDecode(response.body);
-    if (decoded is! List<dynamic>) {
-      return const [];
+    if (decoded is! Map<String, dynamic>) {
+      return const RecentActivity(items: [], totalCount: 0);
     }
-    return decoded
-        .map((e) => ActivityLogEntry.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return RecentActivity.fromJson(decoded);
   }
 }

@@ -76,9 +76,9 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
 
       final results = await Future.wait([
         usersApi.usersIdGet(widget.userId),
-        genderApi.genderGet(retrieveAll: true),
-        cityApi.cityGet(retrieveAll: true),
-        roleApi.roleGet(retrieveAll: true, isActive: true),
+        genderApi.genderGet(pageSize: 100),
+        cityApi.cityGet(pageSize: 100),
+        roleApi.roleGet(pageSize: 100, isActive: true),
       ]);
 
       final user = results[0] as UserResponse?;

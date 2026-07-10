@@ -32,9 +32,7 @@ class OrderApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<Response> orderGetWithHttpInfo({ int? patientId, DateTime? createdFrom, DateTime? createdTo, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
+  Future<Response> orderGetWithHttpInfo({ int? patientId, DateTime? createdFrom, DateTime? createdTo, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
     // ignore: prefer_const_declarations
     final path = r'/Order';
 
@@ -66,9 +64,6 @@ class OrderApi {
     if (includeTotalCount != null) {
       queryParams.addAll(_queryParams('', 'IncludeTotalCount', includeTotalCount));
     }
-    if (retrieveAll != null) {
-      queryParams.addAll(_queryParams('', 'RetrieveAll', retrieveAll));
-    }
 
     const contentTypes = <String>[];
 
@@ -99,10 +94,8 @@ class OrderApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<OrderResponsePagedResult?> orderGet({ int? patientId, DateTime? createdFrom, DateTime? createdTo, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
-    final response = await orderGetWithHttpInfo( patientId: patientId, createdFrom: createdFrom, createdTo: createdTo, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, retrieveAll: retrieveAll, );
+  Future<OrderResponsePagedResult?> orderGet({ int? patientId, DateTime? createdFrom, DateTime? createdTo, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
+    final response = await orderGetWithHttpInfo( patientId: patientId, createdFrom: createdFrom, createdTo: createdTo, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }

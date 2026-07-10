@@ -29,7 +29,7 @@ class PatientSessionRepository {
       _users.usersRegisterPost(userRegisterRequest: request);
 
   Future<List<PatientResponse>> listPatientsByUserId(int userId) async {
-    final r = await _patient.patientGet(userId: userId, retrieveAll: true);
+    final r = await _patient.patientGet(userId: userId, pageSize: 100);
     return r?.items ?? [];
   }
 }

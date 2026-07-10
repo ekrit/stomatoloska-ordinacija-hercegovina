@@ -57,10 +57,9 @@ final FTS = FTS_example; // String |
 final page = 56; // int | 
 final pageSize = 56; // int | 
 final includeTotalCount = true; // bool | 
-final retrieveAll = true; // bool | 
 
 try {
-    final result = api_instance.activityLogGet(action, entityName, entityId, createdFrom, createdTo, FTS, page, pageSize, includeTotalCount, retrieveAll);
+    final result = api_instance.activityLogGet(action, entityName, entityId, createdFrom, createdTo, FTS, page, pageSize, includeTotalCount);
     print(result);
 } catch (e) {
     print('Exception when calling ActivityLogApi->activityLogGet: $e\n');
@@ -79,12 +78,14 @@ Class | Method | HTTP request | Description
 *ActivityLogApi* | [**activityLogIdGet**](doc//ActivityLogApi.md#activitylogidget) | **GET** /ActivityLog/{id} | 
 *ActivityLogApi* | [**activityLogIdPut**](doc//ActivityLogApi.md#activitylogidput) | **PUT** /ActivityLog/{id} | 
 *ActivityLogApi* | [**activityLogPost**](doc//ActivityLogApi.md#activitylogpost) | **POST** /ActivityLog | 
-*AdminApi* | [**adminGet**](doc//AdminApi.md#adminget) | **GET** /Admin | 
-*AdminApi* | [**adminIdDelete**](doc//AdminApi.md#adminiddelete) | **DELETE** /Admin/{id} | 
-*AdminApi* | [**adminIdGet**](doc//AdminApi.md#adminidget) | **GET** /Admin/{id} | 
-*AdminApi* | [**adminIdPut**](doc//AdminApi.md#adminidput) | **PUT** /Admin/{id} | 
-*AdminApi* | [**adminPost**](doc//AdminApi.md#adminpost) | **POST** /Admin | 
+*AdminDashboardApi* | [**adminDashboardActivityRecentGet**](doc//AdminDashboardApi.md#admindashboardactivityrecentget) | **GET** /admin-dashboard/activity/recent | 
+*AdminDashboardApi* | [**adminDashboardAppointmentsMonthlyGet**](doc//AdminDashboardApi.md#admindashboardappointmentsmonthlyget) | **GET** /admin-dashboard/appointments/monthly | 
+*AdminDashboardApi* | [**adminDashboardDoctorsSpotlightGet**](doc//AdminDashboardApi.md#admindashboarddoctorsspotlightget) | **GET** /admin-dashboard/doctors/spotlight | 
+*AdminDashboardApi* | [**adminDashboardPatientsMonthlyGet**](doc//AdminDashboardApi.md#admindashboardpatientsmonthlyget) | **GET** /admin-dashboard/patients/monthly | 
+*AdminDashboardApi* | [**adminDashboardRevenueBreakdownGet**](doc//AdminDashboardApi.md#admindashboardrevenuebreakdownget) | **GET** /admin-dashboard/revenue/breakdown | 
+*AdminDashboardApi* | [**adminDashboardStatsGet**](doc//AdminDashboardApi.md#admindashboardstatsget) | **GET** /admin-dashboard/stats | 
 *AppointmentApi* | [**appointmentGet**](doc//AppointmentApi.md#appointmentget) | **GET** /Appointment | 
+*AppointmentApi* | [**appointmentIdCancelPost**](doc//AppointmentApi.md#appointmentidcancelpost) | **POST** /Appointment/{id}/cancel | 
 *AppointmentApi* | [**appointmentIdDelete**](doc//AppointmentApi.md#appointmentiddelete) | **DELETE** /Appointment/{id} | 
 *AppointmentApi* | [**appointmentIdGet**](doc//AppointmentApi.md#appointmentidget) | **GET** /Appointment/{id} | 
 *AppointmentApi* | [**appointmentIdPut**](doc//AppointmentApi.md#appointmentidput) | **PUT** /Appointment/{id} | 
@@ -99,11 +100,6 @@ Class | Method | HTTP request | Description
 *DoctorApi* | [**doctorIdGet**](doc//DoctorApi.md#doctoridget) | **GET** /Doctor/{id} | 
 *DoctorApi* | [**doctorIdPut**](doc//DoctorApi.md#doctoridput) | **PUT** /Doctor/{id} | 
 *DoctorApi* | [**doctorPost**](doc//DoctorApi.md#doctorpost) | **POST** /Doctor | 
-*DoctorNoteApi* | [**doctorNoteGet**](doc//DoctorNoteApi.md#doctornoteget) | **GET** /DoctorNote | 
-*DoctorNoteApi* | [**doctorNoteIdDelete**](doc//DoctorNoteApi.md#doctornoteiddelete) | **DELETE** /DoctorNote/{id} | 
-*DoctorNoteApi* | [**doctorNoteIdGet**](doc//DoctorNoteApi.md#doctornoteidget) | **GET** /DoctorNote/{id} | 
-*DoctorNoteApi* | [**doctorNoteIdPut**](doc//DoctorNoteApi.md#doctornoteidput) | **PUT** /DoctorNote/{id} | 
-*DoctorNoteApi* | [**doctorNotePost**](doc//DoctorNoteApi.md#doctornotepost) | **POST** /DoctorNote | 
 *GenderApi* | [**genderGet**](doc//GenderApi.md#genderget) | **GET** /Gender | 
 *GenderApi* | [**genderIdDelete**](doc//GenderApi.md#genderiddelete) | **DELETE** /Gender/{id} | 
 *GenderApi* | [**genderIdGet**](doc//GenderApi.md#genderidget) | **GET** /Gender/{id} | 
@@ -119,16 +115,17 @@ Class | Method | HTTP request | Description
 *MedicalRecordApi* | [**medicalRecordIdGet**](doc//MedicalRecordApi.md#medicalrecordidget) | **GET** /MedicalRecord/{id} | 
 *MedicalRecordApi* | [**medicalRecordIdPut**](doc//MedicalRecordApi.md#medicalrecordidput) | **PUT** /MedicalRecord/{id} | 
 *MedicalRecordApi* | [**medicalRecordPost**](doc//MedicalRecordApi.md#medicalrecordpost) | **POST** /MedicalRecord | 
+*NotificationsApi* | [**notificationsGet**](doc//NotificationsApi.md#notificationsget) | **GET** /notifications | 
+*NotificationsApi* | [**notificationsIdReadGet**](doc//NotificationsApi.md#notificationsidreadget) | **GET** /notifications/{id}/read | Mark one notification as read. Prefer POST (GET must not be cached by intermediaries).
+*NotificationsApi* | [**notificationsIdReadPatch**](doc//NotificationsApi.md#notificationsidreadpatch) | **PATCH** /notifications/{id}/read | Mark one notification as read. Prefer POST (GET must not be cached by intermediaries).
+*NotificationsApi* | [**notificationsIdReadPost**](doc//NotificationsApi.md#notificationsidreadpost) | **POST** /notifications/{id}/read | Mark one notification as read. Prefer POST (GET must not be cached by intermediaries).
+*NotificationsApi* | [**notificationsIdReadPut**](doc//NotificationsApi.md#notificationsidreadput) | **PUT** /notifications/{id}/read | Mark one notification as read. Prefer POST (GET must not be cached by intermediaries).
+*NotificationsApi* | [**notificationsUnreadCountGet**](doc//NotificationsApi.md#notificationsunreadcountget) | **GET** /notifications/unread-count | 
 *OrderApi* | [**orderGet**](doc//OrderApi.md#orderget) | **GET** /Order | 
 *OrderApi* | [**orderIdDelete**](doc//OrderApi.md#orderiddelete) | **DELETE** /Order/{id} | 
 *OrderApi* | [**orderIdGet**](doc//OrderApi.md#orderidget) | **GET** /Order/{id} | 
 *OrderApi* | [**orderIdPut**](doc//OrderApi.md#orderidput) | **PUT** /Order/{id} | 
 *OrderApi* | [**orderPost**](doc//OrderApi.md#orderpost) | **POST** /Order | 
-*OrderItemApi* | [**orderItemGet**](doc//OrderItemApi.md#orderitemget) | **GET** /OrderItem | 
-*OrderItemApi* | [**orderItemIdDelete**](doc//OrderItemApi.md#orderitemiddelete) | **DELETE** /OrderItem/{id} | 
-*OrderItemApi* | [**orderItemIdGet**](doc//OrderItemApi.md#orderitemidget) | **GET** /OrderItem/{id} | 
-*OrderItemApi* | [**orderItemIdPut**](doc//OrderItemApi.md#orderitemidput) | **PUT** /OrderItem/{id} | 
-*OrderItemApi* | [**orderItemPost**](doc//OrderItemApi.md#orderitempost) | **POST** /OrderItem | 
 *PatientApi* | [**patientGet**](doc//PatientApi.md#patientget) | **GET** /Patient | 
 *PatientApi* | [**patientIdDelete**](doc//PatientApi.md#patientiddelete) | **DELETE** /Patient/{id} | 
 *PatientApi* | [**patientIdGet**](doc//PatientApi.md#patientidget) | **GET** /Patient/{id} | 
@@ -138,22 +135,30 @@ Class | Method | HTTP request | Description
 *PaymentApi* | [**paymentIdDelete**](doc//PaymentApi.md#paymentiddelete) | **DELETE** /Payment/{id} | 
 *PaymentApi* | [**paymentIdGet**](doc//PaymentApi.md#paymentidget) | **GET** /Payment/{id} | 
 *PaymentApi* | [**paymentIdPut**](doc//PaymentApi.md#paymentidput) | **PUT** /Payment/{id} | 
+*PaymentApi* | [**paymentOrdersPaymentIdCapturePost**](doc//PaymentApi.md#paymentorderspaymentidcapturepost) | **POST** /Payment/orders/{paymentId}/capture | 
+*PaymentApi* | [**paymentOrdersPost**](doc//PaymentApi.md#paymentorderspost) | **POST** /Payment/orders | 
+*PaymentApi* | [**paymentPaymentIdRefundPost**](doc//PaymentApi.md#paymentpaymentidrefundpost) | **POST** /Payment/{paymentId}/refund | 
 *PaymentApi* | [**paymentPost**](doc//PaymentApi.md#paymentpost) | **POST** /Payment | 
+*PaymentApi* | [**paymentWebhookPost**](doc//PaymentApi.md#paymentwebhookpost) | **POST** /Payment/webhook | 
 *ProductApi* | [**productGet**](doc//ProductApi.md#productget) | **GET** /Product | 
 *ProductApi* | [**productIdDelete**](doc//ProductApi.md#productiddelete) | **DELETE** /Product/{id} | 
 *ProductApi* | [**productIdGet**](doc//ProductApi.md#productidget) | **GET** /Product/{id} | 
 *ProductApi* | [**productIdPut**](doc//ProductApi.md#productidput) | **PUT** /Product/{id} | 
 *ProductApi* | [**productPost**](doc//ProductApi.md#productpost) | **POST** /Product | 
-*ReminderApi* | [**reminderGet**](doc//ReminderApi.md#reminderget) | **GET** /Reminder | 
-*ReminderApi* | [**reminderIdDelete**](doc//ReminderApi.md#reminderiddelete) | **DELETE** /Reminder/{id} | 
-*ReminderApi* | [**reminderIdGet**](doc//ReminderApi.md#reminderidget) | **GET** /Reminder/{id} | 
-*ReminderApi* | [**reminderIdPut**](doc//ReminderApi.md#reminderidput) | **PUT** /Reminder/{id} | 
-*ReminderApi* | [**reminderPost**](doc//ReminderApi.md#reminderpost) | **POST** /Reminder | 
+*ProductCategoryApi* | [**productCategoryGet**](doc//ProductCategoryApi.md#productcategoryget) | **GET** /ProductCategory | 
+*ProductCategoryApi* | [**productCategoryIdDelete**](doc//ProductCategoryApi.md#productcategoryiddelete) | **DELETE** /ProductCategory/{id} | 
+*ProductCategoryApi* | [**productCategoryIdGet**](doc//ProductCategoryApi.md#productcategoryidget) | **GET** /ProductCategory/{id} | 
+*ProductCategoryApi* | [**productCategoryIdPut**](doc//ProductCategoryApi.md#productcategoryidput) | **PUT** /ProductCategory/{id} | 
+*ProductCategoryApi* | [**productCategoryPost**](doc//ProductCategoryApi.md#productcategorypost) | **POST** /ProductCategory | 
+*RecommendationApi* | [**recommendationProductsGet**](doc//RecommendationApi.md#recommendationproductsget) | **GET** /Recommendation/products | 
+*RecommendationApi* | [**recommendationTrackPost**](doc//RecommendationApi.md#recommendationtrackpost) | **POST** /Recommendation/track | 
 *ReportApi* | [**reportGet**](doc//ReportApi.md#reportget) | **GET** /Report | 
 *ReportApi* | [**reportIdDelete**](doc//ReportApi.md#reportiddelete) | **DELETE** /Report/{id} | 
 *ReportApi* | [**reportIdGet**](doc//ReportApi.md#reportidget) | **GET** /Report/{id} | 
 *ReportApi* | [**reportIdPut**](doc//ReportApi.md#reportidput) | **PUT** /Report/{id} | 
 *ReportApi* | [**reportPost**](doc//ReportApi.md#reportpost) | **POST** /Report | 
+*ReportPdfApi* | [**reportPdfAppointmentsSummaryGet**](doc//ReportPdfApi.md#reportpdfappointmentssummaryget) | **GET** /report/pdf/appointments-summary | 
+*ReportPdfApi* | [**reportPdfRevenueByServiceGet**](doc//ReportPdfApi.md#reportpdfrevenuebyserviceget) | **GET** /report/pdf/revenue-by-service | 
 *ReviewApi* | [**reviewGet**](doc//ReviewApi.md#reviewget) | **GET** /Review | 
 *ReviewApi* | [**reviewIdDelete**](doc//ReviewApi.md#reviewiddelete) | **DELETE** /Review/{id} | 
 *ReviewApi* | [**reviewIdGet**](doc//ReviewApi.md#reviewidget) | **GET** /Review/{id} | 
@@ -176,9 +181,11 @@ Class | Method | HTTP request | Description
 *ServiceApi* | [**servicePost**](doc//ServiceApi.md#servicepost) | **POST** /Service | 
 *UsersApi* | [**usersAuthenticatePost**](doc//UsersApi.md#usersauthenticatepost) | **POST** /Users/authenticate | 
 *UsersApi* | [**usersGet**](doc//UsersApi.md#usersget) | **GET** /Users | 
+*UsersApi* | [**usersIdChangePasswordPost**](doc//UsersApi.md#usersidchangepasswordpost) | **POST** /Users/{id}/change-password | Self-service password change. The caller must be the user in the  route and must supply the current password. Admins change other  users' passwords via PUT /Users/{id} (no old password needed).
 *UsersApi* | [**usersIdDelete**](doc//UsersApi.md#usersiddelete) | **DELETE** /Users/{id} | 
 *UsersApi* | [**usersIdGet**](doc//UsersApi.md#usersidget) | **GET** /Users/{id} | 
 *UsersApi* | [**usersIdPut**](doc//UsersApi.md#usersidput) | **PUT** /Users/{id} | 
+*UsersApi* | [**usersLogoutPost**](doc//UsersApi.md#userslogoutpost) | **POST** /Users/logout | Server-side logout. Records this token's jti in the revocation store  so any subsequent request that presents the same JWT (e.g. a stolen  or shared device) is rejected even before its natural expiry.
 *UsersApi* | [**usersPost**](doc//UsersApi.md#userspost) | **POST** /Users | 
 *UsersApi* | [**usersRegisterPost**](doc//UsersApi.md#usersregisterpost) | **POST** /Users/register | 
 
@@ -188,22 +195,20 @@ Class | Method | HTTP request | Description
  - [ActivityLogResponse](doc//ActivityLogResponse.md)
  - [ActivityLogResponsePagedResult](doc//ActivityLogResponsePagedResult.md)
  - [ActivityLogUpsertRequest](doc//ActivityLogUpsertRequest.md)
- - [AdminResponse](doc//AdminResponse.md)
- - [AdminResponsePagedResult](doc//AdminResponsePagedResult.md)
- - [AdminUpsertRequest](doc//AdminUpsertRequest.md)
  - [AppointmentResponse](doc//AppointmentResponse.md)
  - [AppointmentResponsePagedResult](doc//AppointmentResponsePagedResult.md)
+ - [AppointmentStatsResponse](doc//AppointmentStatsResponse.md)
  - [AppointmentStatus](doc//AppointmentStatus.md)
  - [AppointmentUpsertRequest](doc//AppointmentUpsertRequest.md)
  - [AuthResponse](doc//AuthResponse.md)
+ - [ChangePasswordRequest](doc//ChangePasswordRequest.md)
  - [CityResponse](doc//CityResponse.md)
  - [CityResponsePagedResult](doc//CityResponsePagedResult.md)
  - [CityUpsertRequest](doc//CityUpsertRequest.md)
- - [DoctorNoteResponse](doc//DoctorNoteResponse.md)
- - [DoctorNoteResponsePagedResult](doc//DoctorNoteResponsePagedResult.md)
- - [DoctorNoteUpsertRequest](doc//DoctorNoteUpsertRequest.md)
+ - [DashboardStatsResponse](doc//DashboardStatsResponse.md)
  - [DoctorResponse](doc//DoctorResponse.md)
  - [DoctorResponsePagedResult](doc//DoctorResponsePagedResult.md)
+ - [DoctorSpotlightResponse](doc//DoctorSpotlightResponse.md)
  - [DoctorUpsertRequest](doc//DoctorUpsertRequest.md)
  - [GenderResponse](doc//GenderResponse.md)
  - [GenderResponsePagedResult](doc//GenderResponsePagedResult.md)
@@ -214,28 +219,35 @@ Class | Method | HTTP request | Description
  - [MedicalRecordResponse](doc//MedicalRecordResponse.md)
  - [MedicalRecordResponsePagedResult](doc//MedicalRecordResponsePagedResult.md)
  - [MedicalRecordUpsertRequest](doc//MedicalRecordUpsertRequest.md)
- - [OrderItemResponse](doc//OrderItemResponse.md)
- - [OrderItemResponsePagedResult](doc//OrderItemResponsePagedResult.md)
- - [OrderItemUpsertRequest](doc//OrderItemUpsertRequest.md)
+ - [MonthlyAppointmentResponse](doc//MonthlyAppointmentResponse.md)
  - [OrderResponse](doc//OrderResponse.md)
  - [OrderResponsePagedResult](doc//OrderResponsePagedResult.md)
  - [OrderUpsertRequest](doc//OrderUpsertRequest.md)
  - [PatientResponse](doc//PatientResponse.md)
  - [PatientResponsePagedResult](doc//PatientResponsePagedResult.md)
+ - [PatientStatsResponse](doc//PatientStatsResponse.md)
  - [PatientUpsertRequest](doc//PatientUpsertRequest.md)
+ - [PaymentCaptureResponse](doc//PaymentCaptureResponse.md)
+ - [PaymentOrderCreateRequest](doc//PaymentOrderCreateRequest.md)
+ - [PaymentOrderCreateResponse](doc//PaymentOrderCreateResponse.md)
  - [PaymentResponse](doc//PaymentResponse.md)
  - [PaymentResponsePagedResult](doc//PaymentResponsePagedResult.md)
  - [PaymentStatus](doc//PaymentStatus.md)
  - [PaymentUpsertRequest](doc//PaymentUpsertRequest.md)
+ - [ProductCategoryResponse](doc//ProductCategoryResponse.md)
+ - [ProductCategoryResponsePagedResult](doc//ProductCategoryResponsePagedResult.md)
+ - [ProductCategoryUpsertRequest](doc//ProductCategoryUpsertRequest.md)
+ - [ProductInteractionTrackRequest](doc//ProductInteractionTrackRequest.md)
  - [ProductResponse](doc//ProductResponse.md)
  - [ProductResponsePagedResult](doc//ProductResponsePagedResult.md)
  - [ProductUpsertRequest](doc//ProductUpsertRequest.md)
- - [ReminderResponse](doc//ReminderResponse.md)
- - [ReminderResponsePagedResult](doc//ReminderResponsePagedResult.md)
- - [ReminderUpsertRequest](doc//ReminderUpsertRequest.md)
+ - [RecentActivityResponse](doc//RecentActivityResponse.md)
+ - [RecommendedProductResponse](doc//RecommendedProductResponse.md)
  - [ReportResponse](doc//ReportResponse.md)
  - [ReportResponsePagedResult](doc//ReportResponsePagedResult.md)
  - [ReportUpsertRequest](doc//ReportUpsertRequest.md)
+ - [RevenueCategoryResponse](doc//RevenueCategoryResponse.md)
+ - [RevenueStatsResponse](doc//RevenueStatsResponse.md)
  - [ReviewResponse](doc//ReviewResponse.md)
  - [ReviewResponsePagedResult](doc//ReviewResponsePagedResult.md)
  - [ReviewUpsertRequest](doc//ReviewUpsertRequest.md)
@@ -249,6 +261,7 @@ Class | Method | HTTP request | Description
  - [ServiceResponsePagedResult](doc//ServiceResponsePagedResult.md)
  - [ServiceUpsertRequest](doc//ServiceUpsertRequest.md)
  - [UserLoginRequest](doc//UserLoginRequest.md)
+ - [UserNotificationResponse](doc//UserNotificationResponse.md)
  - [UserRegisterRequest](doc//UserRegisterRequest.md)
  - [UserResponse](doc//UserResponse.md)
  - [UserResponsePagedResult](doc//UserResponsePagedResult.md)

@@ -61,6 +61,14 @@ final productApiProvider = Provider<ProductApi>(
   (ref) => ProductApi(ref.watch(apiClientProvider)),
 );
 
+final productCategoryApiProvider = Provider<ProductCategoryApi>(
+  (ref) => ProductCategoryApi(ref.watch(apiClientProvider)),
+);
+
+final orderApiProvider = Provider<OrderApi>(
+  (ref) => OrderApi(ref.watch(apiClientProvider)),
+);
+
 final patientApiProvider = Provider<PatientApi>(
   (ref) => PatientApi(ref.watch(apiClientProvider)),
 );

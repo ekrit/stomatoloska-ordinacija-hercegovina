@@ -10,6 +10,12 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **int** |  | [optional] 
 **patientId** | **int** |  | [optional] 
+**patientFirstName** | **String** |  | [optional] 
+**patientLastName** | **String** |  | [optional] 
+**productId** | **int** |  | [optional] 
+**productName** | **String** |  | [optional] 
+**productPicture** | **String** |  | [optional] 
+**quantity** | **int** |  | [optional] 
 **totalAmount** | **double** |  | [optional] 
 **createdAt** | [**DateTime**](DateTime.md) |  | [optional] 
 

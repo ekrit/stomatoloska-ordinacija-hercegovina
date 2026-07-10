@@ -10,6 +10,7 @@ All URIs are relative to *http://localhost*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**appointmentGet**](AppointmentApi.md#appointmentget) | **GET** /Appointment | 
+[**appointmentIdCancelPost**](AppointmentApi.md#appointmentidcancelpost) | **POST** /Appointment/{id}/cancel | 
 [**appointmentIdDelete**](AppointmentApi.md#appointmentiddelete) | **DELETE** /Appointment/{id} | 
 [**appointmentIdGet**](AppointmentApi.md#appointmentidget) | **GET** /Appointment/{id} | 
 [**appointmentIdPut**](AppointmentApi.md#appointmentidput) | **PUT** /Appointment/{id} | 
@@ -17,7 +18,7 @@ Method | HTTP request | Description
 
 
 # **appointmentGet**
-> AppointmentResponsePagedResult appointmentGet(patientId, doctorId, serviceId, roomId, status, startFrom, startTo, FTS, page, pageSize, includeTotalCount, retrieveAll)
+> AppointmentResponsePagedResult appointmentGet(patientId, doctorId, serviceId, roomId, status, startFrom, startTo, FTS, page, pageSize, includeTotalCount)
 
 
 
@@ -43,10 +44,9 @@ final FTS = FTS_example; // String |
 final page = 56; // int | 
 final pageSize = 56; // int | 
 final includeTotalCount = true; // bool | 
-final retrieveAll = true; // bool | 
 
 try {
-    final result = api_instance.appointmentGet(patientId, doctorId, serviceId, roomId, status, startFrom, startTo, FTS, page, pageSize, includeTotalCount, retrieveAll);
+    final result = api_instance.appointmentGet(patientId, doctorId, serviceId, roomId, status, startFrom, startTo, FTS, page, pageSize, includeTotalCount);
     print(result);
 } catch (e) {
     print('Exception when calling AppointmentApi->appointmentGet: $e\n');
@@ -68,11 +68,57 @@ Name | Type | Description  | Notes
  **page** | **int**|  | [optional] 
  **pageSize** | **int**|  | [optional] 
  **includeTotalCount** | **bool**|  | [optional] 
- **retrieveAll** | **bool**|  | [optional] 
 
 ### Return type
 
 [**AppointmentResponsePagedResult**](AppointmentResponsePagedResult.md)
+
+### Authorization
+
+[Bearer](../README.md#Bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: text/plain, application/json, text/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **appointmentIdCancelPost**
+> AppointmentResponse appointmentIdCancelPost(id)
+
+
+
+### Example
+```dart
+import 'package:soh_api/api.dart';
+// TODO Configure HTTP Bearer authorization: Bearer
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('Bearer').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('Bearer').setAccessToken(yourTokenGeneratorFunction);
+
+final api_instance = AppointmentApi();
+final id = 56; // int | 
+
+try {
+    final result = api_instance.appointmentIdCancelPost(id);
+    print(result);
+} catch (e) {
+    print('Exception when calling AppointmentApi->appointmentIdCancelPost: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **id** | **int**|  | 
+
+### Return type
+
+[**AppointmentResponse**](AppointmentResponse.md)
 
 ### Authorization
 

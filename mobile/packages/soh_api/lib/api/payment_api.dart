@@ -32,9 +32,7 @@ class PaymentApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<Response> paymentGetWithHttpInfo({ int? appointmentId, PaymentStatus? status, String? method, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
+  Future<Response> paymentGetWithHttpInfo({ int? appointmentId, PaymentStatus? status, String? method, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
     // ignore: prefer_const_declarations
     final path = r'/Payment';
 
@@ -66,9 +64,6 @@ class PaymentApi {
     if (includeTotalCount != null) {
       queryParams.addAll(_queryParams('', 'IncludeTotalCount', includeTotalCount));
     }
-    if (retrieveAll != null) {
-      queryParams.addAll(_queryParams('', 'RetrieveAll', retrieveAll));
-    }
 
     const contentTypes = <String>[];
 
@@ -99,10 +94,8 @@ class PaymentApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<PaymentResponsePagedResult?> paymentGet({ int? appointmentId, PaymentStatus? status, String? method, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
-    final response = await paymentGetWithHttpInfo( appointmentId: appointmentId, status: status, method: method, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, retrieveAll: retrieveAll, );
+  Future<PaymentResponsePagedResult?> paymentGet({ int? appointmentId, PaymentStatus? status, String? method, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
+    final response = await paymentGetWithHttpInfo( appointmentId: appointmentId, status: status, method: method, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -264,6 +257,141 @@ class PaymentApi {
     return null;
   }
 
+  /// Performs an HTTP 'POST /Payment/orders/{paymentId}/capture' operation and returns the [Response].
+  /// Parameters:
+  ///
+  /// * [int] paymentId (required):
+  Future<Response> paymentOrdersPaymentIdCapturePostWithHttpInfo(int paymentId,) async {
+    // ignore: prefer_const_declarations
+    final path = r'/Payment/orders/{paymentId}/capture'
+      .replaceAll('{paymentId}', paymentId.toString());
+
+    // ignore: prefer_final_locals
+    Object? postBody;
+
+    final queryParams = <QueryParam>[];
+    final headerParams = <String, String>{};
+    final formParams = <String, String>{};
+
+    const contentTypes = <String>[];
+
+
+    return apiClient.invokeAPI(
+      path,
+      'POST',
+      queryParams,
+      postBody,
+      headerParams,
+      formParams,
+      contentTypes.isEmpty ? null : contentTypes.first,
+    );
+  }
+
+  /// Parameters:
+  ///
+  /// * [int] paymentId (required):
+  Future<PaymentCaptureResponse?> paymentOrdersPaymentIdCapturePost(int paymentId,) async {
+    final response = await paymentOrdersPaymentIdCapturePostWithHttpInfo(paymentId,);
+    if (response.statusCode >= HttpStatus.badRequest) {
+      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
+    }
+    // When a remote server returns no body with a status of 204, we shall not decode it.
+    // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
+    // FormatException when trying to decode an empty string.
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'PaymentCaptureResponse',) as PaymentCaptureResponse;
+    
+    }
+    return null;
+  }
+
+  /// Performs an HTTP 'POST /Payment/orders' operation and returns the [Response].
+  /// Parameters:
+  ///
+  /// * [PaymentOrderCreateRequest] paymentOrderCreateRequest:
+  Future<Response> paymentOrdersPostWithHttpInfo({ PaymentOrderCreateRequest? paymentOrderCreateRequest, }) async {
+    // ignore: prefer_const_declarations
+    final path = r'/Payment/orders';
+
+    // ignore: prefer_final_locals
+    Object? postBody = paymentOrderCreateRequest;
+
+    final queryParams = <QueryParam>[];
+    final headerParams = <String, String>{};
+    final formParams = <String, String>{};
+
+    const contentTypes = <String>['application/json', 'text/json', 'application/*+json'];
+
+
+    return apiClient.invokeAPI(
+      path,
+      'POST',
+      queryParams,
+      postBody,
+      headerParams,
+      formParams,
+      contentTypes.isEmpty ? null : contentTypes.first,
+    );
+  }
+
+  /// Parameters:
+  ///
+  /// * [PaymentOrderCreateRequest] paymentOrderCreateRequest:
+  Future<PaymentOrderCreateResponse?> paymentOrdersPost({ PaymentOrderCreateRequest? paymentOrderCreateRequest, }) async {
+    final response = await paymentOrdersPostWithHttpInfo( paymentOrderCreateRequest: paymentOrderCreateRequest, );
+    if (response.statusCode >= HttpStatus.badRequest) {
+      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
+    }
+    // When a remote server returns no body with a status of 204, we shall not decode it.
+    // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
+    // FormatException when trying to decode an empty string.
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'PaymentOrderCreateResponse',) as PaymentOrderCreateResponse;
+    
+    }
+    return null;
+  }
+
+  /// Performs an HTTP 'POST /Payment/{paymentId}/refund' operation and returns the [Response].
+  /// Parameters:
+  ///
+  /// * [int] paymentId (required):
+  Future<Response> paymentPaymentIdRefundPostWithHttpInfo(int paymentId,) async {
+    // ignore: prefer_const_declarations
+    final path = r'/Payment/{paymentId}/refund'
+      .replaceAll('{paymentId}', paymentId.toString());
+
+    // ignore: prefer_final_locals
+    Object? postBody;
+
+    final queryParams = <QueryParam>[];
+    final headerParams = <String, String>{};
+    final formParams = <String, String>{};
+
+    const contentTypes = <String>[];
+
+
+    return apiClient.invokeAPI(
+      path,
+      'POST',
+      queryParams,
+      postBody,
+      headerParams,
+      formParams,
+      contentTypes.isEmpty ? null : contentTypes.first,
+    );
+  }
+
+  /// Parameters:
+  ///
+  /// * [int] paymentId (required):
+  Future<void> paymentPaymentIdRefundPost(int paymentId,) async {
+    final response = await paymentPaymentIdRefundPostWithHttpInfo(paymentId,);
+    if (response.statusCode >= HttpStatus.badRequest) {
+      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
+    }
+  }
+
   /// Performs an HTTP 'POST /Payment' operation and returns the [Response].
   /// Parameters:
   ///
@@ -309,5 +437,38 @@ class PaymentApi {
     
     }
     return null;
+  }
+
+  /// Performs an HTTP 'POST /Payment/webhook' operation and returns the [Response].
+  Future<Response> paymentWebhookPostWithHttpInfo() async {
+    // ignore: prefer_const_declarations
+    final path = r'/Payment/webhook';
+
+    // ignore: prefer_final_locals
+    Object? postBody;
+
+    final queryParams = <QueryParam>[];
+    final headerParams = <String, String>{};
+    final formParams = <String, String>{};
+
+    const contentTypes = <String>[];
+
+
+    return apiClient.invokeAPI(
+      path,
+      'POST',
+      queryParams,
+      postBody,
+      headerParams,
+      formParams,
+      contentTypes.isEmpty ? null : contentTypes.first,
+    );
+  }
+
+  Future<void> paymentWebhookPost() async {
+    final response = await paymentWebhookPostWithHttpInfo();
+    if (response.statusCode >= HttpStatus.badRequest) {
+      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
+    }
   }
 }

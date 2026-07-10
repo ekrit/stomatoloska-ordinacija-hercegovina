@@ -19,10 +19,10 @@ final _adminSearchProvider = FutureProvider.autoDispose
   final doctorApi = ref.watch(doctorApiProvider);
 
   final results = await Future.wait([
-    usersApi.usersGet(FTS: q, retrieveAll: true),
-    patientApi.patientGet(FTS: q, retrieveAll: true),
-    appointmentApi.appointmentGet(FTS: q, retrieveAll: true),
-    doctorApi.doctorGet(FTS: q, retrieveAll: true),
+    usersApi.usersGet(FTS: q, pageSize: 100),
+    patientApi.patientGet(FTS: q, pageSize: 100),
+    appointmentApi.appointmentGet(FTS: q, pageSize: 100),
+    doctorApi.doctorGet(FTS: q, pageSize: 100),
   ]);
 
   return AdminSearchResults(

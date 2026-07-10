@@ -49,8 +49,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         children: [
           Text(p.name ?? 'Product', style: theme.textTheme.headlineSmall),
           const SizedBox(height: 8),
-          if ((p.category ?? '').isNotEmpty)
-            Chip(label: Text(p.category!), visualDensity: VisualDensity.compact),
+          if ((p.productCategoryName ?? '').isNotEmpty)
+            Chip(label: Text(p.productCategoryName!), visualDensity: VisualDensity.compact),
           const SizedBox(height: 12),
           if (p.price != null)
             Text(

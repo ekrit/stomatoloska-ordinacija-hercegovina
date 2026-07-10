@@ -18,7 +18,7 @@ final _todayHygieneProvider = FutureProvider.autoDispose<HygieneTrackerResponse?
     patientId: uid,
     dateFrom: start,
     dateTo: end,
-    retrieveAll: true,
+    pageSize: 100,
   );
   final items = r?.items ?? [];
   if (items.isEmpty) return null;
@@ -140,7 +140,7 @@ class RemindersHygieneScreen extends ConsumerWidget {
                                 patientId: uid,
                                 dateFrom: day,
                                 dateTo: end,
-                                retrieveAll: true,
+                                pageSize: 100,
                               );
                               final list = snap?.items ?? [];
                               final existing = list.isNotEmpty ? list.first : null;

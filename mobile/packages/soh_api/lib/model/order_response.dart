@@ -15,29 +15,81 @@ class OrderResponse {
   OrderResponse({
     this.id,
     this.patientId,
+    this.patientFirstName,
+    this.patientLastName,
     this.productId,
+    this.productName,
+    this.productPicture,
     this.quantity,
     this.totalAmount,
     this.createdAt,
   });
 
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
   int? id;
 
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
   int? patientId;
 
+  String? patientFirstName;
+
+  String? patientLastName;
+
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
   int? productId;
 
+  String? productName;
+
+  String? productPicture;
+
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
   int? quantity;
 
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
   double? totalAmount;
 
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
   DateTime? createdAt;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is OrderResponse &&
     other.id == id &&
     other.patientId == patientId &&
+    other.patientFirstName == patientFirstName &&
+    other.patientLastName == patientLastName &&
     other.productId == productId &&
+    other.productName == productName &&
+    other.productPicture == productPicture &&
     other.quantity == quantity &&
     other.totalAmount == totalAmount &&
     other.createdAt == createdAt;
@@ -47,13 +99,17 @@ class OrderResponse {
     // ignore: unnecessary_parenthesis
     (id == null ? 0 : id!.hashCode) +
     (patientId == null ? 0 : patientId!.hashCode) +
+    (patientFirstName == null ? 0 : patientFirstName!.hashCode) +
+    (patientLastName == null ? 0 : patientLastName!.hashCode) +
     (productId == null ? 0 : productId!.hashCode) +
+    (productName == null ? 0 : productName!.hashCode) +
+    (productPicture == null ? 0 : productPicture!.hashCode) +
     (quantity == null ? 0 : quantity!.hashCode) +
     (totalAmount == null ? 0 : totalAmount!.hashCode) +
     (createdAt == null ? 0 : createdAt!.hashCode);
 
   @override
-  String toString() => 'OrderResponse[id=$id, patientId=$patientId, productId=$productId, quantity=$quantity, totalAmount=$totalAmount, createdAt=$createdAt]';
+  String toString() => 'OrderResponse[id=$id, patientId=$patientId, patientFirstName=$patientFirstName, patientLastName=$patientLastName, productId=$productId, productName=$productName, productPicture=$productPicture, quantity=$quantity, totalAmount=$totalAmount, createdAt=$createdAt]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -67,10 +123,30 @@ class OrderResponse {
     } else {
       json[r'patientId'] = null;
     }
+    if (this.patientFirstName != null) {
+      json[r'patientFirstName'] = this.patientFirstName;
+    } else {
+      json[r'patientFirstName'] = null;
+    }
+    if (this.patientLastName != null) {
+      json[r'patientLastName'] = this.patientLastName;
+    } else {
+      json[r'patientLastName'] = null;
+    }
     if (this.productId != null) {
       json[r'productId'] = this.productId;
     } else {
       json[r'productId'] = null;
+    }
+    if (this.productName != null) {
+      json[r'productName'] = this.productName;
+    } else {
+      json[r'productName'] = null;
+    }
+    if (this.productPicture != null) {
+      json[r'productPicture'] = this.productPicture;
+    } else {
+      json[r'productPicture'] = null;
     }
     if (this.quantity != null) {
       json[r'quantity'] = this.quantity;
@@ -111,7 +187,11 @@ class OrderResponse {
       return OrderResponse(
         id: mapValueOfType<int>(json, r'id'),
         patientId: mapValueOfType<int>(json, r'patientId'),
+        patientFirstName: mapValueOfType<String>(json, r'patientFirstName'),
+        patientLastName: mapValueOfType<String>(json, r'patientLastName'),
         productId: mapValueOfType<int>(json, r'productId'),
+        productName: mapValueOfType<String>(json, r'productName'),
+        productPicture: mapValueOfType<String>(json, r'productPicture'),
         quantity: mapValueOfType<int>(json, r'quantity'),
         totalAmount: mapValueOfType<double>(json, r'totalAmount'),
         createdAt: mapDateTime(json, r'createdAt', r''),
@@ -164,3 +244,4 @@ class OrderResponse {
   static const requiredKeys = <String>{
   };
 }
+

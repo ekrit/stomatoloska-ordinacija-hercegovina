@@ -17,7 +17,7 @@ Method | HTTP request | Description
 
 
 # **productGet**
-> ProductResponsePagedResult productGet(name, category, FTS, page, pageSize, includeTotalCount, retrieveAll)
+> ProductResponsePagedResult productGet(name, productCategoryId, FTS, page, pageSize, includeTotalCount)
 
 
 
@@ -33,15 +33,14 @@ import 'package:soh_api/api.dart';
 
 final api_instance = ProductApi();
 final name = name_example; // String | 
-final category = category_example; // String | 
+final productCategoryId = 56; // int | 
 final FTS = FTS_example; // String | 
 final page = 56; // int | 
 final pageSize = 56; // int | 
 final includeTotalCount = true; // bool | 
-final retrieveAll = true; // bool | 
 
 try {
-    final result = api_instance.productGet(name, category, FTS, page, pageSize, includeTotalCount, retrieveAll);
+    final result = api_instance.productGet(name, productCategoryId, FTS, page, pageSize, includeTotalCount);
     print(result);
 } catch (e) {
     print('Exception when calling ProductApi->productGet: $e\n');
@@ -53,12 +52,11 @@ try {
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **name** | **String**|  | [optional] 
- **category** | **String**|  | [optional] 
+ **productCategoryId** | **int**|  | [optional] 
  **FTS** | **String**|  | [optional] 
  **page** | **int**|  | [optional] 
  **pageSize** | **int**|  | [optional] 
  **includeTotalCount** | **bool**|  | [optional] 
- **retrieveAll** | **bool**|  | [optional] 
 
 ### Return type
 

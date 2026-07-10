@@ -20,7 +20,7 @@ final _patientIdProvider = FutureProvider.autoDispose<int?>((ref) async {
 final _ordersProvider = FutureProvider.autoDispose<List<OrderResponse>>((ref) async {
   final patientId = await ref.watch(_patientIdProvider.future);
   if (patientId == null) return [];
-  final r = await ref.watch(orderApiProvider).orderGet(patientId: patientId, retrieveAll: true);
+  final r = await ref.watch(orderApiProvider).orderGet(patientId: patientId, pageSize: 100);
   return r?.items ?? [];
 });
 
@@ -91,7 +91,6 @@ class MyOrdersScreen extends ConsumerWidget {
                     patientId: patientId,
                     productId: p.id!,
                     quantity: 1,
-                    totalAmount: p.price ?? 0,
                   ),
                 );
           } on ApiException catch (e) {

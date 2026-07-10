@@ -13,11 +13,15 @@ Method | HTTP request | Description
 [**paymentIdDelete**](PaymentApi.md#paymentiddelete) | **DELETE** /Payment/{id} | 
 [**paymentIdGet**](PaymentApi.md#paymentidget) | **GET** /Payment/{id} | 
 [**paymentIdPut**](PaymentApi.md#paymentidput) | **PUT** /Payment/{id} | 
+[**paymentOrdersPaymentIdCapturePost**](PaymentApi.md#paymentorderspaymentidcapturepost) | **POST** /Payment/orders/{paymentId}/capture | 
+[**paymentOrdersPost**](PaymentApi.md#paymentorderspost) | **POST** /Payment/orders | 
+[**paymentPaymentIdRefundPost**](PaymentApi.md#paymentpaymentidrefundpost) | **POST** /Payment/{paymentId}/refund | 
 [**paymentPost**](PaymentApi.md#paymentpost) | **POST** /Payment | 
+[**paymentWebhookPost**](PaymentApi.md#paymentwebhookpost) | **POST** /Payment/webhook | 
 
 
 # **paymentGet**
-> PaymentResponsePagedResult paymentGet(appointmentId, status, method, FTS, page, pageSize, includeTotalCount, retrieveAll)
+> PaymentResponsePagedResult paymentGet(appointmentId, status, method, FTS, page, pageSize, includeTotalCount)
 
 
 
@@ -39,10 +43,9 @@ final FTS = FTS_example; // String |
 final page = 56; // int | 
 final pageSize = 56; // int | 
 final includeTotalCount = true; // bool | 
-final retrieveAll = true; // bool | 
 
 try {
-    final result = api_instance.paymentGet(appointmentId, status, method, FTS, page, pageSize, includeTotalCount, retrieveAll);
+    final result = api_instance.paymentGet(appointmentId, status, method, FTS, page, pageSize, includeTotalCount);
     print(result);
 } catch (e) {
     print('Exception when calling PaymentApi->paymentGet: $e\n');
@@ -60,7 +63,6 @@ Name | Type | Description  | Notes
  **page** | **int**|  | [optional] 
  **pageSize** | **int**|  | [optional] 
  **includeTotalCount** | **bool**|  | [optional] 
- **retrieveAll** | **bool**|  | [optional] 
 
 ### Return type
 
@@ -220,6 +222,146 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **paymentOrdersPaymentIdCapturePost**
+> PaymentCaptureResponse paymentOrdersPaymentIdCapturePost(paymentId)
+
+
+
+### Example
+```dart
+import 'package:soh_api/api.dart';
+// TODO Configure HTTP Bearer authorization: Bearer
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('Bearer').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('Bearer').setAccessToken(yourTokenGeneratorFunction);
+
+final api_instance = PaymentApi();
+final paymentId = 56; // int | 
+
+try {
+    final result = api_instance.paymentOrdersPaymentIdCapturePost(paymentId);
+    print(result);
+} catch (e) {
+    print('Exception when calling PaymentApi->paymentOrdersPaymentIdCapturePost: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **paymentId** | **int**|  | 
+
+### Return type
+
+[**PaymentCaptureResponse**](PaymentCaptureResponse.md)
+
+### Authorization
+
+[Bearer](../README.md#Bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: text/plain, application/json, text/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **paymentOrdersPost**
+> PaymentOrderCreateResponse paymentOrdersPost(paymentOrderCreateRequest)
+
+
+
+### Example
+```dart
+import 'package:soh_api/api.dart';
+// TODO Configure HTTP Bearer authorization: Bearer
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('Bearer').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('Bearer').setAccessToken(yourTokenGeneratorFunction);
+
+final api_instance = PaymentApi();
+final paymentOrderCreateRequest = PaymentOrderCreateRequest(); // PaymentOrderCreateRequest | 
+
+try {
+    final result = api_instance.paymentOrdersPost(paymentOrderCreateRequest);
+    print(result);
+} catch (e) {
+    print('Exception when calling PaymentApi->paymentOrdersPost: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **paymentOrderCreateRequest** | [**PaymentOrderCreateRequest**](PaymentOrderCreateRequest.md)|  | [optional] 
+
+### Return type
+
+[**PaymentOrderCreateResponse**](PaymentOrderCreateResponse.md)
+
+### Authorization
+
+[Bearer](../README.md#Bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json, text/json, application/*+json
+ - **Accept**: text/plain, application/json, text/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **paymentPaymentIdRefundPost**
+> paymentPaymentIdRefundPost(paymentId)
+
+
+
+### Example
+```dart
+import 'package:soh_api/api.dart';
+// TODO Configure HTTP Bearer authorization: Bearer
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('Bearer').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('Bearer').setAccessToken(yourTokenGeneratorFunction);
+
+final api_instance = PaymentApi();
+final paymentId = 56; // int | 
+
+try {
+    api_instance.paymentPaymentIdRefundPost(paymentId);
+} catch (e) {
+    print('Exception when calling PaymentApi->paymentPaymentIdRefundPost: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **paymentId** | **int**|  | 
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[Bearer](../README.md#Bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **paymentPost**
 > PaymentResponse paymentPost(paymentUpsertRequest)
 
@@ -264,6 +406,48 @@ Name | Type | Description  | Notes
 
  - **Content-Type**: application/json, text/json, application/*+json
  - **Accept**: text/plain, application/json, text/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **paymentWebhookPost**
+> paymentWebhookPost()
+
+
+
+### Example
+```dart
+import 'package:soh_api/api.dart';
+// TODO Configure HTTP Bearer authorization: Bearer
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('Bearer').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('Bearer').setAccessToken(yourTokenGeneratorFunction);
+
+final api_instance = PaymentApi();
+
+try {
+    api_instance.paymentWebhookPost();
+} catch (e) {
+    print('Exception when calling PaymentApi->paymentWebhookPost: $e\n');
+}
+```
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[Bearer](../README.md#Bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

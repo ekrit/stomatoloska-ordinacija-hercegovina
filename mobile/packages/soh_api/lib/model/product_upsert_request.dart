@@ -16,7 +16,8 @@ class ProductUpsertRequest {
     required this.name,
     this.description,
     required this.price,
-    this.category,
+    required this.productCategoryId,
+    this.picture,
   });
 
   String name;
@@ -25,14 +26,17 @@ class ProductUpsertRequest {
 
   double price;
 
-  String? category;
+  int productCategoryId;
+
+  String? picture;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is ProductUpsertRequest &&
     other.name == name &&
     other.description == description &&
     other.price == price &&
-    other.category == category;
+    other.productCategoryId == productCategoryId &&
+    other.picture == picture;
 
   @override
   int get hashCode =>
@@ -40,10 +44,11 @@ class ProductUpsertRequest {
     (name.hashCode) +
     (description == null ? 0 : description!.hashCode) +
     (price.hashCode) +
-    (category == null ? 0 : category!.hashCode);
+    (productCategoryId.hashCode) +
+    (picture == null ? 0 : picture!.hashCode);
 
   @override
-  String toString() => 'ProductUpsertRequest[name=$name, description=$description, price=$price, category=$category]';
+  String toString() => 'ProductUpsertRequest[name=$name, description=$description, price=$price, productCategoryId=$productCategoryId, picture=$picture]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -54,10 +59,11 @@ class ProductUpsertRequest {
       json[r'description'] = null;
     }
       json[r'price'] = this.price;
-    if (this.category != null) {
-      json[r'category'] = this.category;
+      json[r'productCategoryId'] = this.productCategoryId;
+    if (this.picture != null) {
+      json[r'picture'] = this.picture;
     } else {
-      json[r'category'] = null;
+      json[r'picture'] = null;
     }
     return json;
   }
@@ -84,7 +90,8 @@ class ProductUpsertRequest {
         name: mapValueOfType<String>(json, r'name')!,
         description: mapValueOfType<String>(json, r'description'),
         price: mapValueOfType<double>(json, r'price')!,
-        category: mapValueOfType<String>(json, r'category'),
+        productCategoryId: mapValueOfType<int>(json, r'productCategoryId')!,
+        picture: mapValueOfType<String>(json, r'picture'),
       );
     }
     return null;
@@ -134,6 +141,7 @@ class ProductUpsertRequest {
   static const requiredKeys = <String>{
     'name',
     'price',
+    'productCategoryId',
   };
 }
 

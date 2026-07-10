@@ -7,7 +7,7 @@ import '../../../../core/api/api_providers.dart';
 /// foreign-key ids, and to populate FK dropdowns in admin forms.
 
 final patientsLookupProvider = FutureProvider.autoDispose<Map<int, String>>((ref) async {
-  final r = await ref.watch(patientApiProvider).patientGet(retrieveAll: true);
+  final r = await ref.watch(patientApiProvider).patientGet(pageSize: 100);
   final map = <int, String>{};
   for (final p in r?.items ?? <PatientResponse>[]) {
     if (p.userId != null) {
@@ -19,7 +19,7 @@ final patientsLookupProvider = FutureProvider.autoDispose<Map<int, String>>((ref
 });
 
 final doctorsLookupProvider = FutureProvider.autoDispose<Map<int, String>>((ref) async {
-  final r = await ref.watch(doctorApiProvider).doctorGet(retrieveAll: true);
+  final r = await ref.watch(doctorApiProvider).doctorGet(pageSize: 100);
   final map = <int, String>{};
   for (final d in r?.items ?? <DoctorResponse>[]) {
     if (d.userId != null) {
@@ -31,7 +31,7 @@ final doctorsLookupProvider = FutureProvider.autoDispose<Map<int, String>>((ref)
 });
 
 final servicesLookupProvider = FutureProvider.autoDispose<Map<int, String>>((ref) async {
-  final r = await ref.watch(serviceApiProvider).serviceGet(retrieveAll: true);
+  final r = await ref.watch(serviceApiProvider).serviceGet(pageSize: 100);
   final map = <int, String>{};
   for (final s in r?.items ?? <ServiceResponse>[]) {
     if (s.id != null) map[s.id!] = s.name ?? 'Service #${s.id}';
@@ -40,7 +40,7 @@ final servicesLookupProvider = FutureProvider.autoDispose<Map<int, String>>((ref
 });
 
 final roomsLookupProvider = FutureProvider.autoDispose<Map<int, String>>((ref) async {
-  final r = await ref.watch(roomApiProvider).roomGet(retrieveAll: true);
+  final r = await ref.watch(roomApiProvider).roomGet(pageSize: 100);
   final map = <int, String>{};
   for (final room in r?.items ?? <RoomResponse>[]) {
     if (room.id != null) map[room.id!] = room.name ?? 'Room #${room.id}';

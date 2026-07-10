@@ -17,6 +17,7 @@ class DoctorResponse {
     this.firstName,
     this.lastName,
     this.specialization,
+    this.bio,
     this.rating,
   });
 
@@ -34,6 +35,8 @@ class DoctorResponse {
 
   String? specialization;
 
+  String? bio;
+
   ///
   /// Please note: This property should have been non-nullable! Since the specification file
   /// does not include a default value (using the "default:" property), however, the generated
@@ -48,6 +51,7 @@ class DoctorResponse {
     other.firstName == firstName &&
     other.lastName == lastName &&
     other.specialization == specialization &&
+    other.bio == bio &&
     other.rating == rating;
 
   @override
@@ -57,10 +61,11 @@ class DoctorResponse {
     (firstName == null ? 0 : firstName!.hashCode) +
     (lastName == null ? 0 : lastName!.hashCode) +
     (specialization == null ? 0 : specialization!.hashCode) +
+    (bio == null ? 0 : bio!.hashCode) +
     (rating == null ? 0 : rating!.hashCode);
 
   @override
-  String toString() => 'DoctorResponse[userId=$userId, firstName=$firstName, lastName=$lastName, specialization=$specialization, rating=$rating]';
+  String toString() => 'DoctorResponse[userId=$userId, firstName=$firstName, lastName=$lastName, specialization=$specialization, bio=$bio, rating=$rating]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -83,6 +88,11 @@ class DoctorResponse {
       json[r'specialization'] = this.specialization;
     } else {
       json[r'specialization'] = null;
+    }
+    if (this.bio != null) {
+      json[r'bio'] = this.bio;
+    } else {
+      json[r'bio'] = null;
     }
     if (this.rating != null) {
       json[r'rating'] = this.rating;
@@ -115,6 +125,7 @@ class DoctorResponse {
         firstName: mapValueOfType<String>(json, r'firstName'),
         lastName: mapValueOfType<String>(json, r'lastName'),
         specialization: mapValueOfType<String>(json, r'specialization'),
+        bio: mapValueOfType<String>(json, r'bio'),
         rating: mapValueOfType<double>(json, r'rating'),
       );
     }

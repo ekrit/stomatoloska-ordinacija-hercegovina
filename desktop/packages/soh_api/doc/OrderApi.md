@@ -17,7 +17,7 @@ Method | HTTP request | Description
 
 
 # **orderGet**
-> OrderResponsePagedResult orderGet(patientId, createdFrom, createdTo, FTS, page, pageSize, includeTotalCount, retrieveAll)
+> OrderResponsePagedResult orderGet(patientId, createdFrom, createdTo, FTS, page, pageSize, includeTotalCount)
 
 
 
@@ -39,10 +39,9 @@ final FTS = FTS_example; // String |
 final page = 56; // int | 
 final pageSize = 56; // int | 
 final includeTotalCount = true; // bool | 
-final retrieveAll = true; // bool | 
 
 try {
-    final result = api_instance.orderGet(patientId, createdFrom, createdTo, FTS, page, pageSize, includeTotalCount, retrieveAll);
+    final result = api_instance.orderGet(patientId, createdFrom, createdTo, FTS, page, pageSize, includeTotalCount);
     print(result);
 } catch (e) {
     print('Exception when calling OrderApi->orderGet: $e\n');
@@ -60,7 +59,6 @@ Name | Type | Description  | Notes
  **page** | **int**|  | [optional] 
  **pageSize** | **int**|  | [optional] 
  **includeTotalCount** | **bool**|  | [optional] 
- **retrieveAll** | **bool**|  | [optional] 
 
 ### Return type
 

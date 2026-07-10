@@ -14,25 +14,65 @@ class CityUpsertRequest {
   /// Returns a new [CityUpsertRequest] instance.
   CityUpsertRequest({
     required this.name,
+    this.address,
+    this.contactPhone,
+    this.contactEmail,
+    this.workingHours,
   });
 
   String name;
 
+  String? address;
+
+  String? contactPhone;
+
+  String? contactEmail;
+
+  String? workingHours;
+
   @override
   bool operator ==(Object other) => identical(this, other) || other is CityUpsertRequest &&
-    other.name == name;
+    other.name == name &&
+    other.address == address &&
+    other.contactPhone == contactPhone &&
+    other.contactEmail == contactEmail &&
+    other.workingHours == workingHours;
 
   @override
   int get hashCode =>
     // ignore: unnecessary_parenthesis
-    (name.hashCode);
+    (name.hashCode) +
+    (address == null ? 0 : address!.hashCode) +
+    (contactPhone == null ? 0 : contactPhone!.hashCode) +
+    (contactEmail == null ? 0 : contactEmail!.hashCode) +
+    (workingHours == null ? 0 : workingHours!.hashCode);
 
   @override
-  String toString() => 'CityUpsertRequest[name=$name]';
+  String toString() => 'CityUpsertRequest[name=$name, address=$address, contactPhone=$contactPhone, contactEmail=$contactEmail, workingHours=$workingHours]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
       json[r'name'] = this.name;
+    if (this.address != null) {
+      json[r'address'] = this.address;
+    } else {
+      json[r'address'] = null;
+    }
+    if (this.contactPhone != null) {
+      json[r'contactPhone'] = this.contactPhone;
+    } else {
+      json[r'contactPhone'] = null;
+    }
+    if (this.contactEmail != null) {
+      json[r'contactEmail'] = this.contactEmail;
+    } else {
+      json[r'contactEmail'] = null;
+    }
+    if (this.workingHours != null) {
+      json[r'workingHours'] = this.workingHours;
+    } else {
+      json[r'workingHours'] = null;
+    }
     return json;
   }
 
@@ -56,6 +96,10 @@ class CityUpsertRequest {
 
       return CityUpsertRequest(
         name: mapValueOfType<String>(json, r'name')!,
+        address: mapValueOfType<String>(json, r'address'),
+        contactPhone: mapValueOfType<String>(json, r'contactPhone'),
+        contactEmail: mapValueOfType<String>(json, r'contactEmail'),
+        workingHours: mapValueOfType<String>(json, r'workingHours'),
       );
     }
     return null;

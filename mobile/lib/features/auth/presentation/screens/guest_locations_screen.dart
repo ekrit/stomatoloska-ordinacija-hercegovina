@@ -8,7 +8,7 @@ import '../../../../core/utils/api_errors.dart';
 
 final _citiesGuestProvider = FutureProvider.autoDispose<List<CityResponse>>((ref) async {
   final api = ref.watch(cityApiProvider);
-  final r = await api.cityGet(retrieveAll: true);
+  final r = await api.cityGet(pageSize: 100);
   return r?.items ?? [];
 });
 

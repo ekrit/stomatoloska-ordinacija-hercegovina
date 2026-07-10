@@ -17,7 +17,7 @@ Method | HTTP request | Description
 
 
 # **medicalRecordGet**
-> MedicalRecordResponsePagedResult medicalRecordGet(appointmentId, FTS, page, pageSize, includeTotalCount, retrieveAll)
+> MedicalRecordResponsePagedResult medicalRecordGet(appointmentId, patientId, FTS, page, pageSize, includeTotalCount)
 
 
 
@@ -33,14 +33,14 @@ import 'package:soh_api/api.dart';
 
 final api_instance = MedicalRecordApi();
 final appointmentId = 56; // int | 
+final patientId = 56; // int | 
 final FTS = FTS_example; // String | 
 final page = 56; // int | 
 final pageSize = 56; // int | 
 final includeTotalCount = true; // bool | 
-final retrieveAll = true; // bool | 
 
 try {
-    final result = api_instance.medicalRecordGet(appointmentId, FTS, page, pageSize, includeTotalCount, retrieveAll);
+    final result = api_instance.medicalRecordGet(appointmentId, patientId, FTS, page, pageSize, includeTotalCount);
     print(result);
 } catch (e) {
     print('Exception when calling MedicalRecordApi->medicalRecordGet: $e\n');
@@ -52,11 +52,11 @@ try {
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **appointmentId** | **int**|  | [optional] 
+ **patientId** | **int**|  | [optional] 
  **FTS** | **String**|  | [optional] 
  **page** | **int**|  | [optional] 
  **pageSize** | **int**|  | [optional] 
  **includeTotalCount** | **bool**|  | [optional] 
- **retrieveAll** | **bool**|  | [optional] 
 
 ### Return type
 

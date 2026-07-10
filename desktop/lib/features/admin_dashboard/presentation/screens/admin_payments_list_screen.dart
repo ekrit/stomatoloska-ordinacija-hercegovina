@@ -13,7 +13,7 @@ final _paymentsProvider = FutureProvider.autoDispose<List<PaymentResponse>>((ref
   final status = ref.watch(_paymentStatusFilterProvider);
   final r = await ref
       .watch(paymentApiProvider)
-      .paymentGet(status: status, retrieveAll: true);
+      .paymentGet(status: status, pageSize: 100);
   final items = r?.items ?? [];
   items.sort((a, b) => (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)));
   return items;

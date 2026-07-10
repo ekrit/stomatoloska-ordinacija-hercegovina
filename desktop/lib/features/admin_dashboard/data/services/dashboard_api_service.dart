@@ -3,5 +3,5 @@ import '../models/dashboard_stats.dart';
 
 abstract class DashboardApiService {
   Future<DashboardStats> fetchDashboardStats();
-  Future<List<ActivityLogEntry>> fetchRecentActivity({int take = 30});
+  Future<RecentActivity> fetchRecentActivity({int take = 30});
 }

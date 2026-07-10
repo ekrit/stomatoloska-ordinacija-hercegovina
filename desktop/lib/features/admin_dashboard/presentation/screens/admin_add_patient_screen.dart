@@ -6,12 +6,12 @@ import '../../../../core/api/api_providers.dart';
 import '../../../../core/utils/api_errors.dart';
 
 final _gendersAddPatientProvider = FutureProvider.autoDispose<List<GenderResponse>>((ref) async {
-  final r = await ref.watch(genderApiProvider).genderGet(retrieveAll: true);
+  final r = await ref.watch(genderApiProvider).genderGet(pageSize: 100);
   return r?.items ?? [];
 });
 
 final _citiesAddPatientProvider = FutureProvider.autoDispose<List<CityResponse>>((ref) async {
-  final r = await ref.watch(cityApiProvider).cityGet(retrieveAll: true);
+  final r = await ref.watch(cityApiProvider).cityGet(pageSize: 100);
   return r?.items ?? [];
 });
 

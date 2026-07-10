@@ -7,5 +7,5 @@ abstract class DashboardRepository {
   Future<DashboardStats> fetchDashboardStats();
   Future<AppointmentStats> fetchAppointmentStats();
   Future<RevenueStats> fetchRevenueStats();
-  Future<List<ActivityLogEntry>> fetchRecentActivity({int take = 30});
+  Future<RecentActivity> fetchRecentActivity({int take = 30});
 }

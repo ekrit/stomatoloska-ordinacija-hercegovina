@@ -4,18 +4,36 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:soh_api/api.dart';
 
+// Base64 decoding is costly and several call sites run inside build(), so
+// decoded bytes are memoized. Keyed by string identity + length; capped so a
+// long session cannot grow unbounded.
+final Map<String, Uint8List?> _decodedPictureCache = <String, Uint8List?>{};
+const int _decodedPictureCacheLimit = 128;
+
 Uint8List? decodeUserPictureBytes(String? raw) {
   if (raw == null || raw.isEmpty) return null;
+  final cached = _decodedPictureCache[raw];
+  if (cached != null || _decodedPictureCache.containsKey(raw)) {
+    return cached;
+  }
+
   var s = raw.trim();
   final comma = s.indexOf(',');
   if (s.startsWith('data:') && comma != -1) {
     s = s.substring(comma + 1);
   }
+  Uint8List? bytes;
   try {
-    return base64Decode(s);
+    bytes = base64Decode(s);
   } catch (_) {
-    return null;
+    bytes = null;
   }
+
+  if (_decodedPictureCache.length >= _decodedPictureCacheLimit) {
+    _decodedPictureCache.remove(_decodedPictureCache.keys.first);
+  }
+  _decodedPictureCache[raw] = bytes;
+  return bytes;
 }
 
 Future<bool> showLogoutConfirm(BuildContext context) async {
