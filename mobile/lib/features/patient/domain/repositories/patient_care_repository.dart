@@ -17,8 +17,6 @@ abstract class PatientCareRepository {
     AppointmentUpsertRequest request,
   );
 
-  Future<List<MedicalRecordResponse>> listMedicalRecords();
-
   Future<List<MedicalRecordResponse>> listMedicalRecordsForAppointment(
     int appointmentId,
   );

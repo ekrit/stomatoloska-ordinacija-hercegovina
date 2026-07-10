@@ -51,12 +51,6 @@ class PatientCareApiServiceImpl implements PatientCareApiService {
   }
 
   @override
-  Future<List<MedicalRecordResponse>> listMedicalRecords() async {
-    final r = await _medicalRecords.medicalRecordGet(pageSize: 100);
-    return r?.items ?? [];
-  }
-
-  @override
   Future<List<MedicalRecordResponse>> listMedicalRecordsForAppointment(
     int appointmentId,
   ) async {

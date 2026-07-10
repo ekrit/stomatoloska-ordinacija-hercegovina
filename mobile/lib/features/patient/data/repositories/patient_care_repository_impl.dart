@@ -36,10 +36,6 @@ class PatientCareRepositoryImpl implements PatientCareRepository {
       _api.updateAppointment(id, request);
 
   @override
-  Future<List<MedicalRecordResponse>> listMedicalRecords() =>
-      _api.listMedicalRecords();
-
-  @override
   Future<List<MedicalRecordResponse>> listMedicalRecordsForAppointment(
     int appointmentId,
   ) =>

@@ -3,11 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../core/api/api_providers.dart';
+import '../../../core/utils/api_errors.dart';
 import '../../../core/widgets/async_body.dart';
 import '../../../core/widgets/section_header.dart';
+import '../../../widgets/user_appbar_actions.dart' show decodeUserPictureBytes;
 import '../../patient/presentation/providers/patient_data_providers.dart';
+import '../../shop/presentation/product_catalog_screen.dart';
 import 'product_detail_screen.dart';
 import 'recommendations_providers.dart';
+import 'services_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key, required this.onBook});
@@ -84,7 +88,7 @@ class HomeScreen extends ConsumerWidget {
                           )
                         else
                           SizedBox(
-                            height: 132,
+                            height: 168,
                             child: ListView.separated(
                               scrollDirection: Axis.horizontal,
                               itemCount: rec.length,
@@ -108,6 +112,20 @@ class HomeScreen extends ConsumerWidget {
                               },
                             ),
                           ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton.icon(
+                            onPressed: () {
+                              Navigator.of(context).push<void>(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => const ProductCatalogScreen(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.storefront_outlined, size: 18),
+                            label: const Text('Cijeli katalog proizvoda'),
+                          ),
+                        ),
                       ],
                     );
                   },
@@ -117,7 +135,7 @@ class HomeScreen extends ConsumerWidget {
                   ),
                   error: (e, _) => Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Text('Recommendations: $e'),
+                    child: Text(extractApiErrorMessage(e)),
                   ),
                 ),
               ),
@@ -156,6 +174,22 @@ class HomeScreen extends ConsumerWidget {
                             ),
                           ],
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.medical_services_outlined),
+                        title: const Text('Naše usluge'),
+                        subtitle: const Text('Pregledi, čišćenje, plombe i drugi zahvati sa cijenama.'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          Navigator.of(context).push<void>(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const ServicesScreen(),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -205,6 +239,7 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bytes = decodeUserPictureBytes(product.picture);
     return SizedBox(
       width: 210,
       child: Card(
@@ -216,11 +251,26 @@ class _ProductCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  product.name ?? 'Product',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleSmall,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (bytes != null)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.memory(bytes, width: 40, height: 40, fit: BoxFit.cover),
+                        ),
+                      ),
+                    Expanded(
+                      child: Text(
+                        product.name ?? 'Product',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                    ),
+                  ],
                 ),
                 if (hint != null && hint!.trim().isNotEmpty)
                   Padding(
