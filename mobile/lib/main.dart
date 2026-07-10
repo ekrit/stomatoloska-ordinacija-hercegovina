@@ -9,6 +9,7 @@ import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/auth/presentation/screens/register_screen.dart';
 import 'features/auth/presentation/screens/splash_screen.dart';
 import 'features/booking/presentation/booking_screen.dart';
+import 'features/doctor/presentation/doctor_shell_screen.dart';
 import 'features/patient/presentation/patient_shell_screen.dart';
 
 void main() {
@@ -26,6 +27,7 @@ class SohMobileApp extends StatelessWidget {
     AppRoutes.guest: (_) => const GuestLocationsScreen(),
     AppRoutes.completeProfile: (_) => const CompleteProfileScreen(),
     AppRoutes.patientShell: (_) => const PatientShellScreen(),
+    AppRoutes.doctorShell: (_) => const DoctorShellScreen(),
     AppRoutes.booking: (_) => const BookingScreen(),
   };
 

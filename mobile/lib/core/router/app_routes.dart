@@ -1,5 +1,5 @@
-/// Named routes used by the patient mobile app. Staff routes live in the
-/// desktop project.
+/// Named routes used by the mobile app (patients and doctors). Admin
+/// routes live in the desktop project.
 abstract final class AppRoutes {
   static const splash = '/';
   static const login = '/login';
@@ -7,5 +7,6 @@ abstract final class AppRoutes {
   static const guest = '/guest';
   static const completeProfile = '/complete-profile';
   static const patientShell = '/patient';
+  static const doctorShell = '/doctor';
   static const booking = '/booking';
 }

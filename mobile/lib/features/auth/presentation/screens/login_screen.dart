@@ -53,11 +53,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       final user = response?.user;
 
-      // Mobile is patient-only. Reject staff accounts before we persist
-      // anything so the user is never half-signed-in.
-      if (user != null && (userIsAdmin(user) || userIsDoctor(user))) {
+      // Administrators manage the clinic from the desktop app; the mobile
+      // app serves patients and doctors.
+      if (user != null && userIsAdmin(user)) {
         setState(() => _error =
-            'This account is for clinic staff. Please use the desktop application to sign in.');
+            'Ovaj nalog je administratorski. Prijavite se putem desktop aplikacije.');
         return;
       }
 
@@ -70,6 +70,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
 
       if (!mounted) return;
+
+      if (userIsDoctor(user)) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.doctorShell);
+        return;
+      }
 
       if (user?.id != null) {
         final existing =
