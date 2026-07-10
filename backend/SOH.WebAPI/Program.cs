@@ -192,16 +192,16 @@ using (var scope = app.Services.CreateScope())
 {
     var dataContext = scope.ServiceProvider.GetRequiredService<SOHDbContext>();
 
-
     var pendingMigrations = dataContext.Database.GetPendingMigrations().Any();
 
     if (pendingMigrations)
     {
-
         dataContext.Database.Migrate();
-
-
     }
+
+    // Demo/testing data (products with images, appointments in every status,
+    // reviews, orders, recommender signals). Idempotent per domain.
+    await RuntimeDataSeeder.SeedAsync(dataContext);
 }
 
 app.Run();
