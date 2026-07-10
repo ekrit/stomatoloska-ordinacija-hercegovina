@@ -36,7 +36,7 @@ namespace SOH.Services.Services
         {
             if (await _context.Cities.AnyAsync(c => c.Name == request.Name))
             {
-                throw new BusinessException("A city with this name already exists.");
+                throw new BusinessException("Grad s ovim nazivom već postoji.");
             }
         }
 
@@ -44,7 +44,15 @@ namespace SOH.Services.Services
         {
             if (await _context.Cities.AnyAsync(c => c.Name == request.Name && c.Id != entity.Id))
             {
-                throw new BusinessException("A city with this name already exists.");
+                throw new BusinessException("Grad s ovim nazivom već postoji.");
+            }
+        }
+
+        protected override async Task BeforeDelete(City entity)
+        {
+            if (await _context.Users.AnyAsync(u => u.CityId == entity.Id))
+            {
+                throw new BusinessException("Grad se ne može obrisati jer postoje korisnici koji ga koriste.");
             }
         }
     }

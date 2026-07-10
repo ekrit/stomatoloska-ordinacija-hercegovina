@@ -39,7 +39,7 @@ namespace SOH.Services.Services
         {
             if (await _context.Roles.AnyAsync(r => r.Name == request.Name))
             {
-                throw new BusinessException("A role with this name already exists.");
+                throw new BusinessException("Uloga s ovim nazivom već postoji.");
             }
         }
 
@@ -47,7 +47,7 @@ namespace SOH.Services.Services
         {
             if (await _context.Roles.AnyAsync(r => r.Name == request.Name && r.Id != entity.Id))
             {
-                throw new BusinessException("A role with this name already exists.");
+                throw new BusinessException("Uloga s ovim nazivom već postoji.");
             }
         }
     }

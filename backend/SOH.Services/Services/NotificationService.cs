@@ -54,8 +54,8 @@ public class NotificationService : INotificationService
 
     public async Task NotifyAppointmentCreatedAsync(int patientUserId, int appointmentId, CancellationToken cancellationToken = default)
     {
-        var title = "Appointment scheduled";
-        var body = $"Your appointment #{appointmentId} has been recorded. You will receive updates when its status changes.";
+        var title = "Termin zakazan";
+        var body = $"Vaš zahtjev za termin je evidentiran. Obavijestit ćemo vas o promjenama njegovog statusa.";
         await AddAndPushAsync(patientUserId, title, body, cancellationToken);
     }
 
@@ -64,26 +64,41 @@ public class NotificationService : INotificationService
         int appointmentId,
         AppointmentStatus fromStatus,
         AppointmentStatus toStatus,
+        string? reason = null,
         CancellationToken cancellationToken = default)
     {
-        var title = "Appointment status updated";
-        var body = $"Appointment #{appointmentId} moved from {fromStatus} to {toStatus}.";
+        var title = "Status termina promijenjen";
+        var body = $"Vaš termin je promijenio status: {StatusLabel(fromStatus)} → {StatusLabel(toStatus)}.";
+        if (!string.IsNullOrWhiteSpace(reason))
+        {
+            body += $" Razlog: {reason.Trim()}";
+        }
         await AddAndPushAsync(patientUserId, title, body, cancellationToken);
     }
 
     public async Task NotifyPaymentCapturedAsync(int patientUserId, int appointmentId, decimal amount, CancellationToken cancellationToken = default)
     {
-        var title = "Payment received";
-        var body = $"Your payment of {amount.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)} for appointment #{appointmentId} was confirmed.";
+        var title = "Uplata primljena";
+        var body = $"Vaša uplata od {amount.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)} KM za termin je potvrđena.";
         await AddAndPushAsync(patientUserId, title, body, cancellationToken);
     }
 
     public async Task NotifyPaymentRefundedAsync(int patientUserId, int appointmentId, CancellationToken cancellationToken = default)
     {
-        var title = "Payment refunded";
-        var body = $"Your payment for appointment #{appointmentId} was refunded and the appointment was cancelled.";
+        var title = "Novac vraćen";
+        var body = $"Vaša uplata za termin je refundirana i termin je otkazan.";
         await AddAndPushAsync(patientUserId, title, body, cancellationToken);
     }
+
+    private static string StatusLabel(AppointmentStatus status) => status switch
+    {
+        AppointmentStatus.Requested => "Na čekanju",
+        AppointmentStatus.Accepted => "Prihvaćen",
+        AppointmentStatus.Declined => "Odbijen",
+        AppointmentStatus.Completed => "Završen",
+        AppointmentStatus.Cancelled => "Otkazan",
+        _ => status.ToString()
+    };
 
     private async Task AddAndPushAsync(int userId, string title, string body, CancellationToken cancellationToken)
     {

@@ -59,6 +59,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDatabaseServices(connectionString);
 
 builder.Services.AddMapster();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserAccessor, HttpContextCurrentUserAccessor>();
 builder.Services.AddSingleton<IAppointmentReminderPublisher, AppointmentReminderPublisher>();
 builder.Services.AddSingleton<IRevokedTokenStore, RevokedTokenStore>();
 

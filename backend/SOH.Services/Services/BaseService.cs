@@ -33,14 +33,9 @@ namespace SOH.Services.Services
                 totalCount = await query.CountAsync();
             }
 
-            if (!search.RetrieveAll)
-            {
-                var pageSize = Math.Clamp(search.PageSize ?? 30, 1, MaxPageSize);
-                var page = Math.Max(search.Page ?? 0, 0);
-                query = query.Skip(page * pageSize).Take(pageSize);
-            }
-
-
+            var pageSize = Math.Clamp(search.PageSize ?? 30, 1, MaxPageSize);
+            var page = Math.Max(search.Page ?? 0, 0);
+            query = query.Skip(page * pageSize).Take(pageSize);
 
             var list = await query.ToListAsync();
             return new PagedResult<T>

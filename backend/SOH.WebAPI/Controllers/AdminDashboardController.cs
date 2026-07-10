@@ -43,9 +43,15 @@ namespace SOH.WebAPI.Controllers
         }
 
         [HttpGet("activity/recent")]
-        public async Task<List<ActivityLogResponse>> GetRecentActivity([FromQuery] int take = 30)
+        public async Task<RecentActivityResponse> GetRecentActivity([FromQuery] int take = 30)
         {
             return await _service.GetRecentActivityAsync(take);
+        }
+
+        [HttpGet("patients/monthly")]
+        public async Task<PatientStatsResponse> GetMonthlyNewPatients([FromQuery] int months = 6)
+        {
+            return await _service.GetMonthlyNewPatientsAsync(months);
         }
     }
 }

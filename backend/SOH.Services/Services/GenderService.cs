@@ -34,7 +34,7 @@ namespace SOH.Services.Services
         {
             if (await _context.Genders.AnyAsync(g => g.Name == request.Name))
             {
-                throw new BusinessException("A gender with this name already exists.");
+                throw new BusinessException("Spol s ovim nazivom već postoji.");
             }
         }
 
@@ -42,7 +42,15 @@ namespace SOH.Services.Services
         {
             if (await _context.Genders.AnyAsync(g => g.Name == request.Name && g.Id != entity.Id))
             {
-                throw new BusinessException("A gender with this name already exists.");
+                throw new BusinessException("Spol s ovim nazivom već postoji.");
+            }
+        }
+
+        protected override async Task BeforeDelete(Gender entity)
+        {
+            if (await _context.Users.AnyAsync(u => u.GenderId == entity.Id))
+            {
+                throw new BusinessException("Spol se ne može obrisati jer postoje korisnici koji ga koriste.");
             }
         }
     }

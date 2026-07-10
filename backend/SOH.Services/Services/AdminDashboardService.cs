@@ -150,12 +150,15 @@ namespace SOH.Services.Services
                 .ToListAsync();
         }
 
-        public async Task<List<ActivityLogResponse>> GetRecentActivityAsync(int take = 30)
+        public async Task<RecentActivityResponse> GetRecentActivityAsync(int take = 30)
         {
             var safeTake = Math.Clamp(take, 1, 100);
-            return await _context.ActivityLogs
+            var filtered = _context.ActivityLogs
                 .AsNoTracking()
-                .Where(a => a.EntityName == "User" || a.EntityName == "Appointment")
+                .Where(a => a.EntityName == "User" || a.EntityName == "Appointment");
+
+            var totalCount = await filtered.CountAsync();
+            var items = await filtered
                 .OrderByDescending(a => a.CreatedAt)
                 .Take(safeTake)
                 .Select(a => new ActivityLogResponse
@@ -164,9 +167,43 @@ namespace SOH.Services.Services
                     Action = a.Action,
                     EntityName = a.EntityName,
                     EntityId = a.EntityId,
+                    UserId = a.UserId,
+                    Username = a.Username,
                     CreatedAt = a.CreatedAt
                 })
                 .ToListAsync();
+
+            return new RecentActivityResponse { Items = items, TotalCount = totalCount };
+        }
+
+        public async Task<PatientStatsResponse> GetMonthlyNewPatientsAsync(int months)
+        {
+            var safeMonths = Math.Clamp(months, 1, 12);
+            var now = DateTime.UtcNow;
+            var end = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(1);
+            var start = end.AddMonths(-safeMonths);
+
+            var grouped = await _context.UserRoles
+                .Where(ur => (ur.Role.Name == "Patient" || ur.Role.Name == "User") &&
+                             ur.User.CreatedAt >= start && ur.User.CreatedAt < end)
+                .GroupBy(ur => new { ur.User.CreatedAt.Year, ur.User.CreatedAt.Month })
+                .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Select(x => x.UserId).Distinct().Count() })
+                .ToListAsync();
+
+            var results = new List<MonthlyAppointmentResponse>();
+            for (var i = 0; i < safeMonths; i++)
+            {
+                var monthDate = start.AddMonths(i);
+                var monthLabel = CultureInfo.InvariantCulture.DateTimeFormat.AbbreviatedMonthNames[monthDate.Month - 1];
+                var existing = grouped.FirstOrDefault(g => g.Year == monthDate.Year && g.Month == monthDate.Month);
+                results.Add(new MonthlyAppointmentResponse
+                {
+                    Month = monthLabel,
+                    Count = existing?.Count ?? 0
+                });
+            }
+
+            return new PatientStatsResponse { Monthly = results };
         }
     }
 }

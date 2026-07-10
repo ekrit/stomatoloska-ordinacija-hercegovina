@@ -42,10 +42,34 @@ namespace SOH.Services.Services
         };
 
         private readonly INotificationService _notifications;
+        private readonly ICurrentUserAccessor _currentUser;
 
-        public AppointmentService(SOHDbContext context, IMapper mapper, INotificationService notifications) : base(context, mapper)
+        public AppointmentService(
+            SOHDbContext context,
+            IMapper mapper,
+            INotificationService notifications,
+            ICurrentUserAccessor currentUser) : base(context, mapper)
         {
             _notifications = notifications;
+            _currentUser = currentUser;
+        }
+
+        // Create/Update run two SaveChangesAsync calls (entity + audit log),
+        // so both are wrapped in an explicit transaction.
+        public override async Task<AppointmentResponse> CreateAsync(AppointmentUpsertRequest request)
+        {
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            var result = await base.CreateAsync(request);
+            await transaction.CommitAsync();
+            return result;
+        }
+
+        public override async Task<AppointmentResponse?> UpdateAsync(int id, AppointmentUpsertRequest request)
+        {
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            var result = await base.UpdateAsync(id, request);
+            await transaction.CommitAsync();
+            return result;
         }
 
         protected override async Task BeforeInsert(Appointment entity, AppointmentUpsertRequest request)
@@ -57,7 +81,7 @@ namespace SOH.Services.Services
             // breaks the doctor calendar and the reminder worker.
             if (entity.StartTime <= DateTime.UtcNow)
             {
-                throw new BusinessException("Appointments must start in the future.");
+                throw new BusinessException("Termin mora početi u budućnosti.");
             }
 
             // Force the initial status to Requested regardless of what the
@@ -72,6 +96,15 @@ namespace SOH.Services.Services
         {
             var newStatus = (AppointmentStatus)(int)request.Status;
             ValidateStatusTransition(entity.Status, newStatus);
+
+            // A declined booking must carry the reason: the patient sees it in
+            // the notification and the record keeps the audit trail complete.
+            if (newStatus == AppointmentStatus.Declined &&
+                entity.Status != AppointmentStatus.Declined &&
+                string.IsNullOrWhiteSpace(request.DoctorNote))
+            {
+                throw new BusinessException("Razlog odbijanja termina je obavezan.");
+            }
 
             // Only re-validate scheduling concerns when the appointment is
             // still active. Completing or cancelling does not need a clean
@@ -88,6 +121,7 @@ namespace SOH.Services.Services
                     Id = entity.Id,
                     DoctorId = request.DoctorId,
                     RoomId = request.RoomId,
+                    PatientId = entity.PatientId,
                     StartTime = request.StartTime,
                     EndTime = request.EndTime,
                 };
@@ -101,7 +135,23 @@ namespace SOH.Services.Services
                     entity.PatientId,
                     entity.Id,
                     entity.Status,
-                    newStatus);
+                    newStatus,
+                    newStatus == AppointmentStatus.Declined ? request.DoctorNote : null);
+            }
+        }
+
+        public async Task EnsureDoctorOwnsAsync(int appointmentId, int doctorUserId, CancellationToken cancellationToken = default)
+        {
+            var doctorId = await _context.Appointments
+                .AsNoTracking()
+                .Where(a => a.Id == appointmentId)
+                .Select(a => (int?)a.DoctorId)
+                .FirstOrDefaultAsync(cancellationToken)
+                ?? throw new NotFoundException("Termin nije pronađen.");
+
+            if (doctorId != doctorUserId)
+            {
+                throw new BusinessException("Možete uređivati samo termine koji su vam dodijeljeni.");
             }
         }
 
@@ -109,7 +159,7 @@ namespace SOH.Services.Services
         {
             if (entity.EndTime <= entity.StartTime)
             {
-                throw new BusinessException("Appointment end time must be after start time.");
+                throw new BusinessException("Kraj termina mora biti nakon njegovog početka.");
             }
         }
 
@@ -123,7 +173,7 @@ namespace SOH.Services.Services
             if (!AllowedTransitions.TryGetValue(from, out var allowed) || Array.IndexOf(allowed, to) < 0)
             {
                 throw new BusinessException(
-                    $"Illegal appointment status transition: {from} -> {to}.");
+                    $"Nedozvoljena promjena statusa termina: {from} -> {to}.");
             }
         }
 
@@ -139,9 +189,11 @@ namespace SOH.Services.Services
                 .Where(a => (ignoreId == null || a.Id != ignoreId.Value))
                 .Where(a => BlockingStatuses.Contains(a.Status))
                 .Where(a => a.StartTime < dayEnd && a.EndTime > dayStart)
-                .Where(a => a.DoctorId == candidate.DoctorId || a.RoomId == candidate.RoomId)
+                .Where(a => a.DoctorId == candidate.DoctorId
+                    || a.RoomId == candidate.RoomId
+                    || a.PatientId == candidate.PatientId)
                 .Where(a => a.StartTime < candidate.EndTime && candidate.StartTime < a.EndTime)
-                .Select(a => new { a.DoctorId, a.RoomId })
+                .Select(a => new { a.DoctorId, a.RoomId, a.PatientId })
                 .FirstOrDefaultAsync();
 
             if (clash == null)
@@ -149,39 +201,46 @@ namespace SOH.Services.Services
                 return;
             }
 
+            if (clash.PatientId == candidate.PatientId)
+            {
+                throw new BusinessException(
+                    "Već imate zakazan termin koji se preklapa s ovim vremenom.");
+            }
+
             if (clash.DoctorId == candidate.DoctorId)
             {
                 throw new BusinessException(
-                    "Doctor already has an appointment that overlaps this time range.");
+                    "Doktor već ima termin koji se preklapa s ovim vremenom.");
             }
 
             throw new BusinessException(
-                "Room is already booked for an appointment that overlaps this time range.");
+                "Prostorija je već zauzeta u ovom terminu.");
         }
 
         protected override async Task OnAfterInsertAsync(Appointment entity, AppointmentUpsertRequest request)
         {
-            _context.ActivityLogs.Add(new ActivityLog
-            {
-                Action = "AppointmentCreated",
-                EntityName = "Appointment",
-                EntityId = entity.Id.ToString(),
-                CreatedAt = DateTime.UtcNow
-            });
+            _context.ActivityLogs.Add(NewActivityLog("AppointmentCreated", entity.Id));
             await _context.SaveChangesAsync();
             await _notifications.NotifyAppointmentCreatedAsync(entity.PatientId, entity.Id);
         }
 
         protected override async Task OnAfterUpdateAsync(Appointment entity, AppointmentUpsertRequest request)
         {
-            _context.ActivityLogs.Add(new ActivityLog
-            {
-                Action = "AppointmentUpdated",
-                EntityName = "Appointment",
-                EntityId = entity.Id.ToString(),
-                CreatedAt = DateTime.UtcNow
-            });
+            _context.ActivityLogs.Add(NewActivityLog("AppointmentUpdated", entity.Id));
             await _context.SaveChangesAsync();
+        }
+
+        private ActivityLog NewActivityLog(string action, int appointmentId)
+        {
+            return new ActivityLog
+            {
+                Action = action,
+                EntityName = "Appointment",
+                EntityId = appointmentId.ToString(),
+                UserId = _currentUser.UserId,
+                Username = _currentUser.Username,
+                CreatedAt = DateTime.UtcNow
+            };
         }
 
         public async Task<AppointmentResponse> CancelOwnAsync(int appointmentId, int callerUserId, bool isPrivileged, CancellationToken cancellationToken = default)
@@ -189,13 +248,13 @@ namespace SOH.Services.Services
             var entity = await _context.Appointments
                 .Include(a => a.Payment)
                 .FirstOrDefaultAsync(a => a.Id == appointmentId, cancellationToken)
-                ?? throw new NotFoundException("Appointment not found.");
+                ?? throw new NotFoundException("Termin nije pronađen.");
 
             // Patients can only cancel their own bookings; the Patient PK is the
             // user id, so PatientId already equals the JWT user id.
             if (!isPrivileged && entity.PatientId != callerUserId)
             {
-                throw new BusinessException("You can only cancel your own appointments.");
+                throw new BusinessException("Možete otkazati samo vlastite termine.");
             }
 
             // Already cancelled is a no-op so a double tap does not error.
@@ -208,24 +267,18 @@ namespace SOH.Services.Services
             // cancels it) so the payment and appointment never drift apart.
             if (entity.Payment != null && entity.Payment.Status == PaymentStatus.Paid)
             {
-                throw new BusinessException("This appointment is paid. Request a refund to cancel it.");
+                throw new BusinessException("Ovaj termin je plaćen. Zatražite povrat novca da biste ga otkazali.");
             }
 
             var fromStatus = entity.Status;
             ValidateStatusTransition(fromStatus, AppointmentStatus.Cancelled);
             entity.Status = AppointmentStatus.Cancelled;
 
-            _context.ActivityLogs.Add(new ActivityLog
-            {
-                Action = "AppointmentCancelled",
-                EntityName = "Appointment",
-                EntityId = entity.Id.ToString(),
-                CreatedAt = DateTime.UtcNow
-            });
+            _context.ActivityLogs.Add(NewActivityLog("AppointmentCancelled", entity.Id));
 
             await _context.SaveChangesAsync(cancellationToken);
             await _notifications.NotifyAppointmentStatusChangedAsync(
-                entity.PatientId, entity.Id, fromStatus, AppointmentStatus.Cancelled, cancellationToken);
+                entity.PatientId, entity.Id, fromStatus, AppointmentStatus.Cancelled, reason: null, cancellationToken);
 
             return MapToResponse(entity);
         }

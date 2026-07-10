@@ -32,7 +32,7 @@ namespace SOH.Services.Services
                 .Where(p => p.Id == productId)
                 .Select(p => (decimal?)p.Price)
                 .FirstOrDefaultAsync()
-                ?? throw new NotFoundException("Product not found.");
+                ?? throw new NotFoundException("Proizvod nije pronađen.");
 
             var qty = quantity < 1 ? 1 : quantity;
             return price * qty;

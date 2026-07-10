@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using SOH.Model.Exceptions;
 using SOH.Model.Requests;
 using SOH.Model.Responses;
 using SOH.Model.SearchObjects;
@@ -53,6 +55,19 @@ namespace SOH.Services.Services
             entity.Phone = string.IsNullOrWhiteSpace(request.Phone)
                 ? string.Empty
                 : request.Phone.Trim();
+        }
+
+        protected override async Task BeforeDelete(Patient entity)
+        {
+            if (await _context.Appointments.AnyAsync(a => a.PatientId == entity.UserId))
+            {
+                throw new BusinessException("Pacijent se ne može obrisati jer postoje termini koji ga koriste.");
+            }
+
+            if (await _context.Orders.AnyAsync(o => o.PatientId == entity.UserId))
+            {
+                throw new BusinessException("Pacijent se ne može obrisati jer postoje narudžbe koje ga koriste.");
+            }
         }
     }
 }

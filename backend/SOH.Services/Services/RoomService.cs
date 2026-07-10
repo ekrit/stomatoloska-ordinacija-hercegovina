@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using SOH.Model.Exceptions;
 using SOH.Model.Requests;
 using SOH.Model.Responses;
 using SOH.Model.SearchObjects;
@@ -31,6 +33,14 @@ namespace SOH.Services.Services
             }
 
             return query;
+        }
+
+        protected override async Task BeforeDelete(Room entity)
+        {
+            if (await _context.Appointments.AnyAsync(a => a.RoomId == entity.Id))
+            {
+                throw new BusinessException("Prostorija se ne može obrisati jer postoje termini koji je koriste.");
+            }
         }
     }
 }
