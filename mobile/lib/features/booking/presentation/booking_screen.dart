@@ -193,7 +193,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
-              children: List.generate(4, (i) {
+              children: List.generate(5, (i) {
                 final active = i == _step;
                 final done = i < _step;
                 return Expanded(

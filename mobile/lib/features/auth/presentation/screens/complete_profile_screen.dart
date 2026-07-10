@@ -14,6 +14,7 @@ class CompleteProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _first = TextEditingController();
   final _last = TextEditingController();
   final _phone = TextEditingController();
@@ -27,6 +28,20 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
     _last.dispose();
     _phone.dispose();
     super.dispose();
+  }
+
+  String? _required(String? raw, String field) {
+    final v = (raw ?? '').trim();
+    return v.isEmpty ? '$field je obavezno polje.' : null;
+  }
+
+  String? _validatePhone(String? raw) {
+    final v = (raw ?? '').trim();
+    if (v.isEmpty) return null; // optional
+    final ok = RegExp(r'^[+0-9\s().-]{6,20}$').hasMatch(v);
+    return ok
+        ? null
+        : 'Unesite validan telefon (cifre, razmaci, +, -, zagrade; 6-20 znakova).';
   }
 
   Future<void> _pickDob() async {
@@ -43,17 +58,12 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
   Future<void> _save() async {
     final user = ref.read(currentUserProvider);
     if (user?.id == null) {
-      setState(() => _error = 'Not signed in.');
+      setState(() => _error = 'Niste prijavljeni.');
       return;
     }
-    final first = _first.text.trim();
-    final last = _last.text.trim();
-    if (first.isEmpty || last.isEmpty) {
-      setState(() => _error = 'Please enter your first and last name.');
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
     if (_dob.isAfter(DateTime.now())) {
-      setState(() => _error = 'Date of birth cannot be in the future.');
+      setState(() => _error = 'Datum rođenja ne može biti u budućnosti.');
       return;
     }
     setState(() {
@@ -64,8 +74,8 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
       await ref.read(patientApiProvider).patientPost(
             patientUpsertRequest: PatientUpsertRequest(
               userId: user!.id!,
-              firstName: first,
-              lastName: last,
+              firstName: _first.text.trim(),
+              lastName: _last.text.trim(),
               phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
               dateOfBirth: _dob,
             ),
@@ -74,7 +84,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
       Navigator.of(context).pushReplacementNamed(AppRoutes.patientShell);
     } catch (e) {
       setState(() => _error = extractApiErrorMessage(e,
-          fallback: 'Could not save the profile. Please try again.'));
+          fallback: 'Profil nije moguće spasiti. Pokušajte ponovo.'));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -83,61 +93,70 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Complete patient profile')),
+      appBar: AppBar(title: const Text('Dopuna pacijentskog profila')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 440),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'We need a few details to set up your patient record for appointments.',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                const SizedBox(height: 20),
-                TextField(
-                  controller: _first,
-                  decoration: const InputDecoration(labelText: 'First name'),
-                  textCapitalization: TextCapitalization.words,
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _last,
-                  decoration: const InputDecoration(labelText: 'Last name'),
-                  textCapitalization: TextCapitalization.words,
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _phone,
-                  decoration: const InputDecoration(labelText: 'Phone (optional)'),
-                  keyboardType: TextInputType.phone,
-                ),
-                const SizedBox(height: 8),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Date of birth'),
-                  subtitle: Text(MaterialLocalizations.of(context).formatFullDate(_dob)),
-                  trailing: const Icon(Icons.calendar_today),
-                  onTap: _pickDob,
-                ),
-                if (_error != null) ...[
-                  const SizedBox(height: 12),
-                  Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Trebamo još nekoliko podataka da kreiramo vaš pacijentski karton za termine.',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    controller: _first,
+                    decoration: const InputDecoration(labelText: 'Ime'),
+                    textCapitalization: TextCapitalization.words,
+                    validator: (v) => _required(v, 'Ime'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _last,
+                    decoration: const InputDecoration(labelText: 'Prezime'),
+                    textCapitalization: TextCapitalization.words,
+                    validator: (v) => _required(v, 'Prezime'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _phone,
+                    decoration: const InputDecoration(
+                      labelText: 'Telefon (opcionalno)',
+                      helperText: 'Npr. +387 61 123 456',
+                    ),
+                    keyboardType: TextInputType.phone,
+                    validator: _validatePhone,
+                  ),
+                  const SizedBox(height: 8),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Datum rođenja'),
+                    subtitle: Text(MaterialLocalizations.of(context).formatFullDate(_dob)),
+                    trailing: const Icon(Icons.calendar_today),
+                    onTap: _pickDob,
+                  ),
+                  if (_error != null) ...[
+                    const SizedBox(height: 12),
+                    Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                  ],
+                  const SizedBox(height: 24),
+                  FilledButton(
+                    onPressed: _loading ? null : _save,
+                    child: _loading
+                        ? const SizedBox(
+                            height: 22,
+                            width: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Spasi i nastavi'),
+                  ),
                 ],
-                const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: _loading ? null : _save,
-                  child: _loading
-                      ? const SizedBox(
-                          height: 22,
-                          width: 22,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Save and continue'),
-                ),
-              ],
+              ),
             ),
           ),
         ),

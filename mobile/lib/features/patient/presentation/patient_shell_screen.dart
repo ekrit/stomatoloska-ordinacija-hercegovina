@@ -8,6 +8,7 @@ import '../../../core/api/api_providers.dart';
 import '../../../core/api/soh_extra_api.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/storage/auth_storage.dart';
+import '../../../core/utils/api_errors.dart';
 import '../../../widgets/user_appbar_actions.dart' show decodeUserPictureBytes, showLogoutConfirm;
 import '../../home/presentation/home_screen.dart';
 import 'notification_poll_provider.dart';
@@ -360,7 +361,8 @@ class _PatientNotificationsSheetState extends ConsumerState<_PatientNotification
         if (snap.hasError) {
           return Padding(
             padding: const EdgeInsets.all(24),
-            child: Text('Could not load notifications: ${snap.error}'),
+            child: Text(extractApiErrorMessage(snap.error,
+                fallback: 'Could not load notifications.')),
           );
         }
         final items = snap.data ?? [];
@@ -416,7 +418,10 @@ class _PatientNotificationsSheetState extends ConsumerState<_PatientNotification
                       } catch (e) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Could not mark as read: $e')),
+                            SnackBar(
+                              content: Text(extractApiErrorMessage(e,
+                                  fallback: 'Could not mark as read.')),
+                            ),
                           );
                         }
                         return;

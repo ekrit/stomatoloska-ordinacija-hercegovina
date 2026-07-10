@@ -78,16 +78,14 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       ..setNavigationDelegate(
         NavigationDelegate(
           onNavigationRequest: (request) {
-            final url = request.url;
-            if (url.contains('/paypal/return')) {
-              _capture();
-              return NavigationDecision.prevent;
-            }
-            if (url.contains('/paypal/cancel')) {
-              if (mounted) Navigator.of(context).pop(false);
-              return NavigationDecision.prevent;
-            }
-            return NavigationDecision.navigate;
+            final handled = _handleReturnUrl(request.url);
+            return handled ? NavigationDecision.prevent : NavigationDecision.navigate;
+          },
+          // Fallback: some redirect chains (HTTP 30x) bypass
+          // onNavigationRequest, so also watch the effective URL.
+          onUrlChange: (change) {
+            final url = change.url;
+            if (url != null) _handleReturnUrl(url);
           },
         ),
       )
@@ -97,6 +95,28 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       _webController = controller;
       _phase = _Phase.paying;
     });
+  }
+
+  bool _returnHandled = false;
+
+  /// Returns true when the URL is one of our PayPal return/cancel routes
+  /// and was acted upon (only once, even if both callbacks fire).
+  bool _handleReturnUrl(String url) {
+    if (url.contains('/paypal/return')) {
+      if (!_returnHandled) {
+        _returnHandled = true;
+        _capture();
+      }
+      return true;
+    }
+    if (url.contains('/paypal/cancel')) {
+      if (!_returnHandled) {
+        _returnHandled = true;
+        if (mounted) Navigator.of(context).pop(false);
+      }
+      return true;
+    }
+    return false;
   }
 
   Future<void> _capture() async {

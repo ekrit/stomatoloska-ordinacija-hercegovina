@@ -8,6 +8,7 @@ import 'package:soh_api/api.dart';
 import '../../../../core/api/api_providers.dart';
 import '../../../../core/api/soh_extra_api.dart';
 import '../../../../core/utils/api_errors.dart';
+import '../../../../widgets/user_appbar_actions.dart' show decodeUserPictureBytes;
 
 /// Patient self-edit profile screen for the mobile app.
 ///
@@ -243,22 +244,19 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
   }
 
   Widget? _picturePreview() {
-    final raw = _pictureBase64;
-    if (raw == null || raw.isEmpty) return null;
-    try {
-      final bytes = base64Decode(raw);
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(60),
-        child: Image.memory(
-          bytes,
-          width: 96,
-          height: 96,
-          fit: BoxFit.cover,
-        ),
-      );
-    } catch (_) {
-      return null;
-    }
+    // Decoding is memoized in decodeUserPictureBytes, so calling this from
+    // build() does not re-decode the image on every frame.
+    final bytes = decodeUserPictureBytes(_pictureBase64);
+    if (bytes == null) return null;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(60),
+      child: Image.memory(
+        bytes,
+        width: 96,
+        height: 96,
+        fit: BoxFit.cover,
+      ),
+    );
   }
 
   int? _dropdownValue(List<dynamic> items, int? selected) {
