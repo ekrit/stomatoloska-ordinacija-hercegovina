@@ -361,7 +361,8 @@ class _PatientNotificationsSheetState extends ConsumerState<_PatientNotification
         if (snap.hasError) {
           return Padding(
             padding: const EdgeInsets.all(24),
-            child: Text(extractApiErrorMessage(snap.error,
+            child: Text(extractApiErrorMessage(
+                snap.error ?? 'unknown',
                 fallback: 'Could not load notifications.')),
           );
         }

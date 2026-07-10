@@ -16,7 +16,7 @@ dependencies:
   shared_preferences: ^2.5.3
   table_calendar: ^3.2.0
   file_picker: ^8.1.7
-  intl: ^0.19.0
+  intl: ^0.20.2
   soh_api:
     path: packages/soh_api
   webview_flutter: ^4.13.1
