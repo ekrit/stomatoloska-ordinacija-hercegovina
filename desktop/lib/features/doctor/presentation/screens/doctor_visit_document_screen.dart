@@ -157,7 +157,7 @@ class _DoctorVisitDocumentScreenState
       ref.invalidate(medicalRecordsProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Saved.')),
+          const SnackBar(content: Text('Findings saved and visible to the patient.')),
         );
         Navigator.of(context).pop();
       }

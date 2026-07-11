@@ -83,18 +83,21 @@ class AdminPaymentsListScreen extends ConsumerWidget {
                         '${(p.amount ?? 0).toStringAsFixed(2)} ${p.method ?? ''} · ${_statusLabel(p.status)}',
                       ),
                       subtitle: Text(
-                        'Appointment #${p.appointmentId ?? '—'}'
-                        '${p.createdAt != null ? ' · ${df.format(p.createdAt!)}' : ''}'
+                        '${p.createdAt != null ? df.format(p.createdAt!) : '—'}'
                         '${(p.transactionRef ?? '').isNotEmpty ? '\nRef: ${p.transactionRef}' : ''}',
                       ),
                       isThreeLine: (p.transactionRef ?? '').isNotEmpty,
-                      trailing: canRefund
-                          ? OutlinedButton.icon(
-                              icon: const Icon(Icons.currency_exchange, size: 18),
-                              label: const Text('Refund'),
-                              onPressed: () => _confirmRefund(context, ref, p.id!),
-                            )
-                          : null,
+                      trailing: Tooltip(
+                        message: canRefund
+                            ? 'Refund this payment via PayPal'
+                            : 'Refund is only available for paid payments.',
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.currency_exchange, size: 18),
+                          label: const Text('Refund'),
+                          onPressed:
+                              canRefund ? () => _confirmRefund(context, ref, p.id!) : null,
+                        ),
+                      ),
                     );
                   },
                 );

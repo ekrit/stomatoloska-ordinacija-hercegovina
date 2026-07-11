@@ -48,3 +48,9 @@ final doctorsProvider = FutureProvider<List<Doctor>>((ref) {
 final recentActivityProvider = FutureProvider<RecentActivity>((ref) {
   return ref.watch(dashboardRepositoryProvider).fetchRecentActivity(take: 30);
 });
+
+/// Third dashboard chart: user engagement as new patient registrations
+/// per month.
+final patientGrowthProvider = FutureProvider<AppointmentStats>((ref) {
+  return ref.watch(dashboardRepositoryProvider).fetchMonthlyNewPatients(months: 6);
+});

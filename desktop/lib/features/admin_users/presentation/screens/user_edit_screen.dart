@@ -8,6 +8,8 @@ import 'package:soh_api/api.dart';
 import '../../../../core/api/api_providers.dart';
 import '../../../../core/api/soh_extra_api.dart';
 import '../../../../core/utils/api_errors.dart';
+import '../../../../widgets/user_appbar_actions.dart'
+    show decodeUserPictureBytes;
 
 class UserEditScreen extends ConsumerStatefulWidget {
   const UserEditScreen({super.key, required this.userId});
@@ -19,6 +21,7 @@ class UserEditScreen extends ConsumerStatefulWidget {
 }
 
 class _UserEditScreenState extends ConsumerState<UserEditScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _firstName = TextEditingController();
   final _lastName = TextEditingController();
   final _email = TextEditingController();
@@ -108,11 +111,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
       _isActive = user.isActive ?? true;
       _roleIds
         ..clear()
-        ..addAll(
-          (user.roles ?? [])
-              .map((r) => r.id)
-              .whereType<int>(),
-        );
+        ..addAll((user.roles ?? []).map((r) => r.id).whereType<int>());
       _genders = gendersPage?.items ?? [];
       _cities = citiesPage?.items ?? [];
       _roles = rolesPage?.items ?? [];
@@ -125,8 +124,10 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = extractApiErrorMessage(e,
-            fallback: 'Could not load the user.');
+        _error = extractApiErrorMessage(
+          e,
+          fallback: 'Could not load the user.',
+        );
         _loading = false;
       });
     }
@@ -147,6 +148,15 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
     });
   }
 
+  static String _displayName(UserResponse u) {
+    final name = [u.firstName, u.lastName]
+        .whereType<String>()
+        .map((p) => p.trim())
+        .where((p) => p.isNotEmpty)
+        .join(' ');
+    return name.isNotEmpty ? name : (u.username ?? '');
+  }
+
   String _formatDate(DateTime? d) {
     if (d == null) return '—';
     final local = d.toLocal();
@@ -154,7 +164,29 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
         '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
   }
 
+  String? _validateRequired(String? raw, String field) {
+    final v = (raw ?? '').trim();
+    return v.isEmpty ? '$field is required.' : null;
+  }
+
+  String? _validateEmail(String? raw) {
+    final v = (raw ?? '').trim();
+    if (v.isEmpty) return 'Email is required.';
+    final ok = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(v);
+    return ok ? null : 'Enter a valid email (e.g. name@example.com).';
+  }
+
+  String? _validatePhone(String? raw) {
+    final v = (raw ?? '').trim();
+    if (v.isEmpty) return null; // optional
+    final ok = RegExp(r'^[+0-9\s().-]{6,20}$').hasMatch(v);
+    return ok
+        ? null
+        : 'Enter a valid phone (digits, spaces, +, -, (), 6-20 chars).';
+  }
+
   Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
     final pwd = _password.text;
     final confirm = _confirmPassword.text;
     final isSelf = ref.read(currentUserProvider)?.id == widget.userId;
@@ -167,14 +199,18 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
       }
       if (pwd.length < 4) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Password must be at least 4 characters.')),
+          const SnackBar(
+            content: Text('Password must be at least 4 characters.'),
+          ),
         );
         return;
       }
       // Changing your own password requires confirming the current one.
       if (isSelf && _currentPassword.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Enter your current password to change it.')),
+          const SnackBar(
+            content: Text('Enter your current password to change it.'),
+          ),
         );
         return;
       }
@@ -183,9 +219,9 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
     final gid = _genderId;
     final cid = _cityId;
     if (gid == null || cid == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Select gender and city.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Select gender and city.')));
       return;
     }
 
@@ -208,36 +244,37 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
         picture: _pictureUpdated ? _pictureBase64 : null,
       );
 
-      await ref.read(usersApiProvider).usersIdPut(
-            widget.userId,
-            userUpsertRequest: req,
-          );
+      await ref
+          .read(usersApiProvider)
+          .usersIdPut(widget.userId, userUpsertRequest: req);
 
       if (isSelf && pwd.isNotEmpty) {
-        await SohExtraApi(ref.read(apiClientProvider)).changePassword(
-          widget.userId,
-          _currentPassword.text,
-          pwd,
-        );
+        await SohExtraApi(
+          ref.read(apiClientProvider),
+        ).changePassword(widget.userId, _currentPassword.text, pwd);
       }
 
       final me = ref.read(currentUserProvider);
       if (me?.id == widget.userId) {
-        final fresh =
-            await ref.read(usersApiProvider).usersIdGet(widget.userId);
+        final fresh = await ref
+            .read(usersApiProvider)
+            .usersIdGet(widget.userId);
         ref.read(currentUserProvider.notifier).state = fresh;
       }
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User saved.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('User saved.')));
       Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(extractApiErrorMessage(e,
-            fallback: 'Could not save the user.'))),
+        SnackBar(
+          content: Text(
+            extractApiErrorMessage(e, fallback: 'Could not save the user.'),
+          ),
+        ),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -245,22 +282,13 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
   }
 
   Widget? _buildPicturePreview() {
-    final raw = _pictureBase64;
-    if (raw == null || raw.isEmpty) return null;
-    try {
-      final bytes = base64Decode(raw);
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Image.memory(
-          bytes,
-          width: 120,
-          height: 120,
-          fit: BoxFit.cover,
-        ),
-      );
-    } catch (_) {
-      return const Text('Could not decode image.');
-    }
+    // decodeUserPictureBytes memoizes, so build() never re-decodes base64.
+    final bytes = decodeUserPictureBytes(_pictureBase64);
+    if (bytes == null) return null;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Image.memory(bytes, width: 120, height: 120, fit: BoxFit.cover),
+    );
   }
 
   int? _dropdownGenderValue() {
@@ -287,7 +315,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         title: Text(
-          u != null ? 'Edit user #${u.id}' : 'Edit user',
+          u != null ? 'Edit user — ${_displayName(u)}' : 'Edit user',
           style: const TextStyle(color: Colors.black),
         ),
         actions: [
@@ -307,256 +335,258 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(_error!, textAlign: TextAlign.center),
+                    const SizedBox(height: 16),
+                    FilledButton(onPressed: _load, child: const Text('Retry')),
+                  ],
+                ),
+              ),
+            )
+          : u == null
+          ? const Center(child: Text('User not found.'))
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  child: Form(
+                    key: _formKey,
                     child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(_error!, textAlign: TextAlign.center),
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'System',
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(height: 8),
+                                Text('Username: ${u.username ?? '—'}'),
+                                Text('Created: ${_formatDate(u.createdAt)}'),
+                                Text(
+                                  'Last login: ${_formatDate(u.lastLoginAt)}',
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 16),
-                        FilledButton(
-                          onPressed: _load,
-                          child: const Text('Retry'),
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Text(
+                                  'Profile',
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (picturePreview != null) ...[
+                                      picturePreview,
+                                      const SizedBox(width: 16),
+                                    ],
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        onPressed: _pickPicture,
+                                        icon: const Icon(
+                                          Icons.photo_library_outlined,
+                                        ),
+                                        label: const Text('Pick image'),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _firstName,
+                                  decoration: const InputDecoration(
+                                    labelText: 'First name',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  validator: (v) =>
+                                      _validateRequired(v, 'First name'),
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: _lastName,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Last name',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  validator: (v) =>
+                                      _validateRequired(v, 'Last name'),
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: _email,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Email',
+                                    helperText: 'Format: name@example.com',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  keyboardType: TextInputType.emailAddress,
+                                  validator: _validateEmail,
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: _username,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Username',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  validator: (v) =>
+                                      _validateRequired(v, 'Username'),
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: _phone,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Phone',
+                                    helperText: 'E.g. +387 61 123 456',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  keyboardType: TextInputType.phone,
+                                  validator: _validatePhone,
+                                ),
+                                const SizedBox(height: 12),
+                                DropdownButtonFormField<int>(
+                                  value: _dropdownGenderValue(),
+                                  decoration: const InputDecoration(
+                                    labelText: 'Gender',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  items: _genders
+                                      .where((g) => g.id != null)
+                                      .map(
+                                        (g) => DropdownMenuItem(
+                                          value: g.id,
+                                          child: Text(g.name ?? ''),
+                                        ),
+                                      )
+                                      .toList(),
+                                  onChanged: (v) =>
+                                      setState(() => _genderId = v),
+                                ),
+                                const SizedBox(height: 12),
+                                DropdownButtonFormField<int>(
+                                  value: _dropdownCityValue(),
+                                  decoration: const InputDecoration(
+                                    labelText: 'City',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  items: _cities
+                                      .where((c) => c.id != null)
+                                      .map(
+                                        (c) => DropdownMenuItem(
+                                          value: c.id,
+                                          child: Text(c.name ?? ''),
+                                        ),
+                                      )
+                                      .toList(),
+                                  onChanged: (v) => setState(() => _cityId = v),
+                                ),
+                                const SizedBox(height: 12),
+                                SwitchListTile(
+                                  title: const Text('Active'),
+                                  value: _isActive,
+                                  onChanged: (v) =>
+                                      setState(() => _isActive = v),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Roles',
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: _roles
+                                      .where((r) => r.id != null)
+                                      .map((r) {
+                                        final id = r.id!;
+                                        final selected = _roleIds.contains(id);
+                                        return FilterChip(
+                                          label: Text(r.name ?? ''),
+                                          selected: selected,
+                                          onSelected: (v) {
+                                            setState(() {
+                                              if (v) {
+                                                _roleIds.add(id);
+                                              } else {
+                                                _roleIds.remove(id);
+                                              }
+                                            });
+                                          },
+                                        );
+                                      })
+                                      .toList(),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'New password (optional)',
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(height: 8),
+                                if (ref.read(currentUserProvider)?.id ==
+                                    widget.userId) ...[
+                                  TextField(
+                                    controller: _currentPassword,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Current password',
+                                      helperText:
+                                          'Required only when changing your own password.',
+                                      border: OutlineInputBorder(),
+                                    ),
+                                    obscureText: true,
+                                  ),
+                                  const SizedBox(height: 12),
+                                ],
+                                TextField(
+                                  controller: _password,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Password',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  obscureText: true,
+                                ),
+                                const SizedBox(height: 12),
+                                TextField(
+                                  controller: _confirmPassword,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Confirm password',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  obscureText: true,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
-                )
-              : u == null
-                  ? const Center(child: Text('User not found.'))
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 560),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Card(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'System',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleSmall
-                                            ?.copyWith(fontWeight: FontWeight.w600),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text('Id: ${u.id}'),
-                                      Text('Created: ${_formatDate(u.createdAt)}'),
-                                      Text('Last login: ${_formatDate(u.lastLoginAt)}'),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              Card(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: [
-                                      Text(
-                                        'Profile',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleSmall
-                                            ?.copyWith(fontWeight: FontWeight.w600),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Row(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          if (picturePreview != null) ...[
-                                            picturePreview,
-                                            const SizedBox(width: 16),
-                                          ],
-                                          Expanded(
-                                            child: OutlinedButton.icon(
-                                              onPressed: _pickPicture,
-                                              icon: const Icon(Icons.photo_library_outlined),
-                                              label: const Text('Pick image'),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 16),
-                                      TextField(
-                                        controller: _firstName,
-                                        decoration: const InputDecoration(
-                                          labelText: 'First name',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      TextField(
-                                        controller: _lastName,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Last name',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      TextField(
-                                        controller: _email,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Email',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        keyboardType: TextInputType.emailAddress,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      TextField(
-                                        controller: _username,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Username',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      TextField(
-                                        controller: _phone,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Phone',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        keyboardType: TextInputType.phone,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      DropdownButtonFormField<int>(
-                                        value: _dropdownGenderValue(),
-                                        decoration: const InputDecoration(
-                                          labelText: 'Gender',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        items: _genders
-                                            .where((g) => g.id != null)
-                                            .map(
-                                              (g) => DropdownMenuItem(
-                                                value: g.id,
-                                                child: Text(g.name ?? ''),
-                                              ),
-                                            )
-                                            .toList(),
-                                        onChanged: (v) =>
-                                            setState(() => _genderId = v),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      DropdownButtonFormField<int>(
-                                        value: _dropdownCityValue(),
-                                        decoration: const InputDecoration(
-                                          labelText: 'City',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        items: _cities
-                                            .where((c) => c.id != null)
-                                            .map(
-                                              (c) => DropdownMenuItem(
-                                                value: c.id,
-                                                child: Text(c.name ?? ''),
-                                              ),
-                                            )
-                                            .toList(),
-                                        onChanged: (v) =>
-                                            setState(() => _cityId = v),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      SwitchListTile(
-                                        title: const Text('Active'),
-                                        value: _isActive,
-                                        onChanged: (v) =>
-                                            setState(() => _isActive = v),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Roles',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleSmall
-                                            ?.copyWith(fontWeight: FontWeight.w600),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Wrap(
-                                        spacing: 8,
-                                        runSpacing: 8,
-                                        children: _roles
-                                            .where((r) => r.id != null)
-                                            .map(
-                                              (r) {
-                                                final id = r.id!;
-                                                final selected =
-                                                    _roleIds.contains(id);
-                                                return FilterChip(
-                                                  label: Text(r.name ?? ''),
-                                                  selected: selected,
-                                                  onSelected: (v) {
-                                                    setState(() {
-                                                      if (v) {
-                                                        _roleIds.add(id);
-                                                      } else {
-                                                        _roleIds.remove(id);
-                                                      }
-                                                    });
-                                                  },
-                                                );
-                                              },
-                                            )
-                                            .toList(),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        'New password (optional)',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleSmall
-                                            ?.copyWith(fontWeight: FontWeight.w600),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      if (ref.read(currentUserProvider)?.id ==
-                                          widget.userId) ...[
-                                        TextField(
-                                          controller: _currentPassword,
-                                          decoration: const InputDecoration(
-                                            labelText: 'Current password',
-                                            helperText:
-                                                'Required only when changing your own password.',
-                                            border: OutlineInputBorder(),
-                                          ),
-                                          obscureText: true,
-                                        ),
-                                        const SizedBox(height: 12),
-                                      ],
-                                      TextField(
-                                        controller: _password,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Password',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        obscureText: true,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      TextField(
-                                        controller: _confirmPassword,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Confirm password',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        obscureText: true,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                ),
+              ),
+            ),
     );
   }
 }

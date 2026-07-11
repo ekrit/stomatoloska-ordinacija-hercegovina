@@ -314,7 +314,9 @@ class _AppointmentList extends ConsumerWidget {
       ref.invalidate(_doctorAppointmentsProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next == AppointmentStatuses.accepted ? 'Accepted.' : 'Rejected.')),
+          SnackBar(content: Text(next == AppointmentStatuses.accepted
+              ? 'Appointment request accepted; the patient was notified.'
+              : 'Appointment request rejected; the patient was notified.')),
         );
       }
     } catch (e) {

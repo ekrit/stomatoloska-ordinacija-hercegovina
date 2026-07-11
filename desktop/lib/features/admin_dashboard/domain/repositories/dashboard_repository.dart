@@ -8,4 +8,5 @@ abstract class DashboardRepository {
   Future<AppointmentStats> fetchAppointmentStats();
   Future<RevenueStats> fetchRevenueStats();
   Future<RecentActivity> fetchRecentActivity({int take = 30});
+  Future<AppointmentStats> fetchMonthlyNewPatients({int months = 6});
 }

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:soh_api/api.dart';
 
 import '../models/activity_log_entry.dart';
+import '../models/appointment_stats.dart';
 import '../models/dashboard_stats.dart';
 import 'dashboard_api_service.dart';
 
@@ -52,5 +53,25 @@ class DashboardApiServiceImpl implements DashboardApiService {
       return const RecentActivity(items: [], totalCount: 0);
     }
     return RecentActivity.fromJson(decoded);
+  }
+
+  @override
+  Future<AppointmentStats> fetchMonthlyNewPatients({int months = 6}) async {
+    final response = await _apiClient.invokeAPI(
+      '/admin-dashboard/patients/monthly',
+      'GET',
+      [QueryParam('months', months.toString())],
+      null,
+      {},
+      {},
+      null,
+    );
+
+    if (response.statusCode >= 400) {
+      throw ApiException(response.statusCode, response.body);
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return AppointmentStats.fromJson(data);
   }
 }

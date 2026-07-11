@@ -166,7 +166,7 @@ class _AdminAppointmentEditScreenState extends ConsumerState<AdminAppointmentEdi
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Appointment #${a.id ?? ''}'),
+        title: const Text('Edit appointment'),
         actions: [
           if (a.id != null)
             IconButton(

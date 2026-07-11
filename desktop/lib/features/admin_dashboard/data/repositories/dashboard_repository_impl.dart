@@ -35,4 +35,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
   Future<RecentActivity> fetchRecentActivity({int take = 30}) {
     return _dashboardApi.fetchRecentActivity(take: take);
   }
+
+  @override
+  Future<AppointmentStats> fetchMonthlyNewPatients({int months = 6}) {
+    return _dashboardApi.fetchMonthlyNewPatients(months: months);
+  }
 }

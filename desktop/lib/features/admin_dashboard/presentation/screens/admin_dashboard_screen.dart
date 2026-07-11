@@ -144,7 +144,25 @@ class AdminDashboardScreen extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        _buildStaffSpotlight(ref),
+                        SizedBox(
+                          height: AdminDashboardScreen._insightsRowHeight,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                child: _DashboardPanel(
+                                  title: 'Patient Growth (new registrations)',
+                                  child: _buildPatientGrowthChart(ref),
+                                ),
+                              ),
+                              const SizedBox(width: 24),
+                              Expanded(
+                                flex: 2,
+                                child: _buildStaffSpotlight(ref),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     )
                   else
@@ -163,6 +181,14 @@ class AdminDashboardScreen extends ConsumerWidget {
                           child: _DashboardPanel(
                             title: 'Service Revenue Breakdown',
                             child: _buildRevenueChart(ref),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          height: AdminDashboardScreen._insightsRowHeight,
+                          child: _DashboardPanel(
+                            title: 'Patient Growth (new registrations)',
+                            child: _buildPatientGrowthChart(ref),
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -340,6 +366,15 @@ class AdminDashboardScreen extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Text('Failed to load revenue: $error'),
       data: (stats) => RevenueBreakdownChart(stats: stats),
+    );
+  }
+
+  Widget _buildPatientGrowthChart(WidgetRef ref) {
+    final statsAsync = ref.watch(patientGrowthProvider);
+    return statsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => Text('Failed to load patient growth: $error'),
+      data: (stats) => MonthlyAppointmentsChart(stats: stats),
     );
   }
 

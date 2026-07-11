@@ -5,6 +5,7 @@ import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
 import '../../../../core/utils/appointment_labels.dart';
+import '../../../../widgets/user_appbar_actions.dart' show decodeUserPictureBytes;
 import '../../../admin_users/presentation/screens/user_edit_screen.dart';
 
 final _adminSearchProvider = FutureProvider.autoDispose
@@ -94,7 +95,13 @@ class AdminSearchScreen extends ConsumerWidget {
                 Text('Users', style: Theme.of(context).textTheme.titleMedium),
                 ...data.users.map(
                   (u) => ListTile(
-                    leading: const Icon(Icons.person_outline),
+                    leading: Builder(builder: (context) {
+                      final pic = decodeUserPictureBytes(u.picture);
+                      return CircleAvatar(
+                        backgroundImage: pic != null ? MemoryImage(pic) : null,
+                        child: pic == null ? const Icon(Icons.person_outline) : null,
+                      );
+                    }),
                     title: Text('${u.firstName ?? ''} ${u.lastName ?? ''}'.trim()),
                     subtitle: Text(u.email ?? u.username ?? ''),
                     onTap: u.id == null
@@ -116,7 +123,7 @@ class AdminSearchScreen extends ConsumerWidget {
                   (p) => ListTile(
                     leading: const Icon(Icons.badge_outlined),
                     title: Text('${p.firstName ?? ''} ${p.lastName ?? ''}'.trim()),
-                    subtitle: Text('User ID: ${p.userId ?? '—'}'),
+                    subtitle: Text((p.phone ?? '').trim().isNotEmpty ? p.phone!.trim() : 'Patient record'),
                     onTap: p.userId == null
                         ? null
                         : () {
@@ -159,9 +166,7 @@ class AdminSearchScreen extends ConsumerWidget {
                     return ListTile(
                       leading: const Icon(Icons.event_note_outlined),
                       title: Text(when),
-                      subtitle: Text(
-                        'ID ${a.id ?? '—'} · ${appointmentStatusLabel(a.status)}',
-                      ),
+                      subtitle: Text(appointmentStatusLabel(a.status)),
                     );
                   },
                 ),

@@ -53,7 +53,6 @@ class QuickActionsGrid extends StatelessWidget {
 
     return GridView.builder(
       shrinkWrap: false,
-      physics: const NeverScrollableScrollPhysics(),
       itemCount: actions.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,

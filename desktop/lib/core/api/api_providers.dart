@@ -1,7 +1,12 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
 
+import '../app_globals.dart';
 import '../config/app_config.dart';
+import '../router/app_routes.dart';
+import '../storage/auth_storage.dart';
+import 'auth_aware_api_client.dart';
 
 final authTokenProvider = StateProvider<String?>((ref) => null);
 
@@ -17,15 +22,29 @@ String _normalizeApiBaseUrl(String raw) {
   return s;
 }
 
+/// Clears the local session and routes back to login. Triggered globally
+/// whenever the API answers 401 (expired/revoked token).
+void _handleUnauthorized(Ref ref) {
+  AuthStorage.clear();
+  ref.read(authTokenProvider.notifier).state = null;
+  ref.read(currentUserProvider.notifier).state = null;
+  final nav = rootNavigatorKey.currentState;
+  nav?.pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+}
+
 final apiClientProvider = Provider<ApiClient>((ref) {
   final token = ref.watch(authTokenProvider);
   final auth = HttpBearerAuth();
   if (token != null && token.isNotEmpty) {
     auth.accessToken = token;
   }
-  return ApiClient(
+  return AuthAwareApiClient(
     basePath: _normalizeApiBaseUrl(AppConfig.apiBaseUrl),
     authentication: auth,
+    onUnauthorized: () {
+      // Defer to the next microtask so we never mutate providers mid-build.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _handleUnauthorized(ref));
+    },
   );
 });
 
