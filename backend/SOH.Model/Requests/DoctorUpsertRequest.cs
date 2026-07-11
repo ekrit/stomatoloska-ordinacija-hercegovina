@@ -19,6 +19,9 @@ namespace SOH.Model.Requests
         [MaxLength(100)]
         public string Specialization { get; set; } = string.Empty;
 
+        [MaxLength(1000)]
+        public string? Bio { get; set; }
+
         public decimal Rating { get; set; }
     }
 }

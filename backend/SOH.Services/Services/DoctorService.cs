@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using SOH.Model.Exceptions;
 using SOH.Model.Requests;
 using SOH.Model.Responses;
 using SOH.Model.SearchObjects;
@@ -35,7 +37,28 @@ namespace SOH.Services.Services
                 query = query.Where(x => x.Specialization.Contains(search.Specialization));
             }
 
+            if (!string.IsNullOrEmpty(search.FTS))
+            {
+                query = query.Where(x =>
+                    x.FirstName.Contains(search.FTS) ||
+                    x.LastName.Contains(search.FTS) ||
+                    x.Specialization.Contains(search.FTS));
+            }
+
             return query;
+        }
+
+        protected override async Task BeforeDelete(Doctor entity)
+        {
+            if (await _context.Appointments.AnyAsync(a => a.DoctorId == entity.UserId))
+            {
+                throw new BusinessException("Doktor se ne može obrisati jer postoje termini koji ga koriste.");
+            }
+
+            if (await _context.Reviews.AnyAsync(r => r.DoctorId == entity.UserId))
+            {
+                throw new BusinessException("Doktor se ne može obrisati jer postoje recenzije koje ga koriste.");
+            }
         }
     }
 }

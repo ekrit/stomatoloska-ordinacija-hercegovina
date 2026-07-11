@@ -17,11 +17,11 @@ class AppointmentStatuses {
 }
 
 String appointmentStatusLabel(AppointmentStatus? status) {
-  if (status == null) return 'Unknown';
-  if (status == AppointmentStatuses.requested) return 'Requested';
-  if (status == AppointmentStatuses.accepted) return 'Accepted';
-  if (status == AppointmentStatuses.declined) return 'Declined';
-  if (status == AppointmentStatuses.completed) return 'Completed';
-  if (status == AppointmentStatuses.cancelled) return 'Cancelled';
-  return 'Unknown';
+  if (status == null) return 'Nepoznat';
+  if (status == AppointmentStatuses.requested) return 'Na čekanju';
+  if (status == AppointmentStatuses.accepted) return 'Prihvaćen';
+  if (status == AppointmentStatuses.declined) return 'Odbijen';
+  if (status == AppointmentStatuses.completed) return 'Završen';
+  if (status == AppointmentStatuses.cancelled) return 'Otkazan';
+  return 'Nepoznat';
 }

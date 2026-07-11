@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/app_globals.dart';
 import 'core/router/app_routes.dart';
 import 'features/admin_dashboard/presentation/screens/admin_dashboard_screen.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
@@ -25,7 +26,8 @@ class SohDesktopApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Dental Clinic Herzegovina - Staff',
+      title: 'Stomatološka Ordinacija Hercegovina — Osoblje',
+      navigatorKey: rootNavigatorKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(

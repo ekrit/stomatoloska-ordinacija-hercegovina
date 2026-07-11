@@ -8,9 +8,9 @@ import '../../../../core/storage/auth_storage.dart';
 import '../../../../core/utils/role_utils.dart';
 import '../../../patient/presentation/providers/patient_repository_providers.dart';
 
-/// Splash for the patient mobile app. Restores a patient session if one
-/// exists. Staff sessions are wiped and the user is sent to the login screen
-/// (with the mobile login refusing staff accounts).
+/// Splash for the mobile app. Restores a patient or doctor session if one
+/// exists. Admin sessions are wiped and the user is sent to the login screen
+/// (with the mobile login refusing admin accounts).
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
@@ -33,7 +33,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       if (!mounted) return;
 
       if (token != null && token.isNotEmpty) {
-        if (user != null && (userIsAdmin(user) || userIsDoctor(user))) {
+        if (user != null && userIsAdmin(user)) {
           await _clearSessionAndGoLogin();
           return;
         }
@@ -41,6 +41,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         ref.read(authTokenProvider.notifier).state = token;
         if (user != null) {
           ref.read(currentUserProvider.notifier).state = user;
+
+          if (userIsDoctor(user)) {
+            Navigator.of(context).pushReplacementNamed(AppRoutes.doctorShell);
+            return;
+          }
+
           if (user.id != null) {
             try {
               final existing = await ref

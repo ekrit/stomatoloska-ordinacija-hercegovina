@@ -22,18 +22,18 @@ class _AdminServicesListScreenState extends ConsumerState<AdminServicesListScree
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Services'),
+        title: const Text('Usluge'),
         actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _reload)],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openEditor(context),
         icon: const Icon(Icons.add),
-        label: const Text('Add service'),
+        label: const Text('Dodaj uslugu'),
       ),
       body: PaginatedSearchView<ServiceResponse>(
         refreshKey: _refresh,
-        searchHint: 'Search services…',
-        emptyLabel: 'No services found.',
+        searchHint: 'Pretraži usluge…',
+        emptyLabel: 'Nema pronađenih usluga.',
         fetch: (query, page, pageSize) async {
           final r = await ref.read(serviceApiProvider).serviceGet(
                 FTS: query.isEmpty ? null : query,
@@ -52,7 +52,7 @@ class _AdminServicesListScreenState extends ConsumerState<AdminServicesListScree
           isThreeLine: (s.description ?? '').isNotEmpty,
           trailing: IconButton(
             icon: const Icon(Icons.delete_outline),
-            tooltip: 'Delete',
+            tooltip: 'Obriši',
             onPressed: s.id == null ? null : () => _confirmDelete(context, s),
           ),
           onTap: () => _openEditor(context, service: s),
@@ -74,11 +74,11 @@ class _AdminServicesListScreenState extends ConsumerState<AdminServicesListScree
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete service?'),
+        title: const Text('Obrisati uslugu?'),
         content: Text('Remove "${s.name ?? 'this service'}"?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Odustani')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Obriši')),
         ],
       ),
     );
@@ -88,7 +88,7 @@ class _AdminServicesListScreenState extends ConsumerState<AdminServicesListScree
       _reload();
     } catch (e) {
       messenger.showSnackBar(
-        SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Could not delete the service.'))),
+        SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Uslugu nije moguće obrisati.'))),
       );
     }
   }
@@ -154,7 +154,7 @@ class _ServiceEditorDialogState extends ConsumerState<_ServiceEditorDialog> {
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
-      setState(() => _error = extractApiErrorMessage(e, fallback: 'Could not save the service.'));
+      setState(() => _error = extractApiErrorMessage(e, fallback: 'Uslugu nije moguće spasiti.'));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -163,7 +163,7 @@ class _ServiceEditorDialogState extends ConsumerState<_ServiceEditorDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(_isEditing ? 'Edit service' : 'Add service'),
+      title: Text(_isEditing ? 'Uredi uslugu' : 'Dodaj uslugu'),
       content: SizedBox(
         width: 420,
         child: Form(
@@ -173,24 +173,24 @@ class _ServiceEditorDialogState extends ConsumerState<_ServiceEditorDialog> {
             children: [
               TextFormField(
                 controller: _name,
-                decoration: const InputDecoration(labelText: 'Name', border: OutlineInputBorder()),
-                validator: (v) => (v ?? '').trim().isEmpty ? 'Name is required.' : null,
+                decoration: const InputDecoration(labelText: 'Naziv', border: OutlineInputBorder()),
+                validator: (v) => (v ?? '').trim().isEmpty ? 'Naziv je obavezan.' : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _description,
                 maxLines: 2,
-                decoration: const InputDecoration(labelText: 'Description', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: 'Opis', border: OutlineInputBorder()),
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _price,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(labelText: 'Price (EUR)', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: 'Cijena (KM)', border: OutlineInputBorder()),
                 validator: (v) {
                   final d = double.tryParse((v ?? '').trim().replaceAll(',', '.'));
-                  if (d == null) return 'Enter a valid price.';
-                  if (d < 0) return 'Price cannot be negative.';
+                  if (d == null) return 'Unesite validnu cijenu.';
+                  if (d < 0) return 'Cijena ne može biti negativna.';
                   return null;
                 },
               ),
@@ -198,11 +198,11 @@ class _ServiceEditorDialogState extends ConsumerState<_ServiceEditorDialog> {
               TextFormField(
                 controller: _duration,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Duration (minutes)', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: 'Trajanje (minute)', border: OutlineInputBorder()),
                 validator: (v) {
                   final n = int.tryParse((v ?? '').trim());
-                  if (n == null) return 'Enter a whole number of minutes.';
-                  if (n <= 0) return 'Duration must be positive.';
+                  if (n == null) return 'Unesite cijeli broj minuta.';
+                  if (n <= 0) return 'Trajanje mora biti pozitivno.';
                   return null;
                 },
               ),
@@ -215,12 +215,12 @@ class _ServiceEditorDialogState extends ConsumerState<_ServiceEditorDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: _saving ? null : () => Navigator.pop(context, false), child: const Text('Cancel')),
+        TextButton(onPressed: _saving ? null : () => Navigator.pop(context, false), child: const Text('Odustani')),
         FilledButton(
           onPressed: _saving ? null : _save,
           child: _saving
               ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-              : const Text('Save'),
+              : const Text('Spasi'),
         ),
       ],
     );

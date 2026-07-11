@@ -30,9 +30,7 @@ class RoomApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<Response> roomGetWithHttpInfo({ String? name, bool? isAvailable, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
+  Future<Response> roomGetWithHttpInfo({ String? name, bool? isAvailable, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
     // ignore: prefer_const_declarations
     final path = r'/Room';
 
@@ -60,9 +58,6 @@ class RoomApi {
     }
     if (includeTotalCount != null) {
       queryParams.addAll(_queryParams('', 'IncludeTotalCount', includeTotalCount));
-    }
-    if (retrieveAll != null) {
-      queryParams.addAll(_queryParams('', 'RetrieveAll', retrieveAll));
     }
 
     const contentTypes = <String>[];
@@ -92,10 +87,8 @@ class RoomApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<RoomResponsePagedResult?> roomGet({ String? name, bool? isAvailable, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
-    final response = await roomGetWithHttpInfo( name: name, isAvailable: isAvailable, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, retrieveAll: retrieveAll, );
+  Future<RoomResponsePagedResult?> roomGet({ String? name, bool? isAvailable, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
+    final response = await roomGetWithHttpInfo( name: name, isAvailable: isAvailable, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }

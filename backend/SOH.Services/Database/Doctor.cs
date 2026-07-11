@@ -22,6 +22,9 @@ namespace SOH.Services.Database
         [MaxLength(100)]
         public string Specialization { get; set; } = string.Empty;
 
+        [MaxLength(1000)]
+        public string? Bio { get; set; }
+
         [Precision(3, 2)]
         public decimal Rating { get; set; }
 

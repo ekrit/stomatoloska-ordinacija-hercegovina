@@ -18,6 +18,7 @@ public interface INotificationService
         int appointmentId,
         AppointmentStatus fromStatus,
         AppointmentStatus toStatus,
+        string? reason = null,
         CancellationToken cancellationToken = default);
 
     Task NotifyPaymentCapturedAsync(int patientUserId, int appointmentId, decimal amount, CancellationToken cancellationToken = default);

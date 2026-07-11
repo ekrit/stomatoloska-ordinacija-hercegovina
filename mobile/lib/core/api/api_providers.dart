@@ -99,3 +99,7 @@ final hygieneTrackerApiProvider = Provider<HygieneTrackerApi>(
 final orderApiProvider = Provider<OrderApi>(
   (ref) => OrderApi(ref.watch(apiClientProvider)),
 );
+
+final productCategoryApiProvider = Provider<ProductCategoryApi>(
+  (ref) => ProductCategoryApi(ref.watch(apiClientProvider)),
+);

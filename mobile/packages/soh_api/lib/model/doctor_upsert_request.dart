@@ -17,6 +17,7 @@ class DoctorUpsertRequest {
     required this.firstName,
     required this.lastName,
     required this.specialization,
+    this.bio,
     this.rating,
   });
 
@@ -27,6 +28,8 @@ class DoctorUpsertRequest {
   String lastName;
 
   String specialization;
+
+  String? bio;
 
   ///
   /// Please note: This property should have been non-nullable! Since the specification file
@@ -42,6 +45,7 @@ class DoctorUpsertRequest {
     other.firstName == firstName &&
     other.lastName == lastName &&
     other.specialization == specialization &&
+    other.bio == bio &&
     other.rating == rating;
 
   @override
@@ -51,10 +55,11 @@ class DoctorUpsertRequest {
     (firstName.hashCode) +
     (lastName.hashCode) +
     (specialization.hashCode) +
+    (bio == null ? 0 : bio!.hashCode) +
     (rating == null ? 0 : rating!.hashCode);
 
   @override
-  String toString() => 'DoctorUpsertRequest[userId=$userId, firstName=$firstName, lastName=$lastName, specialization=$specialization, rating=$rating]';
+  String toString() => 'DoctorUpsertRequest[userId=$userId, firstName=$firstName, lastName=$lastName, specialization=$specialization, bio=$bio, rating=$rating]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -62,6 +67,11 @@ class DoctorUpsertRequest {
       json[r'firstName'] = this.firstName;
       json[r'lastName'] = this.lastName;
       json[r'specialization'] = this.specialization;
+    if (this.bio != null) {
+      json[r'bio'] = this.bio;
+    } else {
+      json[r'bio'] = null;
+    }
     if (this.rating != null) {
       json[r'rating'] = this.rating;
     } else {
@@ -93,6 +103,7 @@ class DoctorUpsertRequest {
         firstName: mapValueOfType<String>(json, r'firstName')!,
         lastName: mapValueOfType<String>(json, r'lastName')!,
         specialization: mapValueOfType<String>(json, r'specialization')!,
+        bio: mapValueOfType<String>(json, r'bio'),
         rating: mapValueOfType<double>(json, r'rating'),
       );
     }

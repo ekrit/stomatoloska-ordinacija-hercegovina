@@ -46,7 +46,7 @@ namespace SOH.WebAPI.Filters
                 default:
                     statusCode = (int)HttpStatusCode.InternalServerError;
                     errorKey = "ERROR";
-                    errorMessage = "Server side error, please check logs";
+                    errorMessage = "Došlo je do greške na serveru. Pokušajte ponovo kasnije.";
                     break;
             }
 

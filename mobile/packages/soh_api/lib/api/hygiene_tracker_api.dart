@@ -32,9 +32,7 @@ class HygieneTrackerApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<Response> hygieneTrackerGetWithHttpInfo({ int? patientId, DateTime? dateFrom, DateTime? dateTo, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
+  Future<Response> hygieneTrackerGetWithHttpInfo({ int? patientId, DateTime? dateFrom, DateTime? dateTo, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
     // ignore: prefer_const_declarations
     final path = r'/HygieneTracker';
 
@@ -66,9 +64,6 @@ class HygieneTrackerApi {
     if (includeTotalCount != null) {
       queryParams.addAll(_queryParams('', 'IncludeTotalCount', includeTotalCount));
     }
-    if (retrieveAll != null) {
-      queryParams.addAll(_queryParams('', 'RetrieveAll', retrieveAll));
-    }
 
     const contentTypes = <String>[];
 
@@ -99,10 +94,8 @@ class HygieneTrackerApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<HygieneTrackerResponsePagedResult?> hygieneTrackerGet({ int? patientId, DateTime? dateFrom, DateTime? dateTo, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
-    final response = await hygieneTrackerGetWithHttpInfo( patientId: patientId, dateFrom: dateFrom, dateTo: dateTo, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, retrieveAll: retrieveAll, );
+  Future<HygieneTrackerResponsePagedResult?> hygieneTrackerGet({ int? patientId, DateTime? dateFrom, DateTime? dateTo, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
+    final response = await hygieneTrackerGetWithHttpInfo( patientId: patientId, dateFrom: dateFrom, dateTo: dateTo, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }

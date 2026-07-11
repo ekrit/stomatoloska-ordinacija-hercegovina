@@ -40,6 +40,7 @@ builder.Services.AddScoped<IMedicalRecordService, MedicalRecordService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IHygieneTrackerService, HygieneTrackerService>();
 builder.Services.AddScoped<IActivityLogService, ActivityLogService>();
@@ -58,6 +59,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDatabaseServices(connectionString);
 
 builder.Services.AddMapster();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserAccessor, HttpContextCurrentUserAccessor>();
 builder.Services.AddSingleton<IAppointmentReminderPublisher, AppointmentReminderPublisher>();
 builder.Services.AddSingleton<IRevokedTokenStore, RevokedTokenStore>();
 
@@ -189,16 +192,16 @@ using (var scope = app.Services.CreateScope())
 {
     var dataContext = scope.ServiceProvider.GetRequiredService<SOHDbContext>();
 
-
     var pendingMigrations = dataContext.Database.GetPendingMigrations().Any();
 
     if (pendingMigrations)
     {
-
         dataContext.Database.Migrate();
-
-
     }
+
+    // Demo/testing data (products with images, appointments in every status,
+    // reviews, orders, recommender signals). Idempotent per domain.
+    await RuntimeDataSeeder.SeedAsync(dataContext);
 }
 
 app.Run();

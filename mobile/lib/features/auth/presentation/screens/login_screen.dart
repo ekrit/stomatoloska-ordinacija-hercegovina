@@ -47,17 +47,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       );
       final token = response?.token;
       if (token == null || token.isEmpty) {
-        setState(() => _error = 'No token returned.');
+        setState(() => _error = 'Server nije vratio token.');
         return;
       }
 
       final user = response?.user;
 
-      // Mobile is patient-only. Reject staff accounts before we persist
-      // anything so the user is never half-signed-in.
-      if (user != null && (userIsAdmin(user) || userIsDoctor(user))) {
+      // Administrators manage the clinic from the desktop app; the mobile
+      // app serves patients and doctors.
+      if (user != null && userIsAdmin(user)) {
         setState(() => _error =
-            'This account is for clinic staff. Please use the desktop application to sign in.');
+            'Ovaj nalog je administratorski. Prijavite se putem desktop aplikacije.');
         return;
       }
 
@@ -70,6 +70,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
 
       if (!mounted) return;
+
+      if (userIsDoctor(user)) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.doctorShell);
+        return;
+      }
 
       if (user?.id != null) {
         final existing =
@@ -84,7 +89,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       Navigator.of(context).pushReplacementNamed(AppRoutes.patientShell);
     } catch (e) {
       setState(() => _error =
-          extractApiErrorMessage(e, fallback: 'Wrong username or password.'));
+          extractApiErrorMessage(e, fallback: 'Pogrešno korisničko ime ili lozinka.'));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -93,7 +98,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign in')),
+      appBar: AppBar(title: const Text('Prijava')),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -104,7 +109,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Dental Clinic Herzegovina',
+                    'Stomatološka Ordinacija Hercegovina',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
@@ -112,7 +117,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Book visits, view records, and stay on top of your oral health.',
+                    'Zakažite posjete, pregledajte nalaze i vodite računa o oralnom zdravlju.',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -121,7 +126,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 28),
                   TextField(
                     controller: _usernameController,
-                    decoration: const InputDecoration(labelText: 'Username'),
+                    decoration: const InputDecoration(labelText: 'Korisničko ime'),
                     textInputAction: TextInputAction.next,
                     autofillHints: const [AutofillHints.username],
                   ),
@@ -130,7 +135,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     controller: _passwordController,
                     obscureText: !_showPassword,
                     decoration: InputDecoration(
-                      labelText: 'Password',
+                      labelText: 'Lozinka',
                       suffixIcon: IconButton(
                         onPressed: () =>
                             setState(() => _showPassword = !_showPassword),
@@ -153,21 +158,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             width: 22,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Sign in'),
+                        : const Text('Prijava'),
                   ),
                   const SizedBox(height: 12),
                   OutlinedButton(
                     onPressed: _loading
                         ? null
                         : () => Navigator.pushNamed(context, AppRoutes.register),
-                    child: const Text('Create account'),
+                    child: const Text('Kreiraj nalog'),
                   ),
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: _loading
                         ? null
                         : () => Navigator.pushNamed(context, AppRoutes.guest),
-                    child: const Text('Continue as guest — clinic locations only'),
+                    child: const Text('Nastavi kao gost — samo lokacije ordinacija'),
                   ),
                   if (_error != null) ...[
                     const SizedBox(height: 16),

@@ -17,7 +17,7 @@ import 'package:soh_api/api.dart';
 /// timeout, malformed JSON, transient TLS error).
 String extractApiErrorMessage(
   Object error, {
-  String fallback = 'Something went wrong. Please try again.',
+  String fallback = 'Došlo je do greške. Pokušajte ponovo.',
 }) {
   if (error is ApiException) {
     final fromBody = _messageFromBody(error.message);
@@ -25,11 +25,11 @@ String extractApiErrorMessage(
       return fromBody;
     }
     final code = error.code;
-    if (code == 401) return 'Please sign in again to continue.';
-    if (code == 403) return 'You are not allowed to perform this action.';
-    if (code == 404) return 'We could not find what you were looking for.';
+    if (code == 401) return 'Prijavite se ponovo za nastavak.';
+    if (code == 403) return 'Nemate dozvolu za ovu radnju.';
+    if (code == 404) return 'Traženi sadržaj nije pronađen.';
     if (code >= 500 && code < 600) {
-      return 'The server is having trouble right now. Please try again shortly.';
+      return 'Server trenutno ima poteškoća. Pokušajte ponovo za koji trenutak.';
     }
     if (error.message != null && error.message!.isNotEmpty) {
       return error.message!;

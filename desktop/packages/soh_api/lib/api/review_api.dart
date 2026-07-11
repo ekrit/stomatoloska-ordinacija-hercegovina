@@ -34,9 +34,7 @@ class ReviewApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<Response> reviewGetWithHttpInfo({ int? appointmentId, int? patientId, int? doctorId, int? rating, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
+  Future<Response> reviewGetWithHttpInfo({ int? appointmentId, int? patientId, int? doctorId, int? rating, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
     // ignore: prefer_const_declarations
     final path = r'/Review';
 
@@ -71,9 +69,6 @@ class ReviewApi {
     if (includeTotalCount != null) {
       queryParams.addAll(_queryParams('', 'IncludeTotalCount', includeTotalCount));
     }
-    if (retrieveAll != null) {
-      queryParams.addAll(_queryParams('', 'RetrieveAll', retrieveAll));
-    }
 
     const contentTypes = <String>[];
 
@@ -106,10 +101,8 @@ class ReviewApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<ReviewResponsePagedResult?> reviewGet({ int? appointmentId, int? patientId, int? doctorId, int? rating, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
-    final response = await reviewGetWithHttpInfo( appointmentId: appointmentId, patientId: patientId, doctorId: doctorId, rating: rating, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, retrieveAll: retrieveAll, );
+  Future<ReviewResponsePagedResult?> reviewGet({ int? appointmentId, int? patientId, int? doctorId, int? rating, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
+    final response = await reviewGetWithHttpInfo( appointmentId: appointmentId, patientId: patientId, doctorId: doctorId, rating: rating, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }

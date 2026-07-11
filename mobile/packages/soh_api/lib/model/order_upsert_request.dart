@@ -15,42 +15,48 @@ class OrderUpsertRequest {
   OrderUpsertRequest({
     required this.patientId,
     required this.productId,
-    this.quantity = 1,
-    required this.totalAmount,
+    this.quantity,
   });
 
   int patientId;
 
   int productId;
 
-  int quantity;
-
-  double totalAmount;
+  /// Minimum value: 1
+  /// Maximum value: 1000
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
+  int? quantity;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is OrderUpsertRequest &&
     other.patientId == patientId &&
     other.productId == productId &&
-    other.quantity == quantity &&
-    other.totalAmount == totalAmount;
+    other.quantity == quantity;
 
   @override
   int get hashCode =>
     // ignore: unnecessary_parenthesis
     (patientId.hashCode) +
     (productId.hashCode) +
-    (quantity.hashCode) +
-    (totalAmount.hashCode);
+    (quantity == null ? 0 : quantity!.hashCode);
 
   @override
-  String toString() => 'OrderUpsertRequest[patientId=$patientId, productId=$productId, quantity=$quantity, totalAmount=$totalAmount]';
+  String toString() => 'OrderUpsertRequest[patientId=$patientId, productId=$productId, quantity=$quantity]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
       json[r'patientId'] = this.patientId;
       json[r'productId'] = this.productId;
+    if (this.quantity != null) {
       json[r'quantity'] = this.quantity;
-      json[r'totalAmount'] = this.totalAmount;
+    } else {
+      json[r'quantity'] = null;
+    }
     return json;
   }
 
@@ -75,8 +81,7 @@ class OrderUpsertRequest {
       return OrderUpsertRequest(
         patientId: mapValueOfType<int>(json, r'patientId')!,
         productId: mapValueOfType<int>(json, r'productId')!,
-        quantity: mapValueOfType<int>(json, r'quantity') ?? 1,
-        totalAmount: mapValueOfType<double>(json, r'totalAmount')!,
+        quantity: mapValueOfType<int>(json, r'quantity'),
       );
     }
     return null;
@@ -126,6 +131,6 @@ class OrderUpsertRequest {
   static const requiredKeys = <String>{
     'patientId',
     'productId',
-    'totalAmount',
   };
 }
+

@@ -16,6 +16,7 @@ dependencies:
   shared_preferences: ^2.5.3
   fl_chart: ^0.69.0
   file_picker: ^8.1.7
+  intl: ^0.20.2
   path_provider: ^2.1.5
   soh_api:
     path: packages/soh_api

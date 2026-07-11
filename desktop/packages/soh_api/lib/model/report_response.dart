@@ -16,7 +16,6 @@ class ReportResponse {
     this.id,
     this.type,
     this.generatedAt,
-    this.filePath,
     this.parameters,
   });
 
@@ -38,8 +37,6 @@ class ReportResponse {
   ///
   DateTime? generatedAt;
 
-  String? filePath;
-
   String? parameters;
 
   @override
@@ -47,7 +44,6 @@ class ReportResponse {
     other.id == id &&
     other.type == type &&
     other.generatedAt == generatedAt &&
-    other.filePath == filePath &&
     other.parameters == parameters;
 
   @override
@@ -56,11 +52,10 @@ class ReportResponse {
     (id == null ? 0 : id!.hashCode) +
     (type == null ? 0 : type!.hashCode) +
     (generatedAt == null ? 0 : generatedAt!.hashCode) +
-    (filePath == null ? 0 : filePath!.hashCode) +
     (parameters == null ? 0 : parameters!.hashCode);
 
   @override
-  String toString() => 'ReportResponse[id=$id, type=$type, generatedAt=$generatedAt, filePath=$filePath, parameters=$parameters]';
+  String toString() => 'ReportResponse[id=$id, type=$type, generatedAt=$generatedAt, parameters=$parameters]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -78,11 +73,6 @@ class ReportResponse {
       json[r'generatedAt'] = this.generatedAt!.toUtc().toIso8601String();
     } else {
       json[r'generatedAt'] = null;
-    }
-    if (this.filePath != null) {
-      json[r'filePath'] = this.filePath;
-    } else {
-      json[r'filePath'] = null;
     }
     if (this.parameters != null) {
       json[r'parameters'] = this.parameters;
@@ -114,7 +104,6 @@ class ReportResponse {
         id: mapValueOfType<int>(json, r'id'),
         type: mapValueOfType<String>(json, r'type'),
         generatedAt: mapDateTime(json, r'generatedAt', r''),
-        filePath: mapValueOfType<String>(json, r'filePath'),
         parameters: mapValueOfType<String>(json, r'parameters'),
       );
     }

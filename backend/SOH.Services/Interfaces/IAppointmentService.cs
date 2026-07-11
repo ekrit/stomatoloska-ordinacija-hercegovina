@@ -13,5 +13,11 @@ namespace SOH.Services.Interfaces
         /// through the centralized state machine.
         /// </summary>
         Task<AppointmentResponse> CancelOwnAsync(int appointmentId, int callerUserId, bool isPrivileged, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Throws unless the appointment is assigned to the given doctor.
+        /// Used to stop a doctor from updating another doctor's appointment.
+        /// </summary>
+        Task EnsureDoctorOwnsAsync(int appointmentId, int doctorUserId, CancellationToken cancellationToken = default);
     }
 }

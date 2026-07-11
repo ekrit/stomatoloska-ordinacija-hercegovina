@@ -22,18 +22,18 @@ class _AdminGendersListScreenState extends ConsumerState<AdminGendersListScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Genders'),
+        title: const Text('Spolovi'),
         actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _reload)],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openEditor(context),
         icon: const Icon(Icons.add),
-        label: const Text('Add gender'),
+        label: const Text('Dodaj spol'),
       ),
       body: PaginatedSearchView<GenderResponse>(
         refreshKey: _refresh,
-        searchHint: 'Search genders…',
-        emptyLabel: 'No genders found.',
+        searchHint: 'Pretraži spolove…',
+        emptyLabel: 'Nema pronađenih spolova.',
         fetch: (query, page, pageSize) async {
           final r = await ref.read(genderApiProvider).genderGet(
                 FTS: query.isEmpty ? null : query,
@@ -48,7 +48,7 @@ class _AdminGendersListScreenState extends ConsumerState<AdminGendersListScreen>
           title: Text(g.name ?? 'Gender #${g.id ?? ''}'),
           trailing: IconButton(
             icon: const Icon(Icons.delete_outline),
-            tooltip: 'Delete',
+            tooltip: 'Obriši',
             onPressed: g.id == null ? null : () => _confirmDelete(context, g),
           ),
           onTap: () => _openEditor(context, gender: g),
@@ -70,11 +70,11 @@ class _AdminGendersListScreenState extends ConsumerState<AdminGendersListScreen>
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete gender?'),
+        title: const Text('Obrisati spol?'),
         content: Text('Remove "${g.name ?? 'this gender'}"?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Odustani')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Obriši')),
         ],
       ),
     );
@@ -84,7 +84,7 @@ class _AdminGendersListScreenState extends ConsumerState<AdminGendersListScreen>
       _reload();
     } catch (e) {
       messenger.showSnackBar(
-        SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Could not delete the gender.'))),
+        SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Spol nije moguće obrisati.'))),
       );
     }
   }
@@ -135,7 +135,7 @@ class _GenderEditorDialogState extends ConsumerState<_GenderEditorDialog> {
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
-      setState(() => _error = extractApiErrorMessage(e, fallback: 'Could not save the gender.'));
+      setState(() => _error = extractApiErrorMessage(e, fallback: 'Spol nije moguće spasiti.'));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -144,15 +144,15 @@ class _GenderEditorDialogState extends ConsumerState<_GenderEditorDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(_isEditing ? 'Edit gender' : 'Add gender'),
+      title: Text(_isEditing ? 'Uredi spol' : 'Dodaj spol'),
       content: SizedBox(
         width: 360,
         child: Form(
           key: _formKey,
           child: TextFormField(
             controller: _name,
-            decoration: const InputDecoration(labelText: 'Name', border: OutlineInputBorder()),
-            validator: (v) => (v ?? '').trim().isEmpty ? 'Name is required.' : null,
+            decoration: const InputDecoration(labelText: 'Naziv', border: OutlineInputBorder()),
+            validator: (v) => (v ?? '').trim().isEmpty ? 'Naziv je obavezan.' : null,
           ),
         ),
       ),
@@ -162,12 +162,12 @@ class _GenderEditorDialogState extends ConsumerState<_GenderEditorDialog> {
             padding: const EdgeInsets.only(right: 8),
             child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
-        TextButton(onPressed: _saving ? null : () => Navigator.pop(context, false), child: const Text('Cancel')),
+        TextButton(onPressed: _saving ? null : () => Navigator.pop(context, false), child: const Text('Odustani')),
         FilledButton(
           onPressed: _saving ? null : _save,
           child: _saving
               ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-              : const Text('Save'),
+              : const Text('Spasi'),
         ),
       ],
     );

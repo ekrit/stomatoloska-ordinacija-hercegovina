@@ -6,6 +6,7 @@ using SOH.Model.SearchObjects;
 using SOH.Model.Requests;
 using MapsterMapper;
 using SOH.Services.Database;
+using SOH.Services.Helpers;
 using SOH.Services.Interfaces;
 
 namespace SOH.Services.Services
@@ -16,8 +17,11 @@ namespace SOH.Services.Services
         private const int KeySize = 32;
         private const int Iterations = 10000;
 
-        public UserService(SOHDbContext context, IMapper mapper) : base(context, mapper)
+        private readonly ICurrentUserAccessor _currentUser;
+
+        public UserService(SOHDbContext context, IMapper mapper, ICurrentUserAccessor currentUser) : base(context, mapper)
         {
+            _currentUser = currentUser;
         }
 
         public override async Task<PagedResult<UserResponse>> GetAsync(UserSearchObject search)
@@ -70,14 +74,11 @@ namespace SOH.Services.Services
                 totalCount = await query.CountAsync();
             }
 
-            if (!search.RetrieveAll)
-            {
-                // Clamp to the shared ceiling so /Users cannot be used to pull
-                // the whole table in one request (consistent with BaseService).
-                var pageSize = Math.Clamp(search.PageSize ?? 30, 1, MaxPageSize);
-                var page = Math.Max(search.Page ?? 0, 0);
-                query = query.Skip(page * pageSize).Take(pageSize);
-            }
+            // Clamp to the shared ceiling so /Users cannot be used to pull
+            // the whole table in one request (consistent with BaseService).
+            var pageSize = Math.Clamp(search.PageSize ?? 30, 1, MaxPageSize);
+            var page = Math.Max(search.Page ?? 0, 0);
+            query = query.Skip(page * pageSize).Take(pageSize);
 
             var users = await query.ToListAsync();
             return new PagedResult<UserResponse>
@@ -131,16 +132,51 @@ namespace SOH.Services.Services
 
         public async Task<UserResponse> CreateAsync(UserUpsertRequest request)
         {
+            // Two SaveChangesAsync calls (user, then roles + audit) must land
+            // or fail together, so the whole operation runs in a transaction.
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            var user = await CreateUserCoreAsync(request);
+            await transaction.CommitAsync();
+
+            return await GetUserResponseWithRolesAsync(user.Id);
+        }
+
+        public async Task<UserResponse> RegisterPatientAsync(UserUpsertRequest request, DateTime? dateOfBirth)
+        {
+            // Public registration creates the account AND the clinic patient
+            // profile atomically; a half-registered user (account without a
+            // Patient row) could log in but never book.
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            var user = await CreateUserCoreAsync(request);
+
+            _context.Patients.Add(new Patient
+            {
+                UserId = user.Id,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                Phone = string.IsNullOrWhiteSpace(request.PhoneNumber) ? string.Empty : request.PhoneNumber.Trim(),
+                DateOfBirth = dateOfBirth ?? DateTime.UtcNow.Date
+            });
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return await GetUserResponseWithRolesAsync(user.Id);
+        }
+
+        private async Task<User> CreateUserCoreAsync(UserUpsertRequest request)
+        {
             // Check if user with same email or username already exists
             if (await _context.Users.AnyAsync(u => u.Email == request.Email))
             {
-                throw new BusinessException("User with this email already exists.");
+                throw new BusinessException("Korisnik s ovom e-mail adresom već postoji.");
             }
 
             if (await _context.Users.AnyAsync(u => u.Username == request.Username))
             {
-                throw new BusinessException("User with this username already exists.");
+                throw new BusinessException("Korisnik s ovim korisničkim imenom već postoji.");
             }
+
+            ImageValidator.Validate(request.Picture, nameof(request.Picture));
 
             var roleNamesForDomain = request.RoleIds != null && request.RoleIds.Any()
                 ? await _context.Roles
@@ -181,6 +217,10 @@ namespace SOH.Services.Services
                 Action = "UserRegistered",
                 EntityName = "User",
                 EntityId = user.Id.ToString(),
+                // Self-registration has no authenticated caller yet, so the
+                // freshly created user is the actor.
+                UserId = _currentUser.UserId ?? user.Id,
+                Username = _currentUser.Username ?? user.Username,
                 CreatedAt = DateTime.UtcNow
             });
 
@@ -199,8 +239,7 @@ namespace SOH.Services.Services
             }
 
             await _context.SaveChangesAsync();
-
-            return await GetUserResponseWithRolesAsync(user.Id);
+            return user;
         }
 
         public async Task<UserResponse?> UpdateAsync(int id, UserUpsertRequest request, bool callerIsAdmin)
@@ -215,14 +254,16 @@ namespace SOH.Services.Services
             // Check if email is being changed and if it already exists
             if (request.Email != user.Email && await _context.Users.AnyAsync(u => u.Email == request.Email))
             {
-                throw new BusinessException("User with this email already exists.");
+                throw new BusinessException("Korisnik s ovom e-mail adresom već postoji.");
             }
 
             // Check if username is being changed and if it already exists
             if (request.Username != user.Username && await _context.Users.AnyAsync(u => u.Username == request.Username))
             {
-                throw new BusinessException("User with this username already exists.");
+                throw new BusinessException("Korisnik s ovim korisničkim imenom već postoji.");
             }
+
+            ImageValidator.Validate(request.Picture, nameof(request.Picture));
 
             user.FirstName = request.FirstName;
             user.LastName = request.LastName;
@@ -255,11 +296,11 @@ namespace SOH.Services.Services
                 {
                     if (string.IsNullOrEmpty(request.OldPassword))
                     {
-                        throw new BusinessException("Enter your current password to change it.");
+                        throw new BusinessException("Unesite trenutnu lozinku da biste je promijenili.");
                     }
                     if (!VerifyPassword(request.OldPassword, user.PasswordHash, user.PasswordSalt))
                     {
-                        throw new BusinessException("Your current password is incorrect.");
+                        throw new BusinessException("Trenutna lozinka nije ispravna.");
                     }
                 }
 
@@ -301,17 +342,17 @@ namespace SOH.Services.Services
         public async Task ChangeOwnPasswordAsync(int userId, string oldPassword, string newPassword)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId)
-                ?? throw new NotFoundException("User not found.");
+                ?? throw new NotFoundException("Korisnik nije pronađen.");
 
             if (string.IsNullOrEmpty(oldPassword) ||
                 !VerifyPassword(oldPassword, user.PasswordHash, user.PasswordSalt))
             {
-                throw new BusinessException("Your current password is incorrect.");
+                throw new BusinessException("Trenutna lozinka nije ispravna.");
             }
 
             if (string.IsNullOrEmpty(newPassword) || newPassword.Length < 4)
             {
-                throw new BusinessException("New password must be at least 4 characters.");
+                throw new BusinessException("Nova lozinka mora imati najmanje 4 znaka.");
             }
 
             user.PasswordHash = HashPassword(newPassword, out byte[] salt);
@@ -324,6 +365,23 @@ namespace SOH.Services.Services
             var user = await _context.Users.FindAsync(id);
             if (user == null)
                 return false;
+
+            // Block the delete while business records still reference the
+            // account; a generic FK 500 would hide the reason from the admin.
+            if (await _context.Appointments.AnyAsync(a => a.PatientId == id || a.DoctorId == id))
+            {
+                throw new BusinessException("Korisnik se ne može obrisati jer postoje termini koji ga koriste.");
+            }
+
+            if (await _context.Orders.AnyAsync(o => o.PatientId == id))
+            {
+                throw new BusinessException("Korisnik se ne može obrisati jer postoje narudžbe koje ga koriste.");
+            }
+
+            if (await _context.Reviews.AnyAsync(r => r.PatientId == id || r.DoctorId == id))
+            {
+                throw new BusinessException("Korisnik se ne može obrisati jer postoje recenzije koje ga koriste.");
+            }
 
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
@@ -369,7 +427,7 @@ namespace SOH.Services.Services
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
-                throw new NotFoundException("User not found.");
+                throw new NotFoundException("Korisnik nije pronađen.");
 
             return MapToResponse(user);
         }
@@ -397,7 +455,8 @@ namespace SOH.Services.Services
         {
             var salt = Convert.FromBase64String(passwordSalt);
             var hash = Convert.FromBase64String(passwordHash);
-            var hashBytes = new Rfc2898DeriveBytes(password, salt, Iterations).GetBytes(KeySize);
+            using var pbkdf2 = new Rfc2898DeriveBytes(password, salt, Iterations);
+            var hashBytes = pbkdf2.GetBytes(KeySize);
             return hash.SequenceEqual(hashBytes);
         }
     }

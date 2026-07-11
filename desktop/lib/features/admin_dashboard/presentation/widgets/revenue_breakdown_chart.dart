@@ -14,7 +14,7 @@ class RevenueBreakdownChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (stats.categories.isEmpty) {
-      return const Center(child: Text('No revenue data.'));
+      return const Center(child: Text('Nema podataka o prihodima.'));
     }
 
     final colors = [

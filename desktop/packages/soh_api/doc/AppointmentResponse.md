@@ -17,6 +17,8 @@ Name | Type | Description | Notes
 **endTime** | [**DateTime**](DateTime.md) |  | [optional] 
 **status** | [**AppointmentStatus**](AppointmentStatus.md) |  | [optional] 
 **doctorNote** | **String** |  | [optional] 
+**isPaid** | **bool** |  | [optional] 
+**paymentId** | **int** |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

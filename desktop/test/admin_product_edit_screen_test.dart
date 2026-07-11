@@ -3,8 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('validateProductName requires a value', () {
-    expect(validateProductName(''), 'Name is required.');
-    expect(validateProductName('   '), 'Name is required.');
+    expect(validateProductName(''), 'Naziv je obavezan.');
+    expect(validateProductName('   '), 'Naziv je obavezan.');
     expect(validateProductName('Toothbrush'), isNull);
   });
 }

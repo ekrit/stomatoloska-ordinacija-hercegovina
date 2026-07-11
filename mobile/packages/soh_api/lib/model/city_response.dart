@@ -15,6 +15,10 @@ class CityResponse {
   CityResponse({
     this.id,
     this.name,
+    this.address,
+    this.contactPhone,
+    this.contactEmail,
+    this.workingHours,
   });
 
   ///
@@ -27,19 +31,35 @@ class CityResponse {
 
   String? name;
 
+  String? address;
+
+  String? contactPhone;
+
+  String? contactEmail;
+
+  String? workingHours;
+
   @override
   bool operator ==(Object other) => identical(this, other) || other is CityResponse &&
     other.id == id &&
-    other.name == name;
+    other.name == name &&
+    other.address == address &&
+    other.contactPhone == contactPhone &&
+    other.contactEmail == contactEmail &&
+    other.workingHours == workingHours;
 
   @override
   int get hashCode =>
     // ignore: unnecessary_parenthesis
     (id == null ? 0 : id!.hashCode) +
-    (name == null ? 0 : name!.hashCode);
+    (name == null ? 0 : name!.hashCode) +
+    (address == null ? 0 : address!.hashCode) +
+    (contactPhone == null ? 0 : contactPhone!.hashCode) +
+    (contactEmail == null ? 0 : contactEmail!.hashCode) +
+    (workingHours == null ? 0 : workingHours!.hashCode);
 
   @override
-  String toString() => 'CityResponse[id=$id, name=$name]';
+  String toString() => 'CityResponse[id=$id, name=$name, address=$address, contactPhone=$contactPhone, contactEmail=$contactEmail, workingHours=$workingHours]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -52,6 +72,26 @@ class CityResponse {
       json[r'name'] = this.name;
     } else {
       json[r'name'] = null;
+    }
+    if (this.address != null) {
+      json[r'address'] = this.address;
+    } else {
+      json[r'address'] = null;
+    }
+    if (this.contactPhone != null) {
+      json[r'contactPhone'] = this.contactPhone;
+    } else {
+      json[r'contactPhone'] = null;
+    }
+    if (this.contactEmail != null) {
+      json[r'contactEmail'] = this.contactEmail;
+    } else {
+      json[r'contactEmail'] = null;
+    }
+    if (this.workingHours != null) {
+      json[r'workingHours'] = this.workingHours;
+    } else {
+      json[r'workingHours'] = null;
     }
     return json;
   }
@@ -77,6 +117,10 @@ class CityResponse {
       return CityResponse(
         id: mapValueOfType<int>(json, r'id'),
         name: mapValueOfType<String>(json, r'name'),
+        address: mapValueOfType<String>(json, r'address'),
+        contactPhone: mapValueOfType<String>(json, r'contactPhone'),
+        contactEmail: mapValueOfType<String>(json, r'contactEmail'),
+        workingHours: mapValueOfType<String>(json, r'workingHours'),
       );
     }
     return null;

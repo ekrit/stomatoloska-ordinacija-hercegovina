@@ -88,11 +88,11 @@ class _AdminAppointmentEditScreenState extends ConsumerState<AdminAppointmentEdi
         a.doctorId == null ||
         a.serviceId == null ||
         a.roomId == null) {
-      setState(() => _error = 'Missing appointment data.');
+      setState(() => _error = 'Nedostaju podaci o terminu.');
       return;
     }
     if (!_end.isAfter(_start)) {
-      setState(() => _error = 'End time must be after start time.');
+      setState(() => _error = 'Kraj termina mora biti nakon početka.');
       return;
     }
 
@@ -118,7 +118,7 @@ class _AdminAppointmentEditScreenState extends ConsumerState<AdminAppointmentEdi
       Navigator.of(context).pop(true);
     } catch (e) {
       setState(() => _error = extractApiErrorMessage(e,
-          fallback: 'Could not save the appointment changes.'));
+          fallback: 'Promjene termina nije moguće spasiti.'));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -130,13 +130,13 @@ class _AdminAppointmentEditScreenState extends ConsumerState<AdminAppointmentEdi
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete appointment?'),
-        content: const Text('This permanently removes the appointment from the system.'),
+        title: const Text('Obrisati termin?'),
+        content: const Text('Termin će biti trajno uklonjen iz sistema.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Odustani')),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
+            child: const Text('Obriši'),
           ),
         ],
       ),
@@ -152,7 +152,7 @@ class _AdminAppointmentEditScreenState extends ConsumerState<AdminAppointmentEdi
       Navigator.of(context).pop(true);
     } catch (e) {
       setState(() => _error = extractApiErrorMessage(e,
-          fallback: 'Could not delete the appointment.'));
+          fallback: 'Termin nije moguće obrisati.'));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -166,12 +166,12 @@ class _AdminAppointmentEditScreenState extends ConsumerState<AdminAppointmentEdi
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Appointment #${a.id ?? ''}'),
+        title: const Text('Uredi termin'),
         actions: [
           if (a.id != null)
             IconButton(
               icon: const Icon(Icons.delete_outline),
-              tooltip: 'Delete',
+              tooltip: 'Obriši',
               onPressed: _saving ? null : _confirmDelete,
             ),
         ],
@@ -179,14 +179,14 @@ class _AdminAppointmentEditScreenState extends ConsumerState<AdminAppointmentEdi
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          _NamedRow(label: 'Patient', id: a.patientId, async: ref.watch(patientsLookupProvider)),
-          _NamedRow(label: 'Doctor', id: a.doctorId, async: ref.watch(doctorsLookupProvider)),
-          _NamedRow(label: 'Service', id: a.serviceId, async: ref.watch(servicesLookupProvider)),
-          _NamedRow(label: 'Room', id: a.roomId, async: ref.watch(roomsLookupProvider)),
+          _NamedRow(label: 'Pacijent', id: a.patientId, async: ref.watch(patientsLookupProvider)),
+          _NamedRow(label: 'Doktor', id: a.doctorId, async: ref.watch(doctorsLookupProvider)),
+          _NamedRow(label: 'Usluga', id: a.serviceId, async: ref.watch(servicesLookupProvider)),
+          _NamedRow(label: 'Prostorija', id: a.roomId, async: ref.watch(roomsLookupProvider)),
           if (a.isPaid == true)
             const Padding(
               padding: EdgeInsets.only(top: 4),
-              child: Text('Payment: Paid', style: TextStyle(color: Colors.green)),
+              child: Text('Plaćanje: Plaćeno', style: TextStyle(color: Colors.green)),
             ),
           const SizedBox(height: 20),
           Text('Status', style: Theme.of(context).textTheme.titleMedium),
@@ -205,14 +205,14 @@ class _AdminAppointmentEditScreenState extends ConsumerState<AdminAppointmentEdi
             onChanged: _saving ? null : (v) => setState(() => _status = v ?? _status),
           ),
           const SizedBox(height: 16),
-          Text('Start', style: Theme.of(context).textTheme.titleMedium),
+          Text('Početak', style: Theme.of(context).textTheme.titleMedium),
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: Text('${df.format(_start)} ${tf.format(_start)}'),
             trailing: const Icon(Icons.edit_calendar_outlined),
             onTap: _saving ? null : _pickStart,
           ),
-          Text('End', style: Theme.of(context).textTheme.titleMedium),
+          Text('Kraj', style: Theme.of(context).textTheme.titleMedium),
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: Text('${df.format(_end)} ${tf.format(_end)}'),
@@ -224,7 +224,7 @@ class _AdminAppointmentEditScreenState extends ConsumerState<AdminAppointmentEdi
             controller: _note,
             maxLines: 4,
             decoration: const InputDecoration(
-              labelText: 'Doctor note',
+              labelText: 'Napomena doktora',
               border: OutlineInputBorder(),
             ),
           ),
@@ -241,7 +241,7 @@ class _AdminAppointmentEditScreenState extends ConsumerState<AdminAppointmentEdi
                     height: 22,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('Save changes'),
+                : const Text('Spasi promjene'),
           ),
         ],
       ),

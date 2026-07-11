@@ -30,7 +30,7 @@ class AsyncBody<T> extends StatelessWidget {
             Text('$e', style: TextStyle(color: Theme.of(context).colorScheme.error)),
             if (onRetry != null) ...[
               const SizedBox(height: 12),
-              OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+              OutlinedButton(onPressed: onRetry, child: const Text('Pokušaj ponovo')),
             ],
           ],
         ),

@@ -21,6 +21,8 @@ class MedicalRecordApi {
   ///
   /// * [int] appointmentId:
   ///
+  /// * [int] patientId:
+  ///
   /// * [String] FTS:
   ///
   /// * [int] page:
@@ -28,9 +30,7 @@ class MedicalRecordApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<Response> medicalRecordGetWithHttpInfo({ int? appointmentId, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
+  Future<Response> medicalRecordGetWithHttpInfo({ int? appointmentId, int? patientId, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
     // ignore: prefer_const_declarations
     final path = r'/MedicalRecord';
 
@@ -44,6 +44,9 @@ class MedicalRecordApi {
     if (appointmentId != null) {
       queryParams.addAll(_queryParams('', 'AppointmentId', appointmentId));
     }
+    if (patientId != null) {
+      queryParams.addAll(_queryParams('', 'PatientId', patientId));
+    }
     if (FTS != null) {
       queryParams.addAll(_queryParams('', 'FTS', FTS));
     }
@@ -55,9 +58,6 @@ class MedicalRecordApi {
     }
     if (includeTotalCount != null) {
       queryParams.addAll(_queryParams('', 'IncludeTotalCount', includeTotalCount));
-    }
-    if (retrieveAll != null) {
-      queryParams.addAll(_queryParams('', 'RetrieveAll', retrieveAll));
     }
 
     const contentTypes = <String>[];
@@ -78,6 +78,8 @@ class MedicalRecordApi {
   ///
   /// * [int] appointmentId:
   ///
+  /// * [int] patientId:
+  ///
   /// * [String] FTS:
   ///
   /// * [int] page:
@@ -85,10 +87,8 @@ class MedicalRecordApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<MedicalRecordResponsePagedResult?> medicalRecordGet({ int? appointmentId, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
-    final response = await medicalRecordGetWithHttpInfo( appointmentId: appointmentId, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, retrieveAll: retrieveAll, );
+  Future<MedicalRecordResponsePagedResult?> medicalRecordGet({ int? appointmentId, int? patientId, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
+    final response = await medicalRecordGetWithHttpInfo( appointmentId: appointmentId, patientId: patientId, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }

@@ -8,7 +8,7 @@ import '../../../../core/utils/api_errors.dart';
 
 final _citiesGuestProvider = FutureProvider.autoDispose<List<CityResponse>>((ref) async {
   final api = ref.watch(cityApiProvider);
-  final r = await api.cityGet(retrieveAll: true);
+  final r = await api.cityGet(pageSize: 100);
   return r?.items ?? [];
 });
 
@@ -20,7 +20,7 @@ class GuestLocationsScreen extends ConsumerWidget {
     final async = ref.watch(_citiesGuestProvider);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Clinic locations'),
+        title: const Text('Lokacije ordinacija'),
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -42,7 +42,7 @@ class GuestLocationsScreen extends ConsumerWidget {
               final c = cities[i];
               return ListTile(
                 leading: const Icon(Icons.location_city_outlined),
-                title: Text(c.name ?? 'City'),
+                title: Text(c.name ?? 'Grad'),
                 subtitle: const Text(
                   'Dental Clinic Herzegovina — public directory entry.',
                 ),
@@ -59,7 +59,7 @@ class GuestLocationsScreen extends ConsumerWidget {
               AppRoutes.login,
               (route) => false,
             ),
-            child: const Text('Back to sign in'),
+            child: const Text('Nazad na prijavu'),
           ),
         ),
       ),

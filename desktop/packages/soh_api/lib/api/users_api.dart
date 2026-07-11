@@ -83,9 +83,7 @@ class UsersApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<Response> usersGetWithHttpInfo({ String? username, String? email, int? genderId, int? cityId, int? roleId, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
+  Future<Response> usersGetWithHttpInfo({ String? username, String? email, int? genderId, int? cityId, int? roleId, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
     // ignore: prefer_const_declarations
     final path = r'/Users';
 
@@ -123,9 +121,6 @@ class UsersApi {
     if (includeTotalCount != null) {
       queryParams.addAll(_queryParams('', 'IncludeTotalCount', includeTotalCount));
     }
-    if (retrieveAll != null) {
-      queryParams.addAll(_queryParams('', 'RetrieveAll', retrieveAll));
-    }
 
     const contentTypes = <String>[];
 
@@ -160,10 +155,8 @@ class UsersApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<UserResponsePagedResult?> usersGet({ String? username, String? email, int? genderId, int? cityId, int? roleId, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
-    final response = await usersGetWithHttpInfo( username: username, email: email, genderId: genderId, cityId: cityId, roleId: roleId, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, retrieveAll: retrieveAll, );
+  Future<UserResponsePagedResult?> usersGet({ String? username, String? email, int? genderId, int? cityId, int? roleId, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
+    final response = await usersGetWithHttpInfo( username: username, email: email, genderId: genderId, cityId: cityId, roleId: roleId, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -175,6 +168,55 @@ class UsersApi {
     
     }
     return null;
+  }
+
+  /// Self-service password change. The caller must be the user in the  route and must supply the current password. Admins change other  users' passwords via PUT /Users/{id} (no old password needed).
+  ///
+  /// Note: This method returns the HTTP [Response].
+  ///
+  /// Parameters:
+  ///
+  /// * [int] id (required):
+  ///
+  /// * [ChangePasswordRequest] changePasswordRequest:
+  Future<Response> usersIdChangePasswordPostWithHttpInfo(int id, { ChangePasswordRequest? changePasswordRequest, }) async {
+    // ignore: prefer_const_declarations
+    final path = r'/Users/{id}/change-password'
+      .replaceAll('{id}', id.toString());
+
+    // ignore: prefer_final_locals
+    Object? postBody = changePasswordRequest;
+
+    final queryParams = <QueryParam>[];
+    final headerParams = <String, String>{};
+    final formParams = <String, String>{};
+
+    const contentTypes = <String>['application/json', 'text/json', 'application/*+json'];
+
+
+    return apiClient.invokeAPI(
+      path,
+      'POST',
+      queryParams,
+      postBody,
+      headerParams,
+      formParams,
+      contentTypes.isEmpty ? null : contentTypes.first,
+    );
+  }
+
+  /// Self-service password change. The caller must be the user in the  route and must supply the current password. Admins change other  users' passwords via PUT /Users/{id} (no old password needed).
+  ///
+  /// Parameters:
+  ///
+  /// * [int] id (required):
+  ///
+  /// * [ChangePasswordRequest] changePasswordRequest:
+  Future<void> usersIdChangePasswordPost(int id, { ChangePasswordRequest? changePasswordRequest, }) async {
+    final response = await usersIdChangePasswordPostWithHttpInfo(id,  changePasswordRequest: changePasswordRequest, );
+    if (response.statusCode >= HttpStatus.badRequest) {
+      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
+    }
   }
 
   /// Performs an HTTP 'DELETE /Users/{id}' operation and returns the [Response].
@@ -315,6 +357,42 @@ class UsersApi {
     
     }
     return null;
+  }
+
+  /// Server-side logout. Records this token's jti in the revocation store  so any subsequent request that presents the same JWT (e.g. a stolen  or shared device) is rejected even before its natural expiry.
+  ///
+  /// Note: This method returns the HTTP [Response].
+  Future<Response> usersLogoutPostWithHttpInfo() async {
+    // ignore: prefer_const_declarations
+    final path = r'/Users/logout';
+
+    // ignore: prefer_final_locals
+    Object? postBody;
+
+    final queryParams = <QueryParam>[];
+    final headerParams = <String, String>{};
+    final formParams = <String, String>{};
+
+    const contentTypes = <String>[];
+
+
+    return apiClient.invokeAPI(
+      path,
+      'POST',
+      queryParams,
+      postBody,
+      headerParams,
+      formParams,
+      contentTypes.isEmpty ? null : contentTypes.first,
+    );
+  }
+
+  /// Server-side logout. Records this token's jti in the revocation store  so any subsequent request that presents the same JWT (e.g. a stolen  or shared device) is rejected even before its natural expiry.
+  Future<void> usersLogoutPost() async {
+    final response = await usersLogoutPostWithHttpInfo();
+    if (response.statusCode >= HttpStatus.badRequest) {
+      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
+    }
   }
 
   /// Performs an HTTP 'POST /Users' operation and returns the [Response].

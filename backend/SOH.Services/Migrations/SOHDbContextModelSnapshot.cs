@@ -47,7 +47,16 @@ namespace SOH.Services.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Username")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("ActivityLogs");
                 });
@@ -191,6 +200,10 @@ namespace SOH.Services.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Bio")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -222,6 +235,14 @@ namespace SOH.Services.Migrations
                             LastName = "Joldić",
                             Rating = 4.85m,
                             Specialization = "Oral surgery"
+                        },
+                        new
+                        {
+                            UserId = 7,
+                            FirstName = "Test",
+                            LastName = "Doctor",
+                            Rating = 4.50m,
+                            Specialization = "General dentistry"
                         });
                 });
 
@@ -372,6 +393,32 @@ namespace SOH.Services.Migrations
                     b.HasKey("UserId");
 
                     b.ToTable("Patients");
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = 2,
+                            DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            FirstName = "Amel",
+                            LastName = "Musić",
+                            Phone = ""
+                        },
+                        new
+                        {
+                            UserId = 4,
+                            DateOfBirth = new DateTime(1995, 6, 15, 0, 0, 0, 0, DateTimeKind.Utc),
+                            FirstName = "Test",
+                            LastName = "Test",
+                            Phone = ""
+                        },
+                        new
+                        {
+                            UserId = 6,
+                            DateOfBirth = new DateTime(1992, 3, 20, 0, 0, 0, 0, DateTimeKind.Utc),
+                            FirstName = "Mobile",
+                            LastName = "Patient",
+                            Phone = ""
+                        });
                 });
 
             modelBuilder.Entity("SOH.Services.Database.Payment", b =>
@@ -424,11 +471,6 @@ namespace SOH.Services.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -439,13 +481,80 @@ namespace SOH.Services.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<byte[]>("Picture")
+                        .HasColumnType("varbinary(max)");
+
                     b.Property<decimal>("Price")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("ProductCategoryId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("ProductCategoryId");
+
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("SOH.Services.Database.ProductCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("ProductCategories");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "Ručne i električne četkice za zube.",
+                            IsActive = true,
+                            Name = "Četkice za zube"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Description = "Paste za svakodnevnu njegu i izbjeljivanje.",
+                            IsActive = true,
+                            Name = "Paste za zube"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Description = "Konac, interdentalne četkice i slično.",
+                            IsActive = true,
+                            Name = "Zubni konac i interdentalna njega"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Description = "Antibakterijske i vodice sa fluorom.",
+                            IsActive = true,
+                            Name = "Vodice za ispiranje"
+                        });
                 });
 
             modelBuilder.Entity("SOH.Services.Database.ProductInteraction", b =>
@@ -841,6 +950,54 @@ namespace SOH.Services.Migrations
                             PhoneNumber = "+387 00 000 000",
                             Role = 1,
                             Username = "user2"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CityId = 5,
+                            CreatedAt = new DateTime(2025, 5, 5, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "desktop@test.local",
+                            FirstName = "Desktop",
+                            GenderId = 1,
+                            IsActive = true,
+                            LastName = "Admin",
+                            PasswordHash = "6WQE4xWXatQu77nogrh2raYN+GAxq4kcCpJS3mvU56U=",
+                            PasswordSalt = "4Ey5Av2EasR6kBLnGz2eIg==",
+                            PhoneNumber = "+387 00 000 000",
+                            Role = 3,
+                            Username = "desktop"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CityId = 5,
+                            CreatedAt = new DateTime(2025, 5, 5, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "mobile@test.local",
+                            FirstName = "Mobile",
+                            GenderId = 1,
+                            IsActive = true,
+                            LastName = "Patient",
+                            PasswordHash = "6WQE4xWXatQu77nogrh2raYN+GAxq4kcCpJS3mvU56U=",
+                            PasswordSalt = "4Ey5Av2EasR6kBLnGz2eIg==",
+                            PhoneNumber = "+387 00 000 000",
+                            Role = 1,
+                            Username = "mobile"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CityId = 5,
+                            CreatedAt = new DateTime(2025, 5, 5, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "doctor@test.local",
+                            FirstName = "Test",
+                            GenderId = 1,
+                            IsActive = true,
+                            LastName = "Doctor",
+                            PasswordHash = "6WQE4xWXatQu77nogrh2raYN+GAxq4kcCpJS3mvU56U=",
+                            PasswordSalt = "4Ey5Av2EasR6kBLnGz2eIg==",
+                            PhoneNumber = "+387 00 000 000",
+                            Role = 2,
+                            Username = "doctor"
                         });
                 });
 
@@ -932,7 +1089,38 @@ namespace SOH.Services.Migrations
                             DateAssigned = new DateTime(2025, 5, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             RoleId = 2,
                             UserId = 4
+                        },
+                        new
+                        {
+                            Id = 5,
+                            DateAssigned = new DateTime(2025, 5, 5, 0, 0, 0, 0, DateTimeKind.Utc),
+                            RoleId = 1,
+                            UserId = 5
+                        },
+                        new
+                        {
+                            Id = 6,
+                            DateAssigned = new DateTime(2025, 5, 5, 0, 0, 0, 0, DateTimeKind.Utc),
+                            RoleId = 2,
+                            UserId = 6
+                        },
+                        new
+                        {
+                            Id = 7,
+                            DateAssigned = new DateTime(2025, 5, 5, 0, 0, 0, 0, DateTimeKind.Utc),
+                            RoleId = 3,
+                            UserId = 7
                         });
+                });
+
+            modelBuilder.Entity("SOH.Services.Database.ActivityLog", b =>
+                {
+                    b.HasOne("SOH.Services.Database.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SOH.Services.Database.Appointment", b =>
@@ -1042,6 +1230,17 @@ namespace SOH.Services.Migrations
                         .IsRequired();
 
                     b.Navigation("Appointment");
+                });
+
+            modelBuilder.Entity("SOH.Services.Database.Product", b =>
+                {
+                    b.HasOne("SOH.Services.Database.ProductCategory", "ProductCategory")
+                        .WithMany("Products")
+                        .HasForeignKey("ProductCategoryId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("ProductCategory");
                 });
 
             modelBuilder.Entity("SOH.Services.Database.ProductInteraction", b =>
@@ -1169,6 +1368,11 @@ namespace SOH.Services.Migrations
             modelBuilder.Entity("SOH.Services.Database.Product", b =>
                 {
                     b.Navigation("Orders");
+                });
+
+            modelBuilder.Entity("SOH.Services.Database.ProductCategory", b =>
+                {
+                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("SOH.Services.Database.Role", b =>

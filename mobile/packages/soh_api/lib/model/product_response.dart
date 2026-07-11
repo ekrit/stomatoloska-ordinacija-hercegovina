@@ -17,7 +17,9 @@ class ProductResponse {
     this.name,
     this.description,
     this.price,
-    this.category,
+    this.productCategoryId,
+    this.productCategoryName,
+    this.picture,
   });
 
   ///
@@ -40,7 +42,17 @@ class ProductResponse {
   ///
   double? price;
 
-  String? category;
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
+  int? productCategoryId;
+
+  String? productCategoryName;
+
+  String? picture;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is ProductResponse &&
@@ -48,7 +60,9 @@ class ProductResponse {
     other.name == name &&
     other.description == description &&
     other.price == price &&
-    other.category == category;
+    other.productCategoryId == productCategoryId &&
+    other.productCategoryName == productCategoryName &&
+    other.picture == picture;
 
   @override
   int get hashCode =>
@@ -57,10 +71,12 @@ class ProductResponse {
     (name == null ? 0 : name!.hashCode) +
     (description == null ? 0 : description!.hashCode) +
     (price == null ? 0 : price!.hashCode) +
-    (category == null ? 0 : category!.hashCode);
+    (productCategoryId == null ? 0 : productCategoryId!.hashCode) +
+    (productCategoryName == null ? 0 : productCategoryName!.hashCode) +
+    (picture == null ? 0 : picture!.hashCode);
 
   @override
-  String toString() => 'ProductResponse[id=$id, name=$name, description=$description, price=$price, category=$category]';
+  String toString() => 'ProductResponse[id=$id, name=$name, description=$description, price=$price, productCategoryId=$productCategoryId, productCategoryName=$productCategoryName, picture=$picture]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -84,10 +100,20 @@ class ProductResponse {
     } else {
       json[r'price'] = null;
     }
-    if (this.category != null) {
-      json[r'category'] = this.category;
+    if (this.productCategoryId != null) {
+      json[r'productCategoryId'] = this.productCategoryId;
     } else {
-      json[r'category'] = null;
+      json[r'productCategoryId'] = null;
+    }
+    if (this.productCategoryName != null) {
+      json[r'productCategoryName'] = this.productCategoryName;
+    } else {
+      json[r'productCategoryName'] = null;
+    }
+    if (this.picture != null) {
+      json[r'picture'] = this.picture;
+    } else {
+      json[r'picture'] = null;
     }
     return json;
   }
@@ -115,7 +141,9 @@ class ProductResponse {
         name: mapValueOfType<String>(json, r'name'),
         description: mapValueOfType<String>(json, r'description'),
         price: mapValueOfType<double>(json, r'price'),
-        category: mapValueOfType<String>(json, r'category'),
+        productCategoryId: mapValueOfType<int>(json, r'productCategoryId'),
+        productCategoryName: mapValueOfType<String>(json, r'productCategoryName'),
+        picture: mapValueOfType<String>(json, r'picture'),
       );
     }
     return null;

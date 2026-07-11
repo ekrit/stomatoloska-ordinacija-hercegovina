@@ -32,7 +32,7 @@ namespace SOH.Services.Services
                 .Where(p => p.Id == productId)
                 .Select(p => (decimal?)p.Price)
                 .FirstOrDefaultAsync()
-                ?? throw new NotFoundException("Product not found.");
+                ?? throw new NotFoundException("Proizvod nije pronađen.");
 
             var qty = quantity < 1 ? 1 : quantity;
             return price * qty;
@@ -40,6 +40,10 @@ namespace SOH.Services.Services
 
         protected override IQueryable<Order> ApplyFilter(IQueryable<Order> query, OrderSearchObject search)
         {
+            query = query
+                .Include(x => x.Product)
+                .Include(x => x.Patient);
+
             if (search.PatientId.HasValue)
             {
                 query = query.Where(x => x.PatientId == search.PatientId.Value);
@@ -55,7 +59,27 @@ namespace SOH.Services.Services
                 query = query.Where(x => x.CreatedAt <= search.CreatedTo.Value);
             }
 
-            return query;
+            if (!string.IsNullOrEmpty(search.FTS))
+            {
+                query = query.Where(x =>
+                    x.Product.Name.Contains(search.FTS) ||
+                    x.Patient.FirstName.Contains(search.FTS) ||
+                    x.Patient.LastName.Contains(search.FTS));
+            }
+
+            return query.OrderByDescending(x => x.CreatedAt);
+        }
+
+        public override async Task<OrderResponse?> GetByIdAsync(int id)
+        {
+            var entity = await _context.Orders
+                .Include(x => x.Product)
+                .Include(x => x.Patient)
+                .FirstOrDefaultAsync(x => x.Id == id);
+            if (entity == null)
+                return null;
+
+            return MapToResponse(entity);
         }
     }
 }

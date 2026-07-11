@@ -18,6 +18,7 @@ Name | Type | Description | Notes
 **cityId** | **int** |  | 
 **isActive** | **bool** |  | [optional] 
 **password** | **String** |  | [optional] 
+**oldPassword** | **String** |  | [optional] 
 **roleIds** | **List<int>** |  | [optional] [default to const []]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

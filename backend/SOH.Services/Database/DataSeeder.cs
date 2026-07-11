@@ -270,6 +270,14 @@ namespace SOH.Services.Database
                 }
             );
 
+            // Product categories (reference data for oral-care products)
+            modelBuilder.Entity<ProductCategory>().HasData(
+                new ProductCategory { Id = 1, Name = "Četkice za zube", Description = "Ručne i električne četkice za zube.", IsActive = true },
+                new ProductCategory { Id = 2, Name = "Paste za zube", Description = "Paste za svakodnevnu njegu i izbjeljivanje.", IsActive = true },
+                new ProductCategory { Id = 3, Name = "Zubni konac i interdentalna njega", Description = "Konac, interdentalne četkice i slično.", IsActive = true },
+                new ProductCategory { Id = 4, Name = "Vodice za ispiranje", Description = "Antibakterijske i vodice sa fluorom.", IsActive = true }
+            );
+
             // Seed Genders
             modelBuilder.Entity<Gender>().HasData(
                 new Gender { Id = 1, Name = "Male" },

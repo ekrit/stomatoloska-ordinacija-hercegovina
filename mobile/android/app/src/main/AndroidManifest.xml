@@ -1,8 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Networking must work in release builds too, not just debug. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="SOH Patient"
+        android:label="SOH Klinika"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"

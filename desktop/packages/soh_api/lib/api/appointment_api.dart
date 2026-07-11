@@ -40,9 +40,7 @@ class AppointmentApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<Response> appointmentGetWithHttpInfo({ int? patientId, int? doctorId, int? serviceId, int? roomId, AppointmentStatus? status, DateTime? startFrom, DateTime? startTo, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
+  Future<Response> appointmentGetWithHttpInfo({ int? patientId, int? doctorId, int? serviceId, int? roomId, AppointmentStatus? status, DateTime? startFrom, DateTime? startTo, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
     // ignore: prefer_const_declarations
     final path = r'/Appointment';
 
@@ -86,9 +84,6 @@ class AppointmentApi {
     if (includeTotalCount != null) {
       queryParams.addAll(_queryParams('', 'IncludeTotalCount', includeTotalCount));
     }
-    if (retrieveAll != null) {
-      queryParams.addAll(_queryParams('', 'RetrieveAll', retrieveAll));
-    }
 
     const contentTypes = <String>[];
 
@@ -127,10 +122,8 @@ class AppointmentApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<AppointmentResponsePagedResult?> appointmentGet({ int? patientId, int? doctorId, int? serviceId, int? roomId, AppointmentStatus? status, DateTime? startFrom, DateTime? startTo, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
-    final response = await appointmentGetWithHttpInfo( patientId: patientId, doctorId: doctorId, serviceId: serviceId, roomId: roomId, status: status, startFrom: startFrom, startTo: startTo, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, retrieveAll: retrieveAll, );
+  Future<AppointmentResponsePagedResult?> appointmentGet({ int? patientId, int? doctorId, int? serviceId, int? roomId, AppointmentStatus? status, DateTime? startFrom, DateTime? startTo, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
+    final response = await appointmentGetWithHttpInfo( patientId: patientId, doctorId: doctorId, serviceId: serviceId, roomId: roomId, status: status, startFrom: startFrom, startTo: startTo, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -139,6 +132,54 @@ class AppointmentApi {
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
       return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'AppointmentResponsePagedResult',) as AppointmentResponsePagedResult;
+    
+    }
+    return null;
+  }
+
+  /// Performs an HTTP 'POST /Appointment/{id}/cancel' operation and returns the [Response].
+  /// Parameters:
+  ///
+  /// * [int] id (required):
+  Future<Response> appointmentIdCancelPostWithHttpInfo(int id,) async {
+    // ignore: prefer_const_declarations
+    final path = r'/Appointment/{id}/cancel'
+      .replaceAll('{id}', id.toString());
+
+    // ignore: prefer_final_locals
+    Object? postBody;
+
+    final queryParams = <QueryParam>[];
+    final headerParams = <String, String>{};
+    final formParams = <String, String>{};
+
+    const contentTypes = <String>[];
+
+
+    return apiClient.invokeAPI(
+      path,
+      'POST',
+      queryParams,
+      postBody,
+      headerParams,
+      formParams,
+      contentTypes.isEmpty ? null : contentTypes.first,
+    );
+  }
+
+  /// Parameters:
+  ///
+  /// * [int] id (required):
+  Future<AppointmentResponse?> appointmentIdCancelPost(int id,) async {
+    final response = await appointmentIdCancelPostWithHttpInfo(id,);
+    if (response.statusCode >= HttpStatus.badRequest) {
+      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
+    }
+    // When a remote server returns no body with a status of 204, we shall not decode it.
+    // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
+    // FormatException when trying to decode an empty string.
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'AppointmentResponse',) as AppointmentResponse;
     
     }
     return null;

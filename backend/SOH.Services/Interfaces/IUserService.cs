@@ -8,6 +8,12 @@ namespace SOH.Services.Interfaces
     {
         Task<UserResponse?> AuthenticateAsync(UserLoginRequest request);
         Task<UserResponse> CreateAsync(UserUpsertRequest request);
+
+        /// <summary>
+        /// Public registration: creates the user account, its roles, and the
+        /// clinic Patient profile in a single transaction.
+        /// </summary>
+        Task<UserResponse> RegisterPatientAsync(UserUpsertRequest request, DateTime? dateOfBirth);
         /// <summary>
         /// Updates a user. When <paramref name="callerIsAdmin"/> is false, the
         /// service ignores <see cref="UserUpsertRequest.RoleIds"/> and

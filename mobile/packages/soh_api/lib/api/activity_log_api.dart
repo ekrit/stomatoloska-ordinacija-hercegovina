@@ -36,9 +36,7 @@ class ActivityLogApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<Response> activityLogGetWithHttpInfo({ String? action, String? entityName, String? entityId, DateTime? createdFrom, DateTime? createdTo, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
+  Future<Response> activityLogGetWithHttpInfo({ String? action, String? entityName, String? entityId, DateTime? createdFrom, DateTime? createdTo, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
     // ignore: prefer_const_declarations
     final path = r'/ActivityLog';
 
@@ -76,9 +74,6 @@ class ActivityLogApi {
     if (includeTotalCount != null) {
       queryParams.addAll(_queryParams('', 'IncludeTotalCount', includeTotalCount));
     }
-    if (retrieveAll != null) {
-      queryParams.addAll(_queryParams('', 'RetrieveAll', retrieveAll));
-    }
 
     const contentTypes = <String>[];
 
@@ -113,10 +108,8 @@ class ActivityLogApi {
   /// * [int] pageSize:
   ///
   /// * [bool] includeTotalCount:
-  ///
-  /// * [bool] retrieveAll:
-  Future<ActivityLogResponsePagedResult?> activityLogGet({ String? action, String? entityName, String? entityId, DateTime? createdFrom, DateTime? createdTo, String? FTS, int? page, int? pageSize, bool? includeTotalCount, bool? retrieveAll, }) async {
-    final response = await activityLogGetWithHttpInfo( action: action, entityName: entityName, entityId: entityId, createdFrom: createdFrom, createdTo: createdTo, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, retrieveAll: retrieveAll, );
+  Future<ActivityLogResponsePagedResult?> activityLogGet({ String? action, String? entityName, String? entityId, DateTime? createdFrom, DateTime? createdTo, String? FTS, int? page, int? pageSize, bool? includeTotalCount, }) async {
+    final response = await activityLogGetWithHttpInfo( action: action, entityName: entityName, entityId: entityId, createdFrom: createdFrom, createdTo: createdTo, FTS: FTS, page: page, pageSize: pageSize, includeTotalCount: includeTotalCount, );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }

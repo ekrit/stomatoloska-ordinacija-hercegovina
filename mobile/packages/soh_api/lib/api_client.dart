@@ -192,22 +192,30 @@ class ApiClient {
           return AppointmentResponse.fromJson(value);
         case 'AppointmentResponsePagedResult':
           return AppointmentResponsePagedResult.fromJson(value);
+        case 'AppointmentStatsResponse':
+          return AppointmentStatsResponse.fromJson(value);
         case 'AppointmentStatus':
           return AppointmentStatusTypeTransformer().decode(value);
         case 'AppointmentUpsertRequest':
           return AppointmentUpsertRequest.fromJson(value);
         case 'AuthResponse':
           return AuthResponse.fromJson(value);
+        case 'ChangePasswordRequest':
+          return ChangePasswordRequest.fromJson(value);
         case 'CityResponse':
           return CityResponse.fromJson(value);
         case 'CityResponsePagedResult':
           return CityResponsePagedResult.fromJson(value);
         case 'CityUpsertRequest':
           return CityUpsertRequest.fromJson(value);
+        case 'DashboardStatsResponse':
+          return DashboardStatsResponse.fromJson(value);
         case 'DoctorResponse':
           return DoctorResponse.fromJson(value);
         case 'DoctorResponsePagedResult':
           return DoctorResponsePagedResult.fromJson(value);
+        case 'DoctorSpotlightResponse':
+          return DoctorSpotlightResponse.fromJson(value);
         case 'DoctorUpsertRequest':
           return DoctorUpsertRequest.fromJson(value);
         case 'GenderResponse':
@@ -228,6 +236,8 @@ class ApiClient {
           return MedicalRecordResponsePagedResult.fromJson(value);
         case 'MedicalRecordUpsertRequest':
           return MedicalRecordUpsertRequest.fromJson(value);
+        case 'MonthlyAppointmentResponse':
+          return MonthlyAppointmentResponse.fromJson(value);
         case 'OrderResponse':
           return OrderResponse.fromJson(value);
         case 'OrderResponsePagedResult':
@@ -238,8 +248,16 @@ class ApiClient {
           return PatientResponse.fromJson(value);
         case 'PatientResponsePagedResult':
           return PatientResponsePagedResult.fromJson(value);
+        case 'PatientStatsResponse':
+          return PatientStatsResponse.fromJson(value);
         case 'PatientUpsertRequest':
           return PatientUpsertRequest.fromJson(value);
+        case 'PaymentCaptureResponse':
+          return PaymentCaptureResponse.fromJson(value);
+        case 'PaymentOrderCreateRequest':
+          return PaymentOrderCreateRequest.fromJson(value);
+        case 'PaymentOrderCreateResponse':
+          return PaymentOrderCreateResponse.fromJson(value);
         case 'PaymentResponse':
           return PaymentResponse.fromJson(value);
         case 'PaymentResponsePagedResult':
@@ -248,18 +266,34 @@ class ApiClient {
           return PaymentStatusTypeTransformer().decode(value);
         case 'PaymentUpsertRequest':
           return PaymentUpsertRequest.fromJson(value);
+        case 'ProductCategoryResponse':
+          return ProductCategoryResponse.fromJson(value);
+        case 'ProductCategoryResponsePagedResult':
+          return ProductCategoryResponsePagedResult.fromJson(value);
+        case 'ProductCategoryUpsertRequest':
+          return ProductCategoryUpsertRequest.fromJson(value);
+        case 'ProductInteractionTrackRequest':
+          return ProductInteractionTrackRequest.fromJson(value);
         case 'ProductResponse':
           return ProductResponse.fromJson(value);
         case 'ProductResponsePagedResult':
           return ProductResponsePagedResult.fromJson(value);
         case 'ProductUpsertRequest':
           return ProductUpsertRequest.fromJson(value);
+        case 'RecentActivityResponse':
+          return RecentActivityResponse.fromJson(value);
+        case 'RecommendedProductResponse':
+          return RecommendedProductResponse.fromJson(value);
         case 'ReportResponse':
           return ReportResponse.fromJson(value);
         case 'ReportResponsePagedResult':
           return ReportResponsePagedResult.fromJson(value);
         case 'ReportUpsertRequest':
           return ReportUpsertRequest.fromJson(value);
+        case 'RevenueCategoryResponse':
+          return RevenueCategoryResponse.fromJson(value);
+        case 'RevenueStatsResponse':
+          return RevenueStatsResponse.fromJson(value);
         case 'ReviewResponse':
           return ReviewResponse.fromJson(value);
         case 'ReviewResponsePagedResult':
@@ -286,6 +320,8 @@ class ApiClient {
           return ServiceUpsertRequest.fromJson(value);
         case 'UserLoginRequest':
           return UserLoginRequest.fromJson(value);
+        case 'UserNotificationResponse':
+          return UserNotificationResponse.fromJson(value);
         case 'UserRegisterRequest':
           return UserRegisterRequest.fromJson(value);
         case 'UserResponse':

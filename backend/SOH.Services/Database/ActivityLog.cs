@@ -18,6 +18,13 @@ namespace SOH.Services.Database
         [MaxLength(50)]
         public string? EntityId { get; set; }
 
+        // Actor: who performed the action (null for system/anonymous events).
+        public int? UserId { get; set; }
+        public User? User { get; set; }
+
+        [MaxLength(100)]
+        public string? Username { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

@@ -8,6 +8,7 @@ namespace SOH.Services.Interfaces
         Task<AppointmentStatsResponse> GetMonthlyAppointmentsAsync(int months);
         Task<RevenueStatsResponse> GetRevenueBreakdownAsync(int months);
         Task<List<DoctorSpotlightResponse>> GetDoctorSpotlightAsync(int limit);
-        Task<List<ActivityLogResponse>> GetRecentActivityAsync(int take = 30);
+        Task<RecentActivityResponse> GetRecentActivityAsync(int take = 30);
+        Task<PatientStatsResponse> GetMonthlyNewPatientsAsync(int months);
     }
 }

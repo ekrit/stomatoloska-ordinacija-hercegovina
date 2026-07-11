@@ -17,7 +17,7 @@ Method | HTTP request | Description
 
 
 # **cityGet**
-> CityResponsePagedResult cityGet(name, FTS, page, pageSize, includeTotalCount, retrieveAll)
+> CityResponsePagedResult cityGet(name, FTS, page, pageSize, includeTotalCount)
 
 
 
@@ -37,10 +37,9 @@ final FTS = FTS_example; // String |
 final page = 56; // int | 
 final pageSize = 56; // int | 
 final includeTotalCount = true; // bool | 
-final retrieveAll = true; // bool | 
 
 try {
-    final result = api_instance.cityGet(name, FTS, page, pageSize, includeTotalCount, retrieveAll);
+    final result = api_instance.cityGet(name, FTS, page, pageSize, includeTotalCount);
     print(result);
 } catch (e) {
     print('Exception when calling CityApi->cityGet: $e\n');
@@ -56,7 +55,6 @@ Name | Type | Description  | Notes
  **page** | **int**|  | [optional] 
  **pageSize** | **int**|  | [optional] 
  **includeTotalCount** | **bool**|  | [optional] 
- **retrieveAll** | **bool**|  | [optional] 
 
 ### Return type
 

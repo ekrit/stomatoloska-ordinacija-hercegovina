@@ -14,7 +14,9 @@ namespace SOH.Model.Requests
         [Required]
         public decimal Price { get; set; }
 
-        [MaxLength(100)]
-        public string Category { get; set; } = string.Empty;
+        [Required]
+        public int ProductCategoryId { get; set; }
+
+        public byte[]? Picture { get; set; }
     }
 }

@@ -22,6 +22,7 @@ namespace SOH.Services.Database
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Product> Products { get; set; }
+        public DbSet<ProductCategory> ProductCategories { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<HygieneTracker> HygieneTrackers { get; set; }
         public DbSet<ActivityLog> ActivityLogs { get; set; }
@@ -168,6 +169,22 @@ namespace SOH.Services.Database
                 .WithMany(d => d.Reviews)
                 .HasForeignKey(r => r.DoctorId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<ProductCategory>()
+                .HasIndex(pc => pc.Name)
+                .IsUnique();
+
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.ProductCategory)
+                .WithMany(pc => pc.Products)
+                .HasForeignKey(p => p.ProductCategoryId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<ActivityLog>()
+                .HasOne(al => al.User)
+                .WithMany()
+                .HasForeignKey(al => al.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.Product)

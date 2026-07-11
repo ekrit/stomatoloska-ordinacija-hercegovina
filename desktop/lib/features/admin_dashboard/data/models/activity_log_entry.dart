@@ -4,6 +4,7 @@ class ActivityLogEntry {
     required this.action,
     required this.entityName,
     this.entityId,
+    this.username,
     required this.createdAt,
   });
 
@@ -11,6 +12,7 @@ class ActivityLogEntry {
   final String action;
   final String entityName;
   final String? entityId;
+  final String? username;
   final DateTime createdAt;
 
   factory ActivityLogEntry.fromJson(Map<String, dynamic> json) {
@@ -27,7 +29,31 @@ class ActivityLogEntry {
       action: json['action'] as String? ?? '',
       entityName: json['entityName'] as String? ?? '',
       entityId: json['entityId'] as String?,
+      username: json['username'] as String?,
       createdAt: createdAt,
+    );
+  }
+}
+
+/// Recent slice of the activity log plus the true total number of logged
+/// actions (the server counts beyond the returned page).
+class RecentActivity {
+  const RecentActivity({required this.items, required this.totalCount});
+
+  final List<ActivityLogEntry> items;
+  final int totalCount;
+
+  factory RecentActivity.fromJson(Map<String, dynamic> json) {
+    final rawItems = json['items'];
+    final items = rawItems is List
+        ? rawItems
+            .whereType<Map<String, dynamic>>()
+            .map(ActivityLogEntry.fromJson)
+            .toList()
+        : <ActivityLogEntry>[];
+    return RecentActivity(
+      items: items,
+      totalCount: (json['totalCount'] as num?)?.toInt() ?? items.length,
     );
   }
 }

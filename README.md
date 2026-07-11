@@ -22,8 +22,8 @@ The project is developed for academic purposes and includes:
 
 ## Repository structure
 
-- `mobile/` Flutter Android app for patients (only Patient accounts can sign in)
-- `desktop/` Flutter Windows app for clinic staff (only Administrator and Doctor accounts can sign in)
+- `mobile/` Flutter Android app for patients and doctors (admin accounts are rejected)
+- `desktop/` Flutter Windows app for clinic staff (Administrator and Doctor accounts)
 - `backend/` .NET REST API, RabbitMQ subscriber, and Docker files
 - `docs/` command references (Flutter, Docker, C#)
 - `scripts/` PowerShell helper scripts
@@ -90,11 +90,11 @@ the `.env` setting), EF Core migrations seed the records below (defined in
 
 ### Rubric-compliant credentials
 
-| Context       | Username  | Password | Role          |
-| ------------- | --------- | -------- | ------------- |
-| Desktop       | `desktop` | `test`   | Administrator |
-| Mobile        | `mobile`  | `test`   | Patient       |
-| Doctor role   | `doctor`  | `test`   | Doctor        |
+| Context               | Username  | Password | Role          |
+| --------------------- | --------- | -------- | ------------- |
+| Desktop               | `desktop` | `test`   | Administrator |
+| Mobile                | `mobile`  | `test`   | Patient       |
+| Doctor (mobile/desktop) | `doctor` | `test`  | Doctor        |
 
 ### Additional development accounts
 
@@ -105,9 +105,18 @@ the `.env` setting), EF Core migrations seed the records below (defined in
 | Patient       | `user`   | `SohDev2026!`  | Mobile       |
 | Patient       | `user2`  | `SohDev2026!`  | Mobile       |
 
-The desktop app rejects Patient logins ("This account is for patients...");
-the mobile app rejects Administrator and Doctor logins. Use the right
-account in the right client, or both will refuse to sign you in.
+The desktop app rejects Patient logins; the mobile app rejects
+Administrator logins (doctors can use either client — the proposal's
+accept/decline screen lives in the mobile app, and the desktop has an
+equivalent staff view). The UI language of both apps is Bosnian, matching
+the proposal mockups.
+
+On first run against an empty database a runtime seeder
+([`backend/SOH.Services/Database/RuntimeDataSeeder.cs`](backend/SOH.Services/Database/RuntimeDataSeeder.cs))
+also creates demo data: products with images across categories,
+appointments in every status, findings, paid payments, reviews, orders,
+recommender interactions, hygiene logs, notifications, and activity logs —
+so every feature can be tested immediately.
 
 ## Documentation index
 

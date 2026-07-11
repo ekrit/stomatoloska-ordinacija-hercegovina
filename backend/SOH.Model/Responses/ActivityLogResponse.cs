@@ -8,6 +8,8 @@ namespace SOH.Model.Responses
         public string Action { get; set; } = string.Empty;
         public string EntityName { get; set; } = string.Empty;
         public string? EntityId { get; set; }
+        public int? UserId { get; set; }
+        public string? Username { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

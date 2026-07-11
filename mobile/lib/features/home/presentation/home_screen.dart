@@ -3,11 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:soh_api/api.dart';
 
 import '../../../core/api/api_providers.dart';
+import '../../../core/utils/api_errors.dart';
 import '../../../core/widgets/async_body.dart';
 import '../../../core/widgets/section_header.dart';
+import '../../../widgets/user_appbar_actions.dart' show decodeUserPictureBytes;
 import '../../patient/presentation/providers/patient_data_providers.dart';
+import '../../shop/presentation/product_catalog_screen.dart';
 import 'product_detail_screen.dart';
 import 'recommendations_providers.dart';
+import 'services_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key, required this.onBook});
@@ -22,7 +26,7 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        title: const Text('Početna'),
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -38,7 +42,7 @@ class HomeScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SectionHeader('Welcome'),
+                    const SectionHeader('Dobrodošli'),
                     Text(
                       'Welcome, ${user?.firstName?.trim().isNotEmpty == true ? user!.firstName : 'there'}',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -47,7 +51,7 @@ class HomeScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Your dental care, simplified.',
+                      'Vaša stomatološka njega, pojednostavljena.',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
@@ -65,11 +69,11 @@ class HomeScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 20),
-                        const SectionHeader('Recommended for you'),
+                        const SectionHeader('Preporučeno za vas'),
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8),
                           child: Text(
-                            'Suggestions from our server use your visits, clinic popularity, and products you view.',
+                            'Preporuke se temelje na vašim posjetama, popularnosti u ordinaciji i proizvodima koje pregledate.',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                                 ),
@@ -77,14 +81,14 @@ class HomeScreen extends ConsumerWidget {
                         ),
                         if (rec.isEmpty)
                           Text(
-                            'No recommendations yet — check back after more catalog data is available.',
+                            'Još nema preporuka — vratite se kada katalog bude imao više podataka.',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                                 ),
                           )
                         else
                           SizedBox(
-                            height: 132,
+                            height: 168,
                             child: ListView.separated(
                               scrollDirection: Axis.horizontal,
                               itemCount: rec.length,
@@ -108,6 +112,20 @@ class HomeScreen extends ConsumerWidget {
                               },
                             ),
                           ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton.icon(
+                            onPressed: () {
+                              Navigator.of(context).push<void>(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => const ProductCatalogScreen(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.storefront_outlined, size: 18),
+                            label: const Text('Cijeli katalog proizvoda'),
+                          ),
+                        ),
                       ],
                     );
                   },
@@ -117,7 +135,7 @@ class HomeScreen extends ConsumerWidget {
                   ),
                   error: (e, _) => Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Text('Recommendations: $e'),
+                    child: Text(extractApiErrorMessage(e)),
                   ),
                 ),
               ),
@@ -128,7 +146,7 @@ class HomeScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SectionHeader('Booking'),
+                    const SectionHeader('Zakazivanje'),
                     Card(
                       child: Padding(
                         padding: const EdgeInsets.all(16),
@@ -136,12 +154,12 @@ class HomeScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Ready for your next visit?',
+                              'Spremni za sljedeću posjetu?',
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              'Choose a service, dentist, and time slot that works for you.',
+                              'Odaberite uslugu, stomatologa i termin koji vam odgovara.',
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color: Theme.of(context)
                                         .colorScheme
@@ -152,10 +170,26 @@ class HomeScreen extends ConsumerWidget {
                             FilledButton.icon(
                               onPressed: onBook,
                               icon: const Icon(Icons.calendar_month),
-                              label: const Text('Book Appointment'),
+                              label: const Text('Zakaži termin'),
                             ),
                           ],
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.medical_services_outlined),
+                        title: const Text('Naše usluge'),
+                        subtitle: const Text('Pregledi, čišćenje, plombe i drugi zahvati sa cijenama.'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          Navigator.of(context).push<void>(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const ServicesScreen(),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -172,9 +206,9 @@ class HomeScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 20),
-                        const SectionHeader('Doctor List'),
+                        const SectionHeader('Lista ljekara'),
                         if (list.isEmpty)
-                          const Text('No dentists to show.')
+                          const Text('Nema stomatologa za prikaz.')
                         else
                           ...list.map((d) => _DoctorTile(doctor: d)),
                       ],
@@ -205,6 +239,7 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bytes = decodeUserPictureBytes(product.picture);
     return SizedBox(
       width: 210,
       child: Card(
@@ -216,11 +251,26 @@ class _ProductCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  product.name ?? 'Product',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleSmall,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (bytes != null)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.memory(bytes, width: 40, height: 40, fit: BoxFit.cover),
+                        ),
+                      ),
+                    Expanded(
+                      child: Text(
+                        product.name ?? 'Proizvod',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                    ),
+                  ],
                 ),
                 if (hint != null && hint!.trim().isNotEmpty)
                   Padding(

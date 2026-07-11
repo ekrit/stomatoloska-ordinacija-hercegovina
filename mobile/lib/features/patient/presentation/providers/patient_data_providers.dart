@@ -23,7 +23,13 @@ final myAppointmentsProvider =
   return ref.watch(patientCareRepositoryProvider).listAppointmentsForPatient(id);
 });
 
-final medicalRecordsProvider =
-    FutureProvider.autoDispose<List<MedicalRecordResponse>>((ref) async {
-  return ref.watch(patientCareRepositoryProvider).listMedicalRecords();
+/// Id used as [OrderUpsertRequest.patientId] and for order history. In this
+/// API the [Patient] PK is [Patient.userId].
+final patientIdProvider = FutureProvider.autoDispose<int?>((ref) async {
+  final userId = ref.watch(currentUserProvider)?.id;
+  if (userId == null) return null;
+  final patients =
+      await ref.watch(patientSessionRepositoryProvider).listPatientsByUserId(userId);
+  if (patients.isEmpty) return null;
+  return patients.first.userId ?? userId;
 });

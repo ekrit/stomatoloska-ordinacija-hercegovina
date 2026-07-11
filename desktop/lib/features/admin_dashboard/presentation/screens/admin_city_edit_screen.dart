@@ -52,7 +52,7 @@ class _AdminCityEditScreenState extends ConsumerState<AdminCityEditScreen> {
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
-      setState(() => _error = extractApiErrorMessage(e, fallback: 'Could not save the city.'));
+      setState(() => _error = extractApiErrorMessage(e, fallback: 'Grad nije moguće spasiti.'));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -61,7 +61,7 @@ class _AdminCityEditScreenState extends ConsumerState<AdminCityEditScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_isEditing ? 'Edit city' : 'Add city')),
+      appBar: AppBar(title: Text(_isEditing ? 'Uredi grad' : 'Dodaj grad')),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Form(
@@ -72,14 +72,14 @@ class _AdminCityEditScreenState extends ConsumerState<AdminCityEditScreen> {
               TextFormField(
                 controller: _name,
                 decoration: const InputDecoration(
-                  labelText: 'City name',
+                  labelText: 'Naziv grada',
                   border: OutlineInputBorder(),
                 ),
                 textCapitalization: TextCapitalization.words,
                 validator: (v) {
                   final t = (v ?? '').trim();
-                  if (t.isEmpty) return 'City name is required.';
-                  if (t.length < 2) return 'City name is too short.';
+                  if (t.isEmpty) return 'Naziv grada je obavezan.';
+                  if (t.length < 2) return 'Naziv grada je prekratak.';
                   return null;
                 },
               ),
@@ -96,7 +96,7 @@ class _AdminCityEditScreenState extends ConsumerState<AdminCityEditScreen> {
                         height: 22,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Save'),
+                    : const Text('Spasi'),
               ),
             ],
           ),

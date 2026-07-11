@@ -53,14 +53,14 @@ namespace SOH.Services.Services
             var appointment = await _context.Appointments
                 .Include(a => a.Service)
                 .FirstOrDefaultAsync(a => a.Id == appointmentId, cancellationToken)
-                ?? throw new NotFoundException("Appointment not found.");
+                ?? throw new NotFoundException("Termin nije pronađen.");
 
             await EnsureCallerOwnsAppointmentAsync(appointment, callerUserId, isAdmin, cancellationToken);
 
             var amount = appointment.Service?.Price ?? 0m;
             if (amount <= 0m)
             {
-                throw new BusinessException("This service has no price configured; nothing to pay.");
+                throw new BusinessException("Ova usluga nema definisanu cijenu; nema se šta platiti.");
             }
 
             var payment = await _context.Payments
@@ -68,7 +68,7 @@ namespace SOH.Services.Services
 
             if (payment != null && payment.Status == PaymentStatus.Paid)
             {
-                throw new BusinessException("This appointment is already paid.");
+                throw new BusinessException("Ovaj termin je već plaćen.");
             }
 
             if (payment == null)
@@ -112,7 +112,7 @@ namespace SOH.Services.Services
             var payment = await _context.Payments
                 .Include(p => p.Appointment)
                 .FirstOrDefaultAsync(p => p.Id == paymentId, cancellationToken)
-                ?? throw new NotFoundException("Payment not found.");
+                ?? throw new NotFoundException("Uplata nije pronađena.");
 
             await EnsureCallerOwnsAppointmentAsync(payment.Appointment, callerUserId, isAdmin, cancellationToken);
 
@@ -123,7 +123,7 @@ namespace SOH.Services.Services
 
             if (string.IsNullOrWhiteSpace(payment.PayPalOrderId))
             {
-                throw new BusinessException("No PayPal order to capture; create the order first.");
+                throw new BusinessException("Ne postoji PayPal narudžba za naplatu; prvo kreirajte narudžbu.");
             }
 
             var captureId = await _payPal.CaptureOrderAsync(payment.PayPalOrderId, cancellationToken);
@@ -142,7 +142,7 @@ namespace SOH.Services.Services
             var payment = await _context.Payments
                 .Include(p => p.Appointment)
                 .FirstOrDefaultAsync(p => p.Id == paymentId, cancellationToken)
-                ?? throw new NotFoundException("Payment not found.");
+                ?? throw new NotFoundException("Uplata nije pronađena.");
 
             await EnsureCallerOwnsAppointmentAsync(payment.Appointment, callerUserId, isAdmin, cancellationToken);
 
@@ -154,17 +154,17 @@ namespace SOH.Services.Services
 
             if (payment.Status != PaymentStatus.Paid)
             {
-                throw new BusinessException("Only a paid payment can be refunded.");
+                throw new BusinessException("Samo plaćena uplata može biti refundirana.");
             }
 
             if (payment.Appointment.Status == AppointmentStatus.Completed)
             {
-                throw new BusinessException("A completed appointment can no longer be refunded.");
+                throw new BusinessException("Završen termin se više ne može refundirati.");
             }
 
             if (string.IsNullOrWhiteSpace(payment.TransactionRef))
             {
-                throw new BusinessException("Missing PayPal capture reference; cannot refund.");
+                throw new BusinessException("Nedostaje PayPal referenca naplate; povrat nije moguć.");
             }
 
             await _payPal.RefundCaptureAsync(payment.TransactionRef, cancellationToken);
@@ -235,7 +235,7 @@ namespace SOH.Services.Services
         {
             if (!isAdmin && appointment.PatientId != callerUserId)
             {
-                throw new BusinessException("You can only pay for your own appointments.");
+                throw new BusinessException("Možete platiti samo vlastite termine.");
             }
             return Task.CompletedTask;
         }

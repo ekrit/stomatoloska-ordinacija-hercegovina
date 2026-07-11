@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('activityCountLabel formats total activity count', () {
-    expect(activityCountLabel(0), 'Total: 0');
-    expect(activityCountLabel(7), 'Total: 7');
+    expect(activityCountLabel(0), 'Ukupno radnji: 0');
+    expect(activityCountLabel(7), 'Ukupno radnji: 7');
   });
 }

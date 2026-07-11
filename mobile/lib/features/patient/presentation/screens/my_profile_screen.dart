@@ -8,6 +8,7 @@ import 'package:soh_api/api.dart';
 import '../../../../core/api/api_providers.dart';
 import '../../../../core/api/soh_extra_api.dart';
 import '../../../../core/utils/api_errors.dart';
+import '../../../../widgets/user_appbar_actions.dart' show decodeUserPictureBytes;
 
 /// Patient self-edit profile screen for the mobile app.
 ///
@@ -80,8 +81,8 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
 
       final results = await Future.wait([
         usersApi.usersIdGet(widget.userId),
-        genderApi.genderGet(retrieveAll: true),
-        cityApi.cityGet(retrieveAll: true),
+        genderApi.genderGet(pageSize: 100),
+        cityApi.cityGet(pageSize: 100),
       ]);
 
       final user = results[0] as UserResponse?;
@@ -91,7 +92,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
       if (user == null) {
         if (!mounted) return;
         setState(() {
-          _error = 'Profile not found.';
+          _error = 'Profil nije pronađen.';
           _loading = false;
         });
         return;
@@ -117,7 +118,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
       if (!mounted) return;
       setState(() {
         _error = extractApiErrorMessage(e,
-            fallback: 'Could not load your profile.');
+            fallback: 'Vaš profil nije moguće učitati.');
         _loading = false;
       });
     }
@@ -139,17 +140,17 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
 
   String? _validateEmail(String? raw) {
     final v = (raw ?? '').trim();
-    if (v.isEmpty) return 'Email is required.';
+    if (v.isEmpty) return 'E-mail je obavezno polje.';
     // Loose RFC-5322-style check, enough for UI hint; backend re-validates.
     final ok = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(v);
-    return ok ? null : 'Enter a valid email (e.g. name@example.com).';
+    return ok ? null : 'Unesite validnu e-mail adresu (npr. ime@example.com).';
   }
 
   String? _validatePhone(String? raw) {
     final v = (raw ?? '').trim();
     if (v.isEmpty) return null; // optional
     final ok = RegExp(r'^[+0-9\s().-]{6,20}$').hasMatch(v);
-    return ok ? null : 'Enter a valid phone (digits, spaces, +, -, (), 6-20 chars).';
+    return ok ? null : 'Unesite validan telefon (cifre, razmaci, +, -, zagrade; 6-20 znakova).';
   }
 
   String? _validateRequired(String? raw, String field) {
@@ -159,21 +160,21 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
 
   String? _validateCurrentPassword(String? raw) {
     if (!_changePassword) return null;
-    if ((raw ?? '').isEmpty) return 'Enter your current password.';
+    if ((raw ?? '').isEmpty) return 'Unesite trenutnu lozinku.';
     return null;
   }
 
   String? _validatePassword(String? raw) {
     if (!_changePassword) return null;
     final v = raw ?? '';
-    if (v.length < 8) return 'Password must be at least 8 characters.';
+    if (v.length < 8) return 'Lozinka mora imati najmanje 8 znakova.';
     return null;
   }
 
   String? _validateConfirm(String? raw) {
     if (!_changePassword) return null;
     if ((raw ?? '') != _newPassword.text) {
-      return 'Passwords do not match.';
+      return 'Lozinke se ne podudaraju.';
     }
     return null;
   }
@@ -184,7 +185,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
     final cid = _cityId;
     if (gid == null || cid == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pick a gender and city to continue.')),
+        const SnackBar(content: Text('Odaberite spol i grad za nastavak.')),
       );
       return;
     }
@@ -229,13 +230,13 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated.')),
+        const SnackBar(content: Text('Profil je ažuriran.')),
       );
       Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Could not update profile.'))),
+        SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Profil nije moguće ažurirati.'))),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -243,22 +244,19 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
   }
 
   Widget? _picturePreview() {
-    final raw = _pictureBase64;
-    if (raw == null || raw.isEmpty) return null;
-    try {
-      final bytes = base64Decode(raw);
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(60),
-        child: Image.memory(
-          bytes,
-          width: 96,
-          height: 96,
-          fit: BoxFit.cover,
-        ),
-      );
-    } catch (_) {
-      return null;
-    }
+    // Decoding is memoized in decodeUserPictureBytes, so calling this from
+    // build() does not re-decode the image on every frame.
+    final bytes = decodeUserPictureBytes(_pictureBase64);
+    if (bytes == null) return null;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(60),
+      child: Image.memory(
+        bytes,
+        width: 96,
+        height: 96,
+        fit: BoxFit.cover,
+      ),
+    );
   }
 
   int? _dropdownValue(List<dynamic> items, int? selected) {
@@ -272,7 +270,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
     final preview = _picturePreview();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit my profile'),
+        title: const Text('Uredi moj profil'),
         actions: [
           if (!_loading && _error == null && _user != null)
             TextButton(
@@ -283,7 +281,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Save'),
+                  : const Text('Spasi'),
             ),
         ],
       ),
@@ -300,7 +298,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                         const SizedBox(height: 16),
                         FilledButton(
                           onPressed: _load,
-                          child: const Text('Retry'),
+                          child: const Text('Pokušaj ponovo'),
                         ),
                       ],
                     ),
@@ -325,7 +323,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                             OutlinedButton.icon(
                               onPressed: _pickPicture,
                               icon: const Icon(Icons.photo_library_outlined),
-                              label: const Text('Change photo'),
+                              label: const Text('Promijeni fotografiju'),
                             ),
                           ],
                         ),
@@ -334,25 +332,25 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                       TextFormField(
                         controller: _firstName,
                         decoration: const InputDecoration(
-                          labelText: 'First name',
+                          labelText: 'Ime',
                           border: OutlineInputBorder(),
                         ),
-                        validator: (v) => _validateRequired(v, 'First name'),
+                        validator: (v) => _validateRequired(v, 'Ime'),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _lastName,
                         decoration: const InputDecoration(
-                          labelText: 'Last name',
+                          labelText: 'Prezime',
                           border: OutlineInputBorder(),
                         ),
-                        validator: (v) => _validateRequired(v, 'Last name'),
+                        validator: (v) => _validateRequired(v, 'Prezime'),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _email,
                         decoration: const InputDecoration(
-                          labelText: 'Email',
+                          labelText: 'E-mail',
                           border: OutlineInputBorder(),
                         ),
                         keyboardType: TextInputType.emailAddress,
@@ -362,16 +360,16 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                       TextFormField(
                         controller: _username,
                         decoration: const InputDecoration(
-                          labelText: 'Username',
+                          labelText: 'Korisničko ime',
                           border: OutlineInputBorder(),
                         ),
-                        validator: (v) => _validateRequired(v, 'Username'),
+                        validator: (v) => _validateRequired(v, 'Korisničko ime'),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _phone,
                         decoration: const InputDecoration(
-                          labelText: 'Phone (optional)',
+                          labelText: 'Telefon (opcionalno)',
                           border: OutlineInputBorder(),
                         ),
                         keyboardType: TextInputType.phone,
@@ -381,7 +379,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                       DropdownButtonFormField<int>(
                         value: _dropdownValue(_genders, _genderId),
                         decoration: const InputDecoration(
-                          labelText: 'Gender',
+                          labelText: 'Spol',
                           border: OutlineInputBorder(),
                         ),
                         items: _genders
@@ -399,7 +397,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                       DropdownButtonFormField<int>(
                         value: _dropdownValue(_cities, _cityId),
                         decoration: const InputDecoration(
-                          labelText: 'City',
+                          labelText: 'Grad',
                           border: OutlineInputBorder(),
                         ),
                         items: _cities
@@ -417,9 +415,9 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
                         value: _changePassword,
-                        title: const Text('Change my password'),
+                        title: const Text('Promijeni moju lozinku'),
                         subtitle: const Text(
-                          'Leave this off to keep your current password.',
+                          'Ostavite isključeno da zadržite trenutnu lozinku.',
                         ),
                         onChanged: (v) => setState(() {
                           _changePassword = v;
@@ -435,7 +433,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                         TextFormField(
                           controller: _currentPassword,
                           decoration: const InputDecoration(
-                            labelText: 'Current password',
+                            labelText: 'Trenutna lozinka',
                             border: OutlineInputBorder(),
                           ),
                           obscureText: true,
@@ -445,9 +443,9 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                         TextFormField(
                           controller: _newPassword,
                           decoration: const InputDecoration(
-                            labelText: 'New password',
+                            labelText: 'Nova lozinka',
                             border: OutlineInputBorder(),
-                            helperText: 'At least 8 characters.',
+                            helperText: 'Najmanje 8 znakova.',
                           ),
                           obscureText: true,
                           validator: _validatePassword,
@@ -456,7 +454,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                         TextFormField(
                           controller: _confirmPassword,
                           decoration: const InputDecoration(
-                            labelText: 'Confirm new password',
+                            labelText: 'Potvrdite novu lozinku',
                             border: OutlineInputBorder(),
                           ),
                           obscureText: true,

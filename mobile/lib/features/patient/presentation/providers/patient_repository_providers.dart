@@ -31,22 +31,22 @@ class PatientCatalogRepository {
   final ProductApi _product;
 
   Future<List<DoctorResponse>> listDoctors() async {
-    final r = await _doctor.doctorGet(retrieveAll: true);
+    final r = await _doctor.doctorGet(pageSize: 100);
     return r?.items ?? [];
   }
 
   Future<List<ServiceResponse>> listServices() async {
-    final r = await _service.serviceGet(retrieveAll: true);
+    final r = await _service.serviceGet(pageSize: 100);
     return r?.items ?? [];
   }
 
   Future<List<RoomResponse>> listRooms() async {
-    final r = await _room.roomGet(retrieveAll: true);
+    final r = await _room.roomGet(pageSize: 100);
     return r?.items ?? [];
   }
 
   Future<List<ProductResponse>> listProducts() async {
-    final r = await _product.productGet(retrieveAll: true);
+    final r = await _product.productGet(pageSize: 100);
     return r?.items ?? [];
   }
 }
@@ -73,7 +73,7 @@ class PatientSessionRepository {
       _users.usersRegisterPost(userRegisterRequest: request);
 
   Future<List<PatientResponse>> listPatientsByUserId(int userId) async {
-    final r = await _patient.patientGet(userId: userId, retrieveAll: true);
+    final r = await _patient.patientGet(userId: userId, pageSize: 100);
     return r?.items ?? [];
   }
 }

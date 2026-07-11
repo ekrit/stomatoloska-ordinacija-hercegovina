@@ -19,6 +19,7 @@ class PaymentResponse {
     this.method,
     this.status,
     this.transactionRef,
+    this.payPalOrderId,
     this.createdAt,
   });
 
@@ -58,6 +59,8 @@ class PaymentResponse {
 
   String? transactionRef;
 
+  String? payPalOrderId;
+
   ///
   /// Please note: This property should have been non-nullable! Since the specification file
   /// does not include a default value (using the "default:" property), however, the generated
@@ -74,6 +77,7 @@ class PaymentResponse {
     other.method == method &&
     other.status == status &&
     other.transactionRef == transactionRef &&
+    other.payPalOrderId == payPalOrderId &&
     other.createdAt == createdAt;
 
   @override
@@ -85,10 +89,11 @@ class PaymentResponse {
     (method == null ? 0 : method!.hashCode) +
     (status == null ? 0 : status!.hashCode) +
     (transactionRef == null ? 0 : transactionRef!.hashCode) +
+    (payPalOrderId == null ? 0 : payPalOrderId!.hashCode) +
     (createdAt == null ? 0 : createdAt!.hashCode);
 
   @override
-  String toString() => 'PaymentResponse[id=$id, appointmentId=$appointmentId, amount=$amount, method=$method, status=$status, transactionRef=$transactionRef, createdAt=$createdAt]';
+  String toString() => 'PaymentResponse[id=$id, appointmentId=$appointmentId, amount=$amount, method=$method, status=$status, transactionRef=$transactionRef, payPalOrderId=$payPalOrderId, createdAt=$createdAt]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -121,6 +126,11 @@ class PaymentResponse {
       json[r'transactionRef'] = this.transactionRef;
     } else {
       json[r'transactionRef'] = null;
+    }
+    if (this.payPalOrderId != null) {
+      json[r'payPalOrderId'] = this.payPalOrderId;
+    } else {
+      json[r'payPalOrderId'] = null;
     }
     if (this.createdAt != null) {
       json[r'createdAt'] = this.createdAt!.toUtc().toIso8601String();
@@ -155,6 +165,7 @@ class PaymentResponse {
         method: mapValueOfType<String>(json, r'method'),
         status: PaymentStatus.fromJson(json[r'status']),
         transactionRef: mapValueOfType<String>(json, r'transactionRef'),
+        payPalOrderId: mapValueOfType<String>(json, r'payPalOrderId'),
         createdAt: mapDateTime(json, r'createdAt', r''),
       );
     }

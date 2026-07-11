@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using SOH.Model.Exceptions;
 using SOH.Model.Requests;
 using SOH.Model.Responses;
 using SOH.Model.SearchObjects;
@@ -28,6 +30,14 @@ namespace SOH.Services.Services
             }
 
             return query;
+        }
+
+        protected override async Task BeforeDelete(Service entity)
+        {
+            if (await _context.Appointments.AnyAsync(a => a.ServiceId == entity.Id))
+            {
+                throw new BusinessException("Usluga se ne može obrisati jer postoje termini koji je koriste.");
+            }
         }
     }
 }

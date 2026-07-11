@@ -23,6 +23,7 @@ class UserUpsertRequest {
     required this.cityId,
     this.isActive,
     this.password,
+    this.oldPassword,
     this.roleIds = const [],
   });
 
@@ -52,6 +53,8 @@ class UserUpsertRequest {
 
   String? password;
 
+  String? oldPassword;
+
   List<int>? roleIds;
 
   @override
@@ -66,6 +69,7 @@ class UserUpsertRequest {
     other.cityId == cityId &&
     other.isActive == isActive &&
     other.password == password &&
+    other.oldPassword == oldPassword &&
     _deepEquality.equals(other.roleIds, roleIds);
 
   @override
@@ -81,10 +85,11 @@ class UserUpsertRequest {
     (cityId.hashCode) +
     (isActive == null ? 0 : isActive!.hashCode) +
     (password == null ? 0 : password!.hashCode) +
+    (oldPassword == null ? 0 : oldPassword!.hashCode) +
     (roleIds == null ? 0 : roleIds!.hashCode);
 
   @override
-  String toString() => 'UserUpsertRequest[firstName=$firstName, lastName=$lastName, picture=$picture, email=$email, username=$username, phoneNumber=$phoneNumber, genderId=$genderId, cityId=$cityId, isActive=$isActive, password=$password, roleIds=$roleIds]';
+  String toString() => 'UserUpsertRequest[firstName=$firstName, lastName=$lastName, picture=$picture, email=$email, username=$username, phoneNumber=$phoneNumber, genderId=$genderId, cityId=$cityId, isActive=$isActive, password=$password, oldPassword=$oldPassword, roleIds=$roleIds]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -113,6 +118,11 @@ class UserUpsertRequest {
       json[r'password'] = this.password;
     } else {
       json[r'password'] = null;
+    }
+    if (this.oldPassword != null) {
+      json[r'oldPassword'] = this.oldPassword;
+    } else {
+      json[r'oldPassword'] = null;
     }
     if (this.roleIds != null) {
       json[r'roleIds'] = this.roleIds;
@@ -151,6 +161,7 @@ class UserUpsertRequest {
         cityId: mapValueOfType<int>(json, r'cityId')!,
         isActive: mapValueOfType<bool>(json, r'isActive'),
         password: mapValueOfType<String>(json, r'password'),
+        oldPassword: mapValueOfType<String>(json, r'oldPassword'),
         roleIds: json[r'roleIds'] is Iterable
             ? (json[r'roleIds'] as Iterable).cast<int>().toList(growable: false)
             : const [],

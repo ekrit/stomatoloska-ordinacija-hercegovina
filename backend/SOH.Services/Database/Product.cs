@@ -18,8 +18,10 @@ namespace SOH.Services.Database
         [Precision(18, 2)]
         public decimal Price { get; set; }
 
-        [MaxLength(100)]
-        public string Category { get; set; } = string.Empty;
+        public int ProductCategoryId { get; set; }
+        public ProductCategory ProductCategory { get; set; } = null!;
+
+        public byte[]? Picture { get; set; }
 
         public ICollection<Order> Orders { get; set; } = new List<Order>();
     }
