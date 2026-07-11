@@ -33,7 +33,7 @@ class _AppointmentReviewScreenState extends ConsumerState<AppointmentReviewScree
     final a = widget.appointment;
     final uid = ref.read(currentUserProvider)?.id;
     if (a.id == null || a.patientId == null || a.doctorId == null || uid == null) {
-      setState(() => _error = 'Missing appointment data.');
+      setState(() => _error = 'Nedostaju podaci o terminu.');
       return;
     }
     setState(() {
@@ -52,12 +52,12 @@ class _AppointmentReviewScreenState extends ConsumerState<AppointmentReviewScree
           );
       ref.invalidate(myAppointmentsProvider);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Thank you for your review.')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Hvala vam na recenziji.')));
         Navigator.of(context).pop();
       }
     } catch (e) {
       setState(() => _error = extractApiErrorMessage(e,
-          fallback: 'Could not submit the review. Please try again.'));
+          fallback: 'Recenziju nije moguće poslati. Pokušajte ponovo.'));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -77,32 +77,32 @@ class _AppointmentReviewScreenState extends ConsumerState<AppointmentReviewScree
     final doctorName = doctors.maybeWhen(
       data: (list) {
         final id = a.doctorId;
-        if (id == null) return 'Dentist';
+        if (id == null) return 'Stomatolog';
         for (final d in list) {
           if (d.userId == id) {
             final n = '${d.firstName ?? ''} ${d.lastName ?? ''}'.trim();
-            return n.isEmpty ? 'Dentist' : n;
+            return n.isEmpty ? 'Stomatolog' : n;
           }
         }
-        return 'Dentist';
+        return 'Stomatolog';
       },
-      orElse: () => 'Dentist',
+      orElse: () => 'Stomatolog',
     );
 
     final serviceName = services.maybeWhen(
       data: (list) {
         final id = a.serviceId;
-        if (id == null) return 'Service';
+        if (id == null) return 'Usluga';
         for (final s in list) {
-          if (s.id == id) return s.name ?? 'Service';
+          if (s.id == id) return s.name ?? 'Usluga';
         }
-        return 'Service';
+        return 'Usluga';
       },
-      orElse: () => 'Service',
+      orElse: () => 'Usluga',
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Rate your visit')),
+      appBar: AppBar(title: const Text('Ocijenite posjetu')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -123,7 +123,7 @@ class _AppointmentReviewScreenState extends ConsumerState<AppointmentReviewScree
               ),
             ),
             const SizedBox(height: 24),
-            Text('Your rating', style: Theme.of(context).textTheme.titleSmall),
+            Text('Vaša ocjena', style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 8),
             Row(
               children: List.generate(5, (i) {
@@ -142,7 +142,7 @@ class _AppointmentReviewScreenState extends ConsumerState<AppointmentReviewScree
               controller: _comment,
               maxLines: 4,
               decoration: const InputDecoration(
-                labelText: 'Written review (optional)',
+                labelText: 'Pisana recenzija (opcionalno)',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -159,7 +159,7 @@ class _AppointmentReviewScreenState extends ConsumerState<AppointmentReviewScree
                       width: 22,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Submit review'),
+                  : const Text('Pošalji recenziju'),
             ),
           ],
         ),

@@ -26,22 +26,22 @@ class QuickActionsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final actions = [
-      _ActionItem('Add Patient', Icons.person_add_alt_1_outlined),
-      _ActionItem('Manage Users', Icons.group_outlined),
-      _ActionItem('Edit Office Info', Icons.edit_outlined),
-      _ActionItem('Manage Appointments', Icons.calendar_today_outlined),
-      _ActionItem('Generate Reports', Icons.bar_chart_outlined),
-      _ActionItem('Manage Products', Icons.inventory_2_outlined),
-      _ActionItem('Manage Services', Icons.design_services_outlined),
-      _ActionItem('Manage Rooms', Icons.meeting_room_outlined),
-      _ActionItem('Manage Genders', Icons.wc_outlined),
-      _ActionItem('Payments', Icons.payments_outlined),
-      _ActionItem('Manage Doctors', Icons.medical_services_outlined),
-      _ActionItem('Manage Roles', Icons.badge_outlined),
-      _ActionItem('Product Categories', Icons.category_outlined),
-      _ActionItem('Reviews', Icons.reviews_outlined),
-      _ActionItem('Orders', Icons.receipt_long_outlined),
-      _ActionItem('Medical Records', Icons.description_outlined),
+      _ActionItem('Dodaj pacijenta', Icons.person_add_alt_1_outlined),
+      _ActionItem('Upravljaj korisnicima', Icons.group_outlined),
+      _ActionItem('Podaci o ordinaciji', Icons.edit_outlined),
+      _ActionItem('Upravljaj terminima', Icons.calendar_today_outlined),
+      _ActionItem('Generiši izvještaje', Icons.bar_chart_outlined),
+      _ActionItem('Upravljaj proizvodima', Icons.inventory_2_outlined),
+      _ActionItem('Upravljaj uslugama', Icons.design_services_outlined),
+      _ActionItem('Upravljaj prostorijama', Icons.meeting_room_outlined),
+      _ActionItem('Upravljaj spolovima', Icons.wc_outlined),
+      _ActionItem('Uplate', Icons.payments_outlined),
+      _ActionItem('Upravljaj doktorima', Icons.medical_services_outlined),
+      _ActionItem('Upravljaj ulogama', Icons.badge_outlined),
+      _ActionItem('Kategorije proizvoda', Icons.category_outlined),
+      _ActionItem('Recenzije', Icons.reviews_outlined),
+      _ActionItem('Narudžbe', Icons.receipt_long_outlined),
+      _ActionItem('Nalazi', Icons.description_outlined),
     ];
 
     final buttonStyle = OutlinedButton.styleFrom(
@@ -158,7 +158,7 @@ class QuickActionsCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Quick Actions',
+              'Brze radnje',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),

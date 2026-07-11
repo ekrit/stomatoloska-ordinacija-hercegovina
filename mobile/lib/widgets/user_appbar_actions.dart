@@ -39,16 +39,16 @@ Future<bool> showLogoutConfirm(BuildContext context) async {
     context: context,
     builder: (dialogContext) {
       return AlertDialog(
-        title: const Text('Log out'),
-        content: const Text('Are you sure you want to log out?'),
+        title: const Text('Odjava'),
+        content: const Text('Da li se zaista želite odjaviti?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: const Text('Odustani'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Log out'),
+            child: const Text('Odjava'),
           ),
         ],
       );

@@ -68,8 +68,8 @@ class AdminSearchScreen extends ConsumerWidget {
     final trimmed = query.trim();
     if (trimmed.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Search')),
-        body: const Center(child: Text('Enter a search term in the dashboard search field.')),
+        appBar: AppBar(title: const Text('Pretraga')),
+        body: const Center(child: Text('Unesite pojam za pretragu u polje na kontrolnoj tabli.')),
       );
     }
 
@@ -79,20 +79,20 @@ class AdminSearchScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Search: $query'),
+        title: Text('Pretraga: $query'),
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
         data: (data) {
           if (data.total == 0) {
-            return const Center(child: Text('No matches.'));
+            return const Center(child: Text('Nema rezultata.'));
           }
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
               if (data.users.isNotEmpty) ...[
-                Text('Users', style: Theme.of(context).textTheme.titleMedium),
+                Text('Korisnici', style: Theme.of(context).textTheme.titleMedium),
                 ...data.users.map(
                   (u) => ListTile(
                     leading: Builder(builder: (context) {
@@ -118,12 +118,12 @@ class AdminSearchScreen extends ConsumerWidget {
                 const SizedBox(height: 16),
               ],
               if (data.patients.isNotEmpty) ...[
-                Text('Patients', style: Theme.of(context).textTheme.titleMedium),
+                Text('Pacijenti', style: Theme.of(context).textTheme.titleMedium),
                 ...data.patients.map(
                   (p) => ListTile(
                     leading: const Icon(Icons.badge_outlined),
                     title: Text('${p.firstName ?? ''} ${p.lastName ?? ''}'.trim()),
-                    subtitle: Text((p.phone ?? '').trim().isNotEmpty ? p.phone!.trim() : 'Patient record'),
+                    subtitle: Text((p.phone ?? '').trim().isNotEmpty ? p.phone!.trim() : 'Pacijentski karton'),
                     onTap: p.userId == null
                         ? null
                         : () {
@@ -138,7 +138,7 @@ class AdminSearchScreen extends ConsumerWidget {
                 const SizedBox(height: 16),
               ],
               if (data.doctors.isNotEmpty) ...[
-                Text('Doctors', style: Theme.of(context).textTheme.titleMedium),
+                Text('Doktori', style: Theme.of(context).textTheme.titleMedium),
                 ...data.doctors.map(
                   (d) => ListTile(
                     leading: const Icon(Icons.medical_services_outlined),
@@ -158,7 +158,7 @@ class AdminSearchScreen extends ConsumerWidget {
                 const SizedBox(height: 16),
               ],
               if (data.appointments.isNotEmpty) ...[
-                Text('Appointments', style: Theme.of(context).textTheme.titleMedium),
+                Text('Termini', style: Theme.of(context).textTheme.titleMedium),
                 ...data.appointments.map(
                   (a) {
                     final st = a.startTime;

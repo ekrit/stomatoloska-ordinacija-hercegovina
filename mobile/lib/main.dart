@@ -34,7 +34,7 @@ class SohMobileApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Dental Clinic Herzegovina',
+      title: 'Stomatološka Ordinacija Hercegovina',
       navigatorKey: rootNavigatorKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(

@@ -63,7 +63,7 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
     final gid = _genderId;
     final cid = _cityId;
     if (gid == null || cid == null) {
-      setState(() => _error = 'Please select gender and city.');
+      setState(() => _error = 'Odaberite spol i grad.');
       return;
     }
     final first = _first.text.trim();
@@ -72,23 +72,23 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
     final username = _username.text.trim();
     final password = _password.text;
     if (first.isEmpty || last.isEmpty) {
-      setState(() => _error = 'First and last name are required.');
+      setState(() => _error = 'Ime i prezime su obavezni.');
       return;
     }
     if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
-      setState(() => _error = 'Please enter a valid email address.');
+      setState(() => _error = 'Unesite validnu e-mail adresu.');
       return;
     }
     if (username.length < 3) {
-      setState(() => _error = 'Username must be at least 3 characters.');
+      setState(() => _error = 'Korisničko ime mora imati najmanje 3 znaka.');
       return;
     }
     if (password.length < 8) {
-      setState(() => _error = 'Password must be at least 8 characters.');
+      setState(() => _error = 'Lozinka mora imati najmanje 8 znakova.');
       return;
     }
     if (_dob.isAfter(DateTime.now())) {
-      setState(() => _error = 'Date of birth cannot be in the future.');
+      setState(() => _error = 'Datum rođenja ne može biti u budućnosti.');
       return;
     }
 
@@ -111,7 +111,7 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
           );
       final uid = user?.id;
       if (uid == null) {
-        setState(() => _error = 'Registration did not return a user id.');
+        setState(() => _error = 'Registracija nije vratila korisnički ID.');
         return;
       }
       await ref.read(patientApiProvider).patientPost(
@@ -125,12 +125,12 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
           );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Patient account created.')),
+        const SnackBar(content: Text('Pacijentski nalog je kreiran.')),
       );
       Navigator.of(context).pop(true);
     } catch (e) {
       setState(() => _error = extractApiErrorMessage(e,
-          fallback: 'Could not create the patient account.'));
+          fallback: 'Pacijentski nalog nije moguće kreirati.'));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -142,7 +142,7 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
     final cities = ref.watch(_citiesAddPatientProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Add patient')),
+      appBar: AppBar(title: const Text('Dodaj pacijenta')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -158,36 +158,36 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: _first,
-                  decoration: const InputDecoration(labelText: 'First name'),
+                  decoration: const InputDecoration(labelText: 'Ime'),
                   textCapitalization: TextCapitalization.words,
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _last,
-                  decoration: const InputDecoration(labelText: 'Last name'),
+                  decoration: const InputDecoration(labelText: 'Prezime'),
                   textCapitalization: TextCapitalization.words,
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _email,
-                  decoration: const InputDecoration(labelText: 'Email'),
+                  decoration: const InputDecoration(labelText: 'E-mail'),
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _username,
-                  decoration: const InputDecoration(labelText: 'Username'),
+                  decoration: const InputDecoration(labelText: 'Korisničko ime'),
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _phone,
-                  decoration: const InputDecoration(labelText: 'Phone (optional)'),
+                  decoration: const InputDecoration(labelText: 'Telefon (opcionalno)'),
                   keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton(
                   onPressed: _pickDob,
-                  child: Text('Date of birth: ${_dob.year}-${_dob.month.toString().padLeft(2, '0')}-${_dob.day.toString().padLeft(2, '0')}'),
+                  child: Text('Datum rođenja: ${_dob.year}-${_dob.month.toString().padLeft(2, '0')}-${_dob.day.toString().padLeft(2, '0')}'),
                 ),
                 const SizedBox(height: 8),
                 genders.when(
@@ -196,7 +196,7 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
                   data: (list) {
                     return DropdownButtonFormField<int>(
                       value: _genderId,
-                      decoration: const InputDecoration(labelText: 'Gender'),
+                      decoration: const InputDecoration(labelText: 'Spol'),
                       items: list
                           .where((g) => g.id != null)
                           .map(
@@ -217,7 +217,7 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
                   data: (list) {
                     return DropdownButtonFormField<int>(
                       value: _cityId,
-                      decoration: const InputDecoration(labelText: 'City'),
+                      decoration: const InputDecoration(labelText: 'Grad'),
                       items: list
                           .where((c) => c.id != null)
                           .map(
@@ -236,7 +236,7 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
                   controller: _password,
                   obscureText: _obscure,
                   decoration: InputDecoration(
-                    labelText: 'Password',
+                    labelText: 'Lozinka',
                     suffixIcon: IconButton(
                       onPressed: () => setState(() => _obscure = !_obscure),
                       icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
@@ -256,7 +256,7 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
                           width: 22,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Create patient'),
+                      : const Text('Kreiraj pacijenta'),
                 ),
               ],
             ),

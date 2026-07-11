@@ -22,18 +22,18 @@ class _AdminRoomsListScreenState extends ConsumerState<AdminRoomsListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Rooms'),
+        title: const Text('Prostorije'),
         actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _reload)],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openEditor(context),
         icon: const Icon(Icons.add),
-        label: const Text('Add room'),
+        label: const Text('Dodaj prostoriju'),
       ),
       body: PaginatedSearchView<RoomResponse>(
         refreshKey: _refresh,
-        searchHint: 'Search rooms…',
-        emptyLabel: 'No rooms found.',
+        searchHint: 'Pretraži prostorije…',
+        emptyLabel: 'Nema pronađenih prostorija.',
         fetch: (query, page, pageSize) async {
           final r = await ref.read(roomApiProvider).roomGet(
                 FTS: query.isEmpty ? null : query,
@@ -49,10 +49,10 @@ class _AdminRoomsListScreenState extends ConsumerState<AdminRoomsListScreen> {
             color: room.isAvailable == true ? Colors.green : Colors.grey,
           ),
           title: Text(room.name ?? 'Room #${room.id ?? ''}'),
-          subtitle: Text(room.isAvailable == true ? 'Available' : 'Unavailable'),
+          subtitle: Text(room.isAvailable == true ? 'Dostupna' : 'Nedostupna'),
           trailing: IconButton(
             icon: const Icon(Icons.delete_outline),
-            tooltip: 'Delete',
+            tooltip: 'Obriši',
             onPressed: room.id == null ? null : () => _confirmDelete(context, room),
           ),
           onTap: () => _openEditor(context, room: room),
@@ -74,11 +74,11 @@ class _AdminRoomsListScreenState extends ConsumerState<AdminRoomsListScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete room?'),
+        title: const Text('Obrisati prostoriju?'),
         content: Text('Remove "${room.name ?? 'this room'}"?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Odustani')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Obriši')),
         ],
       ),
     );
@@ -88,7 +88,7 @@ class _AdminRoomsListScreenState extends ConsumerState<AdminRoomsListScreen> {
       _reload();
     } catch (e) {
       messenger.showSnackBar(
-        SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Could not delete the room.'))),
+        SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Prostoriju nije moguće obrisati.'))),
       );
     }
   }
@@ -141,7 +141,7 @@ class _RoomEditorDialogState extends ConsumerState<_RoomEditorDialog> {
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
-      setState(() => _error = extractApiErrorMessage(e, fallback: 'Could not save the room.'));
+      setState(() => _error = extractApiErrorMessage(e, fallback: 'Prostoriju nije moguće spasiti.'));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -150,7 +150,7 @@ class _RoomEditorDialogState extends ConsumerState<_RoomEditorDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(_isEditing ? 'Edit room' : 'Add room'),
+      title: Text(_isEditing ? 'Uredi prostoriju' : 'Dodaj prostoriju'),
       content: SizedBox(
         width: 380,
         child: Form(
@@ -160,13 +160,13 @@ class _RoomEditorDialogState extends ConsumerState<_RoomEditorDialog> {
             children: [
               TextFormField(
                 controller: _name,
-                decoration: const InputDecoration(labelText: 'Name', border: OutlineInputBorder()),
-                validator: (v) => (v ?? '').trim().isEmpty ? 'Name is required.' : null,
+                decoration: const InputDecoration(labelText: 'Naziv', border: OutlineInputBorder()),
+                validator: (v) => (v ?? '').trim().isEmpty ? 'Naziv je obavezan.' : null,
               ),
               const SizedBox(height: 8),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Available'),
+                title: const Text('Dostupna'),
                 value: _available,
                 onChanged: _saving ? null : (v) => setState(() => _available = v),
               ),
@@ -177,12 +177,12 @@ class _RoomEditorDialogState extends ConsumerState<_RoomEditorDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: _saving ? null : () => Navigator.pop(context, false), child: const Text('Cancel')),
+        TextButton(onPressed: _saving ? null : () => Navigator.pop(context, false), child: const Text('Odustani')),
         FilledButton(
           onPressed: _saving ? null : _save,
           child: _saving
               ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-              : const Text('Save'),
+              : const Text('Spasi'),
         ),
       ],
     );

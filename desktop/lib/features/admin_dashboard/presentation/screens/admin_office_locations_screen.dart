@@ -24,7 +24,7 @@ class _AdminOfficeLocationsScreenState extends ConsumerState<AdminOfficeLocation
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Office locations'),
+        title: const Text('Lokacije ordinacije'),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _reload),
         ],
@@ -37,12 +37,12 @@ class _AdminOfficeLocationsScreenState extends ConsumerState<AdminOfficeLocation
           if (changed == true) _reload();
         },
         icon: const Icon(Icons.add),
-        label: const Text('Add city'),
+        label: const Text('Dodaj grad'),
       ),
       body: PaginatedSearchView<CityResponse>(
         refreshKey: _refresh,
-        searchHint: 'Search cities…',
-        emptyLabel: 'No cities configured.',
+        searchHint: 'Pretraži gradove…',
+        emptyLabel: 'Nema konfigurisanih gradova.',
         fetch: (query, page, pageSize) async {
           final r = await ref.read(cityApiProvider).cityGet(
                 FTS: query.isEmpty ? null : query,
@@ -54,7 +54,7 @@ class _AdminOfficeLocationsScreenState extends ConsumerState<AdminOfficeLocation
         },
         itemBuilder: (context, c) => ListTile(
           leading: const Icon(Icons.location_city),
-          title: Text(c.name ?? 'City'),
+          title: Text(c.name ?? 'Grad'),
           trailing: const Icon(Icons.edit_outlined),
           onTap: () async {
             final changed = await Navigator.of(context).push<bool>(

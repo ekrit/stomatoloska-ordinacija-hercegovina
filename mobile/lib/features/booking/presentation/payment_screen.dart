@@ -57,7 +57,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = extractApiErrorMessage(e, fallback: 'Could not start the payment.');
+        _error = extractApiErrorMessage(e, fallback: 'Plaćanje nije moguće pokrenuti.');
         _phase = _Phase.failed;
       });
     }
@@ -67,7 +67,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     final order = _order;
     if (order == null || order.approvalUrl.isEmpty) {
       setState(() {
-        _error = 'PayPal did not return an approval link.';
+        _error = 'PayPal nije vratio link za odobrenje.';
         _phase = _Phase.failed;
       });
       return;
@@ -132,14 +132,14 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         if (mounted) Navigator.of(context).pop(true);
       } else {
         setState(() {
-          _error = 'Payment was not completed.';
+          _error = 'Plaćanje nije završeno.';
           _phase = _Phase.failed;
         });
       }
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = extractApiErrorMessage(e, fallback: 'Could not finalize the payment.');
+        _error = extractApiErrorMessage(e, fallback: 'Plaćanje nije moguće dovršiti.');
         _phase = _Phase.failed;
       });
     } finally {
@@ -150,7 +150,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Payment')),
+      appBar: AppBar(title: const Text('Plaćanje')),
       body: SafeArea(child: _buildBody()),
     );
   }
@@ -176,7 +176,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             children: [
               Icon(Icons.check_circle, color: Colors.green, size: 64),
               SizedBox(height: 12),
-              Text('Payment completed'),
+              Text('Plaćanje završeno'),
             ],
           ),
         );
@@ -190,18 +190,18 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               children: [
                 const Icon(Icons.error_outline, color: Colors.red, size: 56),
                 const SizedBox(height: 12),
-                Text(_error ?? 'Payment failed.', textAlign: TextAlign.center),
+                Text(_error ?? 'Plaćanje nije uspjelo.', textAlign: TextAlign.center),
                 const SizedBox(height: 16),
                 Wrap(
                   spacing: 8,
                   children: [
                     OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(false),
-                      child: const Text('Pay later'),
+                      child: const Text('Plati kasnije'),
                     ),
                     FilledButton(
                       onPressed: _createOrder,
-                      child: const Text('Try again'),
+                      child: const Text('Pokušaj ponovo'),
                     ),
                   ],
                 ),
@@ -224,7 +224,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               size: 56, color: Theme.of(context).colorScheme.primary),
           const SizedBox(height: 16),
           Text(
-            'Pay for your appointment',
+            'Platite svoj termin',
             style: Theme.of(context).textTheme.titleLarge,
             textAlign: TextAlign.center,
           ),
@@ -234,7 +234,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           const SizedBox(height: 16),
           Card(
             child: ListTile(
-              title: const Text('Amount due'),
+              title: const Text('Iznos za plaćanje'),
               trailing: Text(
                 '${order.amount.toStringAsFixed(2)} EUR',
                 style: Theme.of(context).textTheme.titleMedium,
@@ -245,12 +245,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           FilledButton.icon(
             onPressed: _confirmAndPay,
             icon: const Icon(Icons.account_balance_wallet_outlined),
-            label: const Text('Pay with PayPal'),
+            label: const Text('Plati PayPal-om'),
           ),
           const SizedBox(height: 8),
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Pay later'),
+            child: const Text('Plati kasnije'),
           ),
         ],
       ),
@@ -262,14 +262,14 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Proceed to PayPal?'),
+        title: const Text('Nastaviti na PayPal?'),
         content: Text(
           'You are about to pay ${order.amount.toStringAsFixed(2)} EUR via PayPal. '
-          'This opens PayPal\'s secure checkout.',
+          'Otvara se PayPal-ova sigurna stranica za plaćanje.',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Continue')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Odustani')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Nastavi')),
         ],
       ),
     );

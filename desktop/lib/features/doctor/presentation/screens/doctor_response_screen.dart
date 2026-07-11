@@ -57,33 +57,33 @@ class DoctorResponseScreen extends ConsumerWidget {
     if (!userIsDoctor(user)) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Doctor'),
+          title: const Text('Doktor'),
           actions: [
             IconButton(
               onPressed: logout,
               icon: const Icon(Icons.logout),
-              tooltip: 'Log out',
+              tooltip: 'Odjava',
             ),
           ],
         ),
-        body: const Center(child: Text('Doctor access only.')),
+        body: const Center(child: Text('Pristup samo za doktore.')),
       );
     }
 
     final async = ref.watch(_doctorAppointmentsProvider);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Appointments'),
+        title: const Text('Termini'),
         actions: [
           IconButton(
             onPressed: () => ref.invalidate(_doctorAppointmentsProvider),
             icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
+            tooltip: 'Osvježi',
           ),
           IconButton(
             onPressed: logout,
             icon: const Icon(Icons.logout),
-            tooltip: 'Log out',
+            tooltip: 'Odjava',
           ),
         ],
       ),
@@ -115,9 +115,9 @@ class DoctorResponseScreen extends ConsumerWidget {
               children: [
                 const TabBar(
                   tabs: [
-                    Tab(text: 'Pending'),
-                    Tab(text: 'Upcoming'),
-                    Tab(text: 'Completed'),
+                    Tab(text: 'Na čekanju'),
+                    Tab(text: 'Nastupajući'),
+                    Tab(text: 'Završeni'),
                   ],
                 ),
                 Expanded(
@@ -125,17 +125,17 @@ class DoctorResponseScreen extends ConsumerWidget {
                     children: [
                       _AppointmentList(
                         items: pending,
-                        empty: 'No pending requests.',
+                        empty: 'Nema zahtjeva na čekanju.',
                         mode: _ListMode.pending,
                       ),
                       _AppointmentList(
                         items: upcoming,
-                        empty: 'No upcoming appointments.',
+                        empty: 'Nema nastupajućih termina.',
                         mode: _ListMode.upcoming,
                       ),
                       _AppointmentList(
                         items: completed,
-                        empty: 'No completed appointments yet.',
+                        empty: 'Još nema završenih termina.',
                         mode: _ListMode.completed,
                       ),
                     ],
@@ -209,7 +209,7 @@ class _AppointmentList extends ConsumerWidget {
             isThreeLine: note.isNotEmpty,
             trailing: mode == _ListMode.completed
                 ? IconButton(
-                    tooltip: 'Add findings',
+                    tooltip: 'Dodaj nalaz',
                     icon: const Icon(Icons.description_outlined),
                     onPressed: a.id == null
                         ? null
@@ -232,7 +232,7 @@ class _AppointmentList extends ConsumerWidget {
                               appointment: a,
                               next: AppointmentStatuses.declined,
                             ),
-                            child: const Text('Reject'),
+                            child: const Text('Odbij'),
                           ),
                           FilledButton(
                             onPressed: () => _changeStatus(
@@ -241,7 +241,7 @@ class _AppointmentList extends ConsumerWidget {
                               appointment: a,
                               next: AppointmentStatuses.accepted,
                             ),
-                            child: const Text('Accept'),
+                            child: const Text('Prihvati'),
                           ),
                         ],
                       )
@@ -273,20 +273,20 @@ class _AppointmentList extends ConsumerWidget {
       final ok = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: Text(next == AppointmentStatuses.accepted ? 'Accept request?' : 'Reject request?'),
+          title: Text(next == AppointmentStatuses.accepted ? 'Prihvatiti zahtjev?' : 'Odbiti zahtjev?'),
           content: TextField(
             controller: noteController,
             maxLines: 3,
             decoration: const InputDecoration(
-              labelText: 'Doctor note (optional)',
+              labelText: 'Napomena doktora (opcionalno)',
               border: OutlineInputBorder(),
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Odustani')),
             FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Confirm'),
+              child: const Text('Potvrdi'),
             ),
           ],
         ),
@@ -315,8 +315,8 @@ class _AppointmentList extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(next == AppointmentStatuses.accepted
-              ? 'Appointment request accepted; the patient was notified.'
-              : 'Appointment request rejected; the patient was notified.')),
+              ? 'Zahtjev za termin je prihvaćen; pacijent je obaviješten.'
+              : 'Zahtjev za termin je odbijen; pacijent je obaviješten.')),
         );
       }
     } catch (e) {

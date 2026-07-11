@@ -92,7 +92,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
       if (user == null) {
         if (!mounted) return;
         setState(() {
-          _error = 'User not found.';
+          _error = 'Korisnik nije pronađen.';
           _loading = false;
         });
         return;
@@ -126,7 +126,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
       setState(() {
         _error = extractApiErrorMessage(
           e,
-          fallback: 'Could not load the user.',
+          fallback: 'Korisnika nije moguće učitati.',
         );
         _loading = false;
       });
@@ -171,9 +171,9 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
 
   String? _validateEmail(String? raw) {
     final v = (raw ?? '').trim();
-    if (v.isEmpty) return 'Email is required.';
+    if (v.isEmpty) return 'E-mail je obavezno polje.';
     final ok = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(v);
-    return ok ? null : 'Enter a valid email (e.g. name@example.com).';
+    return ok ? null : 'Unesite validnu e-mail adresu (npr. ime@example.com).';
   }
 
   String? _validatePhone(String? raw) {
@@ -182,7 +182,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
     final ok = RegExp(r'^[+0-9\s().-]{6,20}$').hasMatch(v);
     return ok
         ? null
-        : 'Enter a valid phone (digits, spaces, +, -, (), 6-20 chars).';
+        : 'Unesite validan telefon (cifre, razmaci, +, -, zagrade; 6-20 znakova).';
   }
 
   Future<void> _save() async {
@@ -193,14 +193,14 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
     if (pwd.isNotEmpty || confirm.isNotEmpty) {
       if (pwd != confirm) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Passwords do not match.')),
+          const SnackBar(content: Text('Lozinke se ne podudaraju.')),
         );
         return;
       }
       if (pwd.length < 4) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Password must be at least 4 characters.'),
+            content: Text('Lozinka mora imati najmanje 4 znaka.'),
           ),
         );
         return;
@@ -209,7 +209,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
       if (isSelf && _currentPassword.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Enter your current password to change it.'),
+            content: Text('Unesite trenutnu lozinku da biste je promijenili.'),
           ),
         );
         return;
@@ -221,7 +221,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
     if (gid == null || cid == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Select gender and city.')));
+      ).showSnackBar(const SnackBar(content: Text('Odaberite spol i grad.')));
       return;
     }
 
@@ -265,14 +265,14 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('User saved.')));
+      ).showSnackBar(const SnackBar(content: Text('Korisnik je spašen.')));
       Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            extractApiErrorMessage(e, fallback: 'Could not save the user.'),
+            extractApiErrorMessage(e, fallback: 'Korisnika nije moguće spasiti.'),
           ),
         ),
       );
@@ -315,7 +315,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         title: Text(
-          u != null ? 'Edit user — ${_displayName(u)}' : 'Edit user',
+          u != null ? 'Edit user — ${_displayName(u)}' : 'Uredi korisnika',
           style: const TextStyle(color: Colors.black),
         ),
         actions: [
@@ -328,7 +328,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Save'),
+                  : const Text('Spasi'),
             ),
         ],
       ),
@@ -343,13 +343,13 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                   children: [
                     Text(_error!, textAlign: TextAlign.center),
                     const SizedBox(height: 16),
-                    FilledButton(onPressed: _load, child: const Text('Retry')),
+                    FilledButton(onPressed: _load, child: const Text('Pokušaj ponovo')),
                   ],
                 ),
               ),
             )
           : u == null
-          ? const Center(child: Text('User not found.'))
+          ? const Center(child: Text('Korisnik nije pronađen.'))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Center(
@@ -367,7 +367,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'System',
+                                  'Sistem',
                                   style: Theme.of(context).textTheme.titleSmall
                                       ?.copyWith(fontWeight: FontWeight.w600),
                                 ),
@@ -389,7 +389,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 Text(
-                                  'Profile',
+                                  'Profil',
                                   style: Theme.of(context).textTheme.titleSmall
                                       ?.copyWith(fontWeight: FontWeight.w600),
                                 ),
@@ -407,7 +407,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                                         icon: const Icon(
                                           Icons.photo_library_outlined,
                                         ),
-                                        label: const Text('Pick image'),
+                                        label: const Text('Odaberi sliku'),
                                       ),
                                     ),
                                   ],
@@ -416,28 +416,28 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                                 TextFormField(
                                   controller: _firstName,
                                   decoration: const InputDecoration(
-                                    labelText: 'First name',
+                                    labelText: 'Ime',
                                     border: OutlineInputBorder(),
                                   ),
                                   validator: (v) =>
-                                      _validateRequired(v, 'First name'),
+                                      _validateRequired(v, 'Ime'),
                                 ),
                                 const SizedBox(height: 12),
                                 TextFormField(
                                   controller: _lastName,
                                   decoration: const InputDecoration(
-                                    labelText: 'Last name',
+                                    labelText: 'Prezime',
                                     border: OutlineInputBorder(),
                                   ),
                                   validator: (v) =>
-                                      _validateRequired(v, 'Last name'),
+                                      _validateRequired(v, 'Prezime'),
                                 ),
                                 const SizedBox(height: 12),
                                 TextFormField(
                                   controller: _email,
                                   decoration: const InputDecoration(
-                                    labelText: 'Email',
-                                    helperText: 'Format: name@example.com',
+                                    labelText: 'E-mail',
+                                    helperText: 'Format: ime@example.com',
                                     border: OutlineInputBorder(),
                                   ),
                                   keyboardType: TextInputType.emailAddress,
@@ -447,18 +447,18 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                                 TextFormField(
                                   controller: _username,
                                   decoration: const InputDecoration(
-                                    labelText: 'Username',
+                                    labelText: 'Korisničko ime',
                                     border: OutlineInputBorder(),
                                   ),
                                   validator: (v) =>
-                                      _validateRequired(v, 'Username'),
+                                      _validateRequired(v, 'Korisničko ime'),
                                 ),
                                 const SizedBox(height: 12),
                                 TextFormField(
                                   controller: _phone,
                                   decoration: const InputDecoration(
-                                    labelText: 'Phone',
-                                    helperText: 'E.g. +387 61 123 456',
+                                    labelText: 'Telefon',
+                                    helperText: 'Npr. +387 61 123 456',
                                     border: OutlineInputBorder(),
                                   ),
                                   keyboardType: TextInputType.phone,
@@ -468,7 +468,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                                 DropdownButtonFormField<int>(
                                   value: _dropdownGenderValue(),
                                   decoration: const InputDecoration(
-                                    labelText: 'Gender',
+                                    labelText: 'Spol',
                                     border: OutlineInputBorder(),
                                   ),
                                   items: _genders
@@ -487,7 +487,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                                 DropdownButtonFormField<int>(
                                   value: _dropdownCityValue(),
                                   decoration: const InputDecoration(
-                                    labelText: 'City',
+                                    labelText: 'Grad',
                                     border: OutlineInputBorder(),
                                   ),
                                   items: _cities
@@ -503,14 +503,14 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                                 ),
                                 const SizedBox(height: 12),
                                 SwitchListTile(
-                                  title: const Text('Active'),
+                                  title: const Text('Aktivan'),
                                   value: _isActive,
                                   onChanged: (v) =>
                                       setState(() => _isActive = v),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Roles',
+                                  'Uloge',
                                   style: Theme.of(context).textTheme.titleSmall
                                       ?.copyWith(fontWeight: FontWeight.w600),
                                 ),
@@ -541,7 +541,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  'New password (optional)',
+                                  'Nova lozinka (opcionalno)',
                                   style: Theme.of(context).textTheme.titleSmall
                                       ?.copyWith(fontWeight: FontWeight.w600),
                                 ),
@@ -551,9 +551,9 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                                   TextField(
                                     controller: _currentPassword,
                                     decoration: const InputDecoration(
-                                      labelText: 'Current password',
+                                      labelText: 'Trenutna lozinka',
                                       helperText:
-                                          'Required only when changing your own password.',
+                                          'Obavezno samo pri promjeni vlastite lozinke.',
                                       border: OutlineInputBorder(),
                                     ),
                                     obscureText: true,
@@ -563,7 +563,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                                 TextField(
                                   controller: _password,
                                   decoration: const InputDecoration(
-                                    labelText: 'Password',
+                                    labelText: 'Lozinka',
                                     border: OutlineInputBorder(),
                                   ),
                                   obscureText: true,
@@ -572,7 +572,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                                 TextField(
                                   controller: _confirmPassword,
                                   decoration: const InputDecoration(
-                                    labelText: 'Confirm password',
+                                    labelText: 'Potvrdite lozinku',
                                     border: OutlineInputBorder(),
                                   ),
                                   obscureText: true,

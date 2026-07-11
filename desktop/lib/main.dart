@@ -26,7 +26,7 @@ class SohDesktopApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Dental Clinic Herzegovina - Staff',
+      title: 'Stomatološka Ordinacija Hercegovina — Osoblje',
       navigatorKey: rootNavigatorKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(

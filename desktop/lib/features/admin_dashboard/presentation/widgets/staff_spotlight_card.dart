@@ -24,14 +24,14 @@ class StaffSpotlightCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Staff Spotlight',
+              'Istaknuto osoblje',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
             ),
             const SizedBox(height: 12),
             if (doctors.isEmpty)
-              const Text('No staff available.')
+              const Text('Nema dostupnog osoblja.')
             else
               ListView.separated(
                 shrinkWrap: true,

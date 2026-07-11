@@ -70,17 +70,17 @@ class _PatientShellScreenState extends ConsumerState<PatientShellScreen> {
           const NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
-            label: 'Home',
+            label: 'Početna',
           ),
           const NavigationDestination(
             icon: Icon(Icons.event_note_outlined),
             selectedIcon: Icon(Icons.event_note),
-            label: 'Appointments',
+            label: 'Termini',
           ),
           const NavigationDestination(
             icon: Icon(Icons.health_and_safety_outlined),
             selectedIcon: Icon(Icons.health_and_safety),
-            label: 'Care',
+            label: 'Njega',
           ),
           NavigationDestination(
             icon: unreadCount > 0
@@ -95,7 +95,7 @@ class _PatientShellScreenState extends ConsumerState<PatientShellScreen> {
                     child: const Icon(Icons.person),
                   )
                 : const Icon(Icons.person),
-            label: 'Profile',
+            label: 'Profil',
           ),
         ],
       ),
@@ -120,7 +120,7 @@ class _ProfileTab extends ConsumerWidget {
         ? name
         : (user?.username?.trim().isNotEmpty ?? false)
             ? user!.username!.trim()
-            : 'Your profile';
+            : 'Vaš profil';
     final pic = decodeUserPictureBytes(user?.picture);
 
     // Do not nest a second Scaffold inside PatientShellScreen — it stacks toolbars / safe-area padding.
@@ -134,7 +134,7 @@ class _ProfileTab extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                'Profile',
+                'Profil',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -187,7 +187,7 @@ class _ProfileTab extends ConsumerWidget {
             ),
           const SizedBox(height: 16),
           Text(
-            'Account',
+            'Nalog',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: scheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
@@ -201,8 +201,8 @@ class _ProfileTab extends ConsumerWidget {
               children: [
                 ListTile(
                   leading: Icon(Icons.edit_outlined, color: scheme.primary),
-                  title: const Text('Edit my account'),
-                  subtitle: const Text('Name, email, photo, and security'),
+                  title: const Text('Uredi moj nalog'),
+                  subtitle: const Text('Ime, e-mail, fotografija i sigurnost'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: user?.id == null
                       ? null
@@ -217,8 +217,8 @@ class _ProfileTab extends ConsumerWidget {
                 const Divider(height: 1),
                 ListTile(
                   leading: Icon(Icons.shopping_bag_outlined, color: scheme.primary),
-                  title: const Text('My orders'),
-                  subtitle: const Text('Products you have ordered'),
+                  title: const Text('Moje narudžbe'),
+                  subtitle: const Text('Proizvodi koje ste naručili'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     Navigator.of(context).push<void>(
@@ -233,7 +233,7 @@ class _ProfileTab extends ConsumerWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            'Stay informed',
+            'Budite informisani',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: scheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
@@ -245,9 +245,9 @@ class _ProfileTab extends ConsumerWidget {
             color: scheme.surface,
             child: ListTile(
               leading: Icon(Icons.notifications_active_outlined, color: scheme.primary),
-              title: const Text('Notifications'),
+              title: const Text('Obavještenja'),
               subtitle: Text(
-                'Updates refresh automatically about every 45 seconds.',
+                'Novosti se automatski osvježavaju otprilike svakih 45 sekundi.',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: scheme.onSurfaceVariant,
                     ),
@@ -262,7 +262,7 @@ class _ProfileTab extends ConsumerWidget {
             color: scheme.errorContainer.withOpacity(0.35),
             child: ListTile(
               leading: Icon(Icons.logout, color: scheme.error),
-              title: Text('Sign out', style: TextStyle(color: scheme.error)),
+              title: Text('Odjava', style: TextStyle(color: scheme.error)),
               onTap: onLogout,
             ),
           ),
@@ -363,7 +363,7 @@ class _PatientNotificationsSheetState extends ConsumerState<_PatientNotification
             padding: const EdgeInsets.all(24),
             child: Text(extractApiErrorMessage(
                 snap.error ?? 'unknown',
-                fallback: 'Could not load notifications.')),
+                fallback: 'Obavještenja nije moguće učitati.')),
           );
         }
         final items = snap.data ?? [];
@@ -375,7 +375,7 @@ class _PatientNotificationsSheetState extends ConsumerState<_PatientNotification
               children: const [
                 Padding(
                   padding: EdgeInsets.all(24),
-                  child: Text('No notifications yet.'),
+                  child: Text('Još nema obavještenja.'),
                 ),
               ],
             ),
@@ -421,7 +421,7 @@ class _PatientNotificationsSheetState extends ConsumerState<_PatientNotification
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(extractApiErrorMessage(e,
-                                  fallback: 'Could not mark as read.')),
+                                  fallback: 'Označavanje kao pročitano nije uspjelo.')),
                             ),
                           );
                         }

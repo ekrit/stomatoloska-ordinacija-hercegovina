@@ -52,13 +52,13 @@ class _MyAppointmentsScreenState extends ConsumerState<MyAppointmentsScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My appointments'),
+        title: const Text('Moji termini'),
         bottom: TabBar(
           controller: _tabs,
           tabs: const [
-            Tab(text: 'Upcoming'),
-            Tab(text: 'Completed'),
-            Tab(text: 'Cancelled'),
+            Tab(text: 'Nastupajući'),
+            Tab(text: 'Završeni'),
+            Tab(text: 'Otkazani'),
           ],
         ),
       ),
@@ -135,10 +135,10 @@ class _AppointmentListView extends ConsumerWidget {
                 child: Center(
                   child: Text(
                     mode == _PatientListMode.upcoming
-                        ? 'No upcoming appointments.'
+                        ? 'Nema nastupajućih termina.'
                         : mode == _PatientListMode.completed
-                            ? 'No completed visits yet.'
-                            : 'No cancelled or declined appointments.',
+                            ? 'Još nema završenih posjeta.'
+                            : 'Nema otkazanih ni odbijenih termina.',
                   ),
                 ),
               ),
@@ -220,28 +220,28 @@ class _AppointmentPatientCard extends ConsumerWidget {
     final doctorName = doctors.maybeWhen(
       data: (list) {
         final id = a.doctorId;
-        if (id == null) return 'Dentist';
+        if (id == null) return 'Stomatolog';
         for (final d in list) {
           if (d.userId == id) {
             final n = '${d.firstName ?? ''} ${d.lastName ?? ''}'.trim();
-            return n.isEmpty ? 'Dentist' : n;
+            return n.isEmpty ? 'Stomatolog' : n;
           }
         }
-        return 'Dentist';
+        return 'Stomatolog';
       },
-      orElse: () => 'Dentist',
+      orElse: () => 'Stomatolog',
     );
 
     final serviceName = services.maybeWhen(
       data: (list) {
         final id = a.serviceId;
-        if (id == null) return 'Service';
+        if (id == null) return 'Usluga';
         for (final s in list) {
-          if (s.id == id) return s.name ?? 'Service';
+          if (s.id == id) return s.name ?? 'Usluga';
         }
-        return 'Service';
+        return 'Usluga';
       },
-      orElse: () => 'Service',
+      orElse: () => 'Usluga',
     );
 
     return Card(
@@ -279,7 +279,7 @@ class _AppointmentPatientCard extends ConsumerWidget {
                         Icon(Icons.check_circle, size: 14, color: Colors.green.shade800),
                         const SizedBox(width: 4),
                         Text(
-                          'Paid / Plaćeno',
+                          'Plaćeno',
                           style: TextStyle(
                             color: Colors.green.shade800,
                             fontSize: 12,
@@ -313,7 +313,7 @@ class _AppointmentPatientCard extends ConsumerWidget {
                     OutlinedButton.icon(
                       onPressed: a.id == null ? null : () => _confirmCancel(context, ref, a),
                       icon: const Icon(Icons.cancel_outlined),
-                      label: const Text('Cancel'),
+                      label: const Text('Odustani'),
                     ),
                     if (a.isPaid == true &&
                         a.paymentId != null &&
@@ -321,7 +321,7 @@ class _AppointmentPatientCard extends ConsumerWidget {
                       OutlinedButton.icon(
                         onPressed: () => _confirmRefund(context, ref, a),
                         icon: const Icon(Icons.currency_exchange),
-                        label: const Text('Request refund'),
+                        label: const Text('Zatraži povrat novca'),
                       ),
                     OutlinedButton.icon(
                       onPressed: a.id == null
@@ -332,7 +332,7 @@ class _AppointmentPatientCard extends ConsumerWidget {
                                 ),
                               ),
                       icon: const Icon(Icons.description_outlined),
-                      label: const Text('Findings'),
+                      label: const Text('Nalazi'),
                     ),
                   ],
                   if (mode == _PatientListMode.completed && a.id != null) ...[
@@ -343,7 +343,7 @@ class _AppointmentPatientCard extends ConsumerWidget {
                             ),
                           ),
                       icon: const Icon(Icons.description_outlined),
-                      label: const Text('Findings'),
+                      label: const Text('Nalazi'),
                     ),
                     Consumer(
                       builder: (context, ref, _) {
@@ -358,7 +358,7 @@ class _AppointmentPatientCard extends ConsumerWidget {
                                       ),
                                     ),
                             icon: const Icon(Icons.star_outline),
-                            label: Text(has ? 'Reviewed' : 'Rate'),
+                            label: Text(has ? 'Ocijenjeno' : 'Ocijeni'),
                           ),
                           loading: () => const Padding(
                             padding: EdgeInsets.all(8),
@@ -393,14 +393,14 @@ class _AppointmentPatientCard extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Request refund?'),
+        title: const Text('Zatražiti povrat novca?'),
         content: const Text(
-          'We will refund your payment via PayPal and cancel this appointment. '
-          'This cannot be undone.',
+          'Vaša uplata će biti refundirana putem PayPal-a i termin će biti otkazan. '
+          'Ova radnja se ne može poništiti.',
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('No')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Yes, refund')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Da, refundiraj')),
         ],
       ),
     );
@@ -410,13 +410,13 @@ class _AppointmentPatientCard extends ConsumerWidget {
       ref.invalidate(myAppointmentsProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Refund completed. Appointment cancelled.')),
+          const SnackBar(content: Text('Povrat novca je izvršen. Termin je otkazan.')),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Refund failed.'))),
+          SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Povrat novca nije uspio.'))),
         );
       }
     }
@@ -430,11 +430,11 @@ class _AppointmentPatientCard extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Cancel appointment?'),
-        content: const Text('This will mark your visit as cancelled.'),
+        title: const Text('Otkazati termin?'),
+        content: const Text('Vaša posjeta će biti označena kao otkazana.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('No')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Yes, cancel')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Da, otkaži')),
         ],
       ),
     );
@@ -446,12 +446,12 @@ class _AppointmentPatientCard extends ConsumerWidget {
       await SohExtraApi(ref.read(apiClientProvider)).cancelAppointment(a.id!);
       ref.invalidate(myAppointmentsProvider);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Appointment cancelled.')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Termin je otkazan.')));
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Could not cancel the appointment.'))),
+          SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Termin nije moguće otkazati.'))),
         );
       }
     }

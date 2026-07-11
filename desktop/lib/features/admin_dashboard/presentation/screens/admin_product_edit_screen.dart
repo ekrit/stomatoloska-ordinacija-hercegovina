@@ -11,8 +11,8 @@ import '../../../../core/utils/api_errors.dart';
 
 String? validateProductName(String value) {
   final v = value.trim();
-  if (v.isEmpty) return 'Name is required.';
-  if (v.length > 100) return 'Name must be 100 characters or less.';
+  if (v.isEmpty) return 'Naziv je obavezan.';
+  if (v.length > 100) return 'Naziv može imati najviše 100 znakova.';
   return null;
 }
 
@@ -100,7 +100,7 @@ class _AdminProductEditScreenState extends ConsumerState<AdminProductEditScreen>
     if (!_formKey.currentState!.validate()) return;
     final categoryId = _categoryId;
     if (categoryId == null) {
-      setState(() => _error = 'Pick a product category.');
+      setState(() => _error = 'Odaberite kategoriju proizvoda.');
       return;
     }
     setState(() {
@@ -123,7 +123,7 @@ class _AdminProductEditScreenState extends ConsumerState<AdminProductEditScreen>
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
-      setState(() => _error = extractApiErrorMessage(e, fallback: 'Could not save the product.'));
+      setState(() => _error = extractApiErrorMessage(e, fallback: 'Proizvod nije moguće spasiti.'));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -134,11 +134,11 @@ class _AdminProductEditScreenState extends ConsumerState<AdminProductEditScreen>
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Discard changes?'),
-        content: const Text('You have unsaved changes. Leave without saving?'),
+        title: const Text('Odbaciti promjene?'),
+        content: const Text('Imate nespašene promjene. Izaći bez spašavanja?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Keep editing')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Discard')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Nastavi uređivanje')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Odbaci')),
         ],
       ),
     );
@@ -157,7 +157,7 @@ class _AdminProductEditScreenState extends ConsumerState<AdminProductEditScreen>
         }
       },
       child: Scaffold(
-        appBar: AppBar(title: Text(_isEdit ? 'Edit product' : 'Add product')),
+        appBar: AppBar(title: Text(_isEdit ? 'Uredi proizvod' : 'Dodaj proizvod')),
         body: Form(
           key: _formKey,
           child: ListView(
@@ -180,21 +180,21 @@ class _AdminProductEditScreenState extends ConsumerState<AdminProductEditScreen>
                   OutlinedButton.icon(
                     onPressed: _pickPicture,
                     icon: const Icon(Icons.photo_library_outlined),
-                    label: const Text('Choose picture'),
+                    label: const Text('Odaberi sliku'),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _name,
-                decoration: const InputDecoration(labelText: 'Name', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: 'Naziv', border: OutlineInputBorder()),
                 validator: (v) => validateProductName(v ?? ''),
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _description,
                 maxLines: 3,
-                decoration: const InputDecoration(labelText: 'Description', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: 'Opis', border: OutlineInputBorder()),
               ),
               const SizedBox(height: 12),
               categories.when(
@@ -202,7 +202,7 @@ class _AdminProductEditScreenState extends ConsumerState<AdminProductEditScreen>
                 error: (e, _) => Text(extractApiErrorMessage(e)),
                 data: (list) => DropdownButtonFormField<int>(
                   value: list.any((c) => c.id == _categoryId) ? _categoryId : null,
-                  decoration: const InputDecoration(labelText: 'Category', border: OutlineInputBorder()),
+                  decoration: const InputDecoration(labelText: 'Kategorija', border: OutlineInputBorder()),
                   items: list
                       .where((c) => c.id != null)
                       .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name ?? '')))
@@ -211,18 +211,18 @@ class _AdminProductEditScreenState extends ConsumerState<AdminProductEditScreen>
                     _categoryId = v;
                     _dirty = true;
                   }),
-                  validator: (v) => v == null ? 'Category is required.' : null,
+                  validator: (v) => v == null ? 'Kategorija je obavezna.' : null,
                 ),
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _price,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(labelText: 'Price (KM)', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: 'Cijena (KM)', border: OutlineInputBorder()),
                 validator: (v) {
                   final d = double.tryParse((v ?? '').trim().replaceAll(',', '.'));
-                  if (d == null) return 'Enter a valid price.';
-                  if (d <= 0) return 'Price must be greater than 0.';
+                  if (d == null) return 'Unesite validnu cijenu.';
+                  if (d <= 0) return 'Cijena mora biti veća od 0.';
                   return null;
                 },
               ),
@@ -235,7 +235,7 @@ class _AdminProductEditScreenState extends ConsumerState<AdminProductEditScreen>
                 onPressed: _saving ? null : _save,
                 child: _saving
                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text('Save'),
+                    : const Text('Spasi'),
               ),
             ],
           ),

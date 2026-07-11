@@ -48,7 +48,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       );
       final token = response?.token;
       if (token == null || token.isEmpty) {
-        setState(() => _error = 'No token returned.');
+        setState(() => _error = 'Server nije vratio token.');
         return;
       }
 
@@ -59,7 +59,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final isStaff = user != null && (userIsAdmin(user) || userIsDoctor(user));
       if (!isStaff) {
         setState(() => _error =
-            'This account is for patients. Please use the mobile application to sign in.');
+            'Ovaj nalog je pacijentski. Prijavite se putem mobilne aplikacije.');
         return;
       }
 
@@ -76,7 +76,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       Navigator.of(context).pushReplacementNamed(AppRoutes.doctor);
     } catch (e) {
       setState(() => _error =
-          extractApiErrorMessage(e, fallback: 'Wrong username or password.'));
+          extractApiErrorMessage(e, fallback: 'Pogrešno korisničko ime ili lozinka.'));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -85,7 +85,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Staff sign in')),
+      appBar: AppBar(title: const Text('Prijava osoblja')),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -96,7 +96,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Dental Clinic Herzegovina',
+                    'Stomatološka Ordinacija Hercegovina',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
@@ -104,7 +104,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Staff console for administrators and doctors.',
+                    'Radna konzola za administratore i doktore.',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -113,7 +113,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 28),
                   TextField(
                     controller: _usernameController,
-                    decoration: const InputDecoration(labelText: 'Username'),
+                    decoration: const InputDecoration(labelText: 'Korisničko ime'),
                     textInputAction: TextInputAction.next,
                     autofillHints: const [AutofillHints.username],
                   ),
@@ -122,7 +122,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     controller: _passwordController,
                     obscureText: !_showPassword,
                     decoration: InputDecoration(
-                      labelText: 'Password',
+                      labelText: 'Lozinka',
                       suffixIcon: IconButton(
                         onPressed: () =>
                             setState(() => _showPassword = !_showPassword),
@@ -145,7 +145,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             width: 22,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Sign in'),
+                        : const Text('Prijava'),
                   ),
                   if (_error != null) ...[
                     const SizedBox(height: 16),

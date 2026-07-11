@@ -29,11 +29,11 @@ class _AdminAppointmentsListScreenState extends ConsumerState<AdminAppointmentsL
     final tf = DateFormat.Hm();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('All appointments'),
+        title: const Text('Svi termini'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            tooltip: 'Create',
+            tooltip: 'Kreiraj',
             onPressed: () async {
               final changed = await Navigator.of(context).push<bool>(
                 MaterialPageRoute<bool>(
@@ -48,8 +48,8 @@ class _AdminAppointmentsListScreenState extends ConsumerState<AdminAppointmentsL
       ),
       body: PaginatedSearchView<AppointmentResponse>(
         refreshKey: _refresh,
-        searchHint: 'Search by patient, doctor, or service…',
-        emptyLabel: 'No appointments in the system.',
+        searchHint: 'Pretraži po pacijentu, doktoru ili usluzi…',
+        emptyLabel: 'Nema termina u sistemu.',
         fetch: (query, page, pageSize) async {
           // Newest first: server has no created column, so order by start desc.
           final r = await ref.read(appointmentApiProvider).appointmentGet(

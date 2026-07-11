@@ -39,7 +39,7 @@ class _AdminDashboardSearchBarState extends State<AdminDashboardSearchBar> {
         textInputAction: TextInputAction.search,
         onSubmitted: (_) => _runSearch(),
         decoration: InputDecoration(
-          hintText: 'Search patients, doctors, appointments...',
+          hintText: 'Pretraži pacijente, doktore, termine...',
           prefixIcon: const Icon(Icons.search),
           filled: true,
           fillColor: Colors.grey.shade100,
@@ -50,7 +50,7 @@ class _AdminDashboardSearchBarState extends State<AdminDashboardSearchBar> {
           ),
           suffixIcon: IconButton(
             icon: const Icon(Icons.arrow_forward),
-            tooltip: 'Search',
+            tooltip: 'Pretraga',
             onPressed: _runSearch,
           ),
         ),

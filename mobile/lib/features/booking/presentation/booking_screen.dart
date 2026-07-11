@@ -59,12 +59,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         day == null ||
         slot == null ||
         svc?.id == null) {
-      setState(() => _error = 'Please complete all steps.');
+      setState(() => _error = 'Molimo završite sve korake.');
       return;
     }
 
     if (slot.isBefore(DateTime.now())) {
-      setState(() => _error = 'Pick a future time slot.');
+      setState(() => _error = 'Odaberite termin u budućnosti.');
       return;
     }
 
@@ -87,7 +87,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         ? available.first
         : (rooms.isNotEmpty ? rooms.first : null);
     if (room?.id == null) {
-      setState(() => _error = 'No room available. Contact the clinic.');
+      setState(() => _error = 'Nema slobodne prostorije. Kontaktirajte ordinaciju.');
       return;
     }
 
@@ -117,7 +117,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       if (!mounted) return;
       ref.invalidate(myAppointmentsProvider);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Appointment requested.')),
+        const SnackBar(content: Text('Zahtjev za termin je poslan.')),
       );
 
       final appointmentId = created?.id;
@@ -134,7 +134,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         ref.invalidate(myAppointmentsProvider);
         if (paid == true) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Payment completed.')),
+            const SnackBar(content: Text('Plaćanje je završeno.')),
           );
         }
       }
@@ -143,7 +143,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       Navigator.of(context).pop();
     } catch (e) {
       setState(() => _error = extractApiErrorMessage(e,
-          fallback: 'Could not request the appointment. Please try again.'));
+          fallback: 'Zahtjev za termin nije moguće poslati. Pokušajte ponovo.'));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -159,20 +159,20 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     final result = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Confirm appointment request'),
+        title: const Text('Potvrda zahtjeva za termin'),
         content: Text(
-          'Request appointment with $doctorName on ${df.format(when)} at ${tf.format(when)}'
-          '${serviceName.isEmpty ? '' : ' for "$serviceName"'}?\n\n'
-          'The dentist will confirm or decline your request.',
+          'Zakazati termin kod $doctorName za ${df.format(when)} u ${tf.format(when)}'
+          '${serviceName.isEmpty ? '' : ' (usluga: "$serviceName")'}?\n\n'
+          'Stomatolog će potvrditi ili odbiti vaš zahtjev.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: const Text('Odustani'),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Send request'),
+            child: const Text('Pošalji zahtjev'),
           ),
         ],
       ),
@@ -187,7 +187,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     final timeFmt = DateFormat.Hm();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Book appointment')),
+      appBar: AppBar(title: const Text('Zakazivanje termina')),
       body: Column(
         children: [
           Padding(
@@ -223,13 +223,13 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                     doctors.when(
                       data: (list) {
                         if (list.isEmpty) {
-                          return const Text('No dentists available.');
+                          return const Text('Nema dostupnih stomatologa.');
                         }
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Text(
-                              'Choose your dentist',
+                              'Odaberite stomatologa',
                               style: Theme.of(context).textTheme.titleLarge,
                             ),
                             const SizedBox(height: 12),
@@ -248,7 +248,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                               onPressed: _doctor == null
                                   ? null
                                   : () => setState(() => _step = 1),
-                              child: const Text('Next'),
+                              child: const Text('Dalje'),
                             ),
                           ],
                         );
@@ -258,7 +258,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                     ),
                   if (_step == 1) ...[
                     Text(
-                      'Pick a date',
+                      'Odaberite datum',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     TableCalendar<void>(
@@ -280,14 +280,14 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       children: [
                         TextButton(
                           onPressed: () => setState(() => _step = 0),
-                          child: const Text('Back'),
+                          child: const Text('Nazad'),
                         ),
                         const Spacer(),
                         FilledButton(
                           onPressed: _selectedDay == null
                               ? null
                               : () => setState(() => _step = 2),
-                          child: const Text('Next'),
+                          child: const Text('Dalje'),
                         ),
                       ],
                     ),
@@ -308,12 +308,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Text(
-                              'Available times',
+                              'Slobodni termini',
                               style: Theme.of(context).textTheme.titleLarge,
                             ),
                             const SizedBox(height: 8),
                             if (free.isEmpty)
-                              const Text('No free slots this day. Pick another date.')
+                              const Text('Nema slobodnih termina za ovaj dan. Odaberite drugi datum.')
                             else
                               Wrap(
                                 spacing: 8,
@@ -335,14 +335,14 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                               children: [
                                 TextButton(
                                   onPressed: () => setState(() => _step = 1),
-                                  child: const Text('Back'),
+                                  child: const Text('Nazad'),
                                 ),
                                 const Spacer(),
                                 FilledButton(
                                   onPressed: _slotStart == null
                                       ? null
                                       : () => setState(() => _step = 3),
-                                  child: const Text('Next'),
+                                  child: const Text('Dalje'),
                                 ),
                               ],
                             ),
@@ -354,19 +354,19 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                     services.when(
                       data: (list) {
                         if (list.isEmpty) {
-                          return const Text('No services configured.');
+                          return const Text('Nema konfigurisanih usluga.');
                         }
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Text(
-                              'Service type',
+                              'Vrsta usluge',
                               style: Theme.of(context).textTheme.titleLarge,
                             ),
                             const SizedBox(height: 12),
                             ...list.map(
                               (s) => RadioListTile<ServiceResponse>(
-                                title: Text(s.name ?? 'Service'),
+                                title: Text(s.name ?? 'Usluga'),
                                 subtitle: s.price != null
                                     ? Text('${s.price!.toStringAsFixed(2)} KM')
                                     : null,
@@ -379,14 +379,14 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                               children: [
                                 TextButton(
                                   onPressed: () => setState(() => _step = 2),
-                                  child: const Text('Back'),
+                                  child: const Text('Nazad'),
                                 ),
                                 const Spacer(),
                                 FilledButton(
                                   onPressed: _service == null
                                       ? null
                                       : () => setState(() => _step = 4),
-                                  child: const Text('Next'),
+                                  child: const Text('Dalje'),
                                 ),
                               ],
                             ),
@@ -402,7 +402,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       _slotStart != null &&
                       _service != null) ...[
                     Text(
-                      'Confirm',
+                      'Potvrdi',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 12),
@@ -428,8 +428,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       controller: _complaintController,
                       maxLines: 4,
                       decoration: const InputDecoration(
-                        labelText: 'Client Complaint (optional)',
-                        hintText: 'Describe symptoms or what you want checked.',
+                        labelText: 'Opis tegoba (opcionalno)',
+                        hintText: 'Opišite simptome ili šta želite pregledati.',
                         border: OutlineInputBorder(),
                       ),
                       textInputAction: TextInputAction.newline,
@@ -439,7 +439,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       children: [
                         TextButton(
                           onPressed: () => setState(() => _step = 3),
-                          child: const Text('Back'),
+                          child: const Text('Nazad'),
                         ),
                       ],
                     ),
@@ -451,7 +451,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                               width: 22,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Confirm booking'),
+                          : const Text('Potvrdi zakazivanje'),
                     ),
                   ],
                   if (_error != null) ...[

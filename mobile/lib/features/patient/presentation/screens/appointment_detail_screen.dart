@@ -41,7 +41,7 @@ class AppointmentDetailScreen extends ConsumerWidget {
     final canRefund = a.isPaid == true && a.paymentId != null && status != AppointmentStatuses.completed;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Appointment')),
+      appBar: AppBar(title: const Text('Termin')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -56,7 +56,7 @@ class AppointmentDetailScreen extends ConsumerWidget {
               if (a.isPaid == true)
                 Chip(
                   avatar: Icon(Icons.check_circle, size: 16, color: Colors.green.shade800),
-                  label: const Text('Paid / Plaćeno'),
+                  label: const Text('Plaćeno'),
                   backgroundColor: Colors.green.shade50,
                 ),
             ],
@@ -67,12 +67,12 @@ class AppointmentDetailScreen extends ConsumerWidget {
               style: theme.textTheme.titleMedium,
             ),
           const Divider(height: 28),
-          _row(context, Icons.medical_services_outlined, 'Dentist', doctorName ?? 'Dentist'),
-          _row(context, Icons.healing_outlined, 'Service', serviceName ?? 'Service'),
+          _row(context, Icons.medical_services_outlined, 'Stomatolog', doctorName ?? 'Stomatolog'),
+          _row(context, Icons.healing_outlined, 'Usluga', serviceName ?? 'Usluga'),
           _row(context, Icons.flag_outlined, 'Status', appointmentStatusLabel(status)),
           if ((a.doctorNote ?? '').trim().isNotEmpty) ...[
             const SizedBox(height: 12),
-            Text('Doctor note', style: theme.textTheme.titleMedium),
+            Text('Napomena doktora', style: theme.textTheme.titleMedium),
             const SizedBox(height: 4),
             Text(a.doctorNote!),
           ],
@@ -85,13 +85,13 @@ class AppointmentDetailScreen extends ConsumerWidget {
                 FilledButton.icon(
                   onPressed: () => _pay(context, ref, a),
                   icon: const Icon(Icons.account_balance_wallet_outlined),
-                  label: const Text('Pay now'),
+                  label: const Text('Plati sada'),
                 ),
               if (canRefund)
                 OutlinedButton.icon(
                   onPressed: () => _refund(context, ref, a),
                   icon: const Icon(Icons.currency_exchange),
-                  label: const Text('Request refund'),
+                  label: const Text('Zatraži povrat novca'),
                 ),
               if (a.id != null)
                 OutlinedButton.icon(
@@ -101,13 +101,13 @@ class AppointmentDetailScreen extends ConsumerWidget {
                     ),
                   ),
                   icon: const Icon(Icons.description_outlined),
-                  label: const Text('Findings'),
+                  label: const Text('Nalazi'),
                 ),
               if (isUpcoming && a.id != null)
                 OutlinedButton.icon(
                   onPressed: () => _cancel(context, ref, a),
                   icon: const Icon(Icons.cancel_outlined),
-                  label: const Text('Cancel'),
+                  label: const Text('Odustani'),
                 ),
             ],
           ),
@@ -140,7 +140,7 @@ class AppointmentDetailScreen extends ConsumerWidget {
     ref.invalidate(myAppointmentsProvider);
     if (paid == true && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Payment completed.')),
+        const SnackBar(content: Text('Plaćanje je završeno.')),
       );
       Navigator.of(context).pop();
     }
@@ -152,14 +152,14 @@ class AppointmentDetailScreen extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Request refund?'),
+        title: const Text('Zatražiti povrat novca?'),
         content: const Text(
-          'We will refund your payment via PayPal and cancel this appointment. '
-          'This cannot be undone.',
+          'Vaša uplata će biti refundirana putem PayPal-a i termin će biti otkazan. '
+          'Ova radnja se ne može poništiti.',
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('No')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Yes, refund')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Da, refundiraj')),
         ],
       ),
     );
@@ -169,14 +169,14 @@ class AppointmentDetailScreen extends ConsumerWidget {
       ref.invalidate(myAppointmentsProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Refund completed. Appointment cancelled.')),
+          const SnackBar(content: Text('Povrat novca je izvršen. Termin je otkazan.')),
         );
         Navigator.of(context).pop();
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Refund failed.'))),
+          SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Povrat novca nije uspio.'))),
         );
       }
     }
@@ -186,11 +186,11 @@ class AppointmentDetailScreen extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Cancel appointment?'),
-        content: const Text('This will mark your visit as cancelled.'),
+        title: const Text('Otkazati termin?'),
+        content: const Text('Vaša posjeta će biti označena kao otkazana.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('No')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Yes, cancel')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Da, otkaži')),
         ],
       ),
     );
@@ -203,14 +203,14 @@ class AppointmentDetailScreen extends ConsumerWidget {
       ref.invalidate(myAppointmentsProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Appointment cancelled.')),
+          const SnackBar(content: Text('Termin je otkazan.')),
         );
         Navigator.of(context).pop();
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Could not cancel.'))),
+          SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Otkazivanje nije uspjelo.'))),
         );
       }
     }

@@ -72,7 +72,7 @@ class _AdminAppointmentCreateScreenState extends ConsumerState<AdminAppointmentC
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
-      setState(() => _error = extractApiErrorMessage(e, fallback: 'Could not create the appointment.'));
+      setState(() => _error = extractApiErrorMessage(e, fallback: 'Termin nije moguće kreirati.'));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -87,35 +87,35 @@ class _AdminAppointmentCreateScreenState extends ConsumerState<AdminAppointmentC
     final rooms = ref.watch(roomsLookupProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Create appointment')),
+      appBar: AppBar(title: const Text('Kreiraj termin')),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             _lookupDropdown(
-              label: 'Patient',
+              label: 'Pacijent',
               async: patients,
               value: _patientId,
               onChanged: (v) => setState(() => _patientId = v),
             ),
             const SizedBox(height: 12),
             _lookupDropdown(
-              label: 'Doctor',
+              label: 'Doktor',
               async: doctors,
               value: _doctorId,
               onChanged: (v) => setState(() => _doctorId = v),
             ),
             const SizedBox(height: 12),
             _lookupDropdown(
-              label: 'Service',
+              label: 'Usluga',
               async: services,
               value: _serviceId,
               onChanged: (v) => setState(() => _serviceId = v),
             ),
             const SizedBox(height: 12),
             _lookupDropdown(
-              label: 'Room',
+              label: 'Prostorija',
               async: rooms,
               value: _roomId,
               onChanged: (v) => setState(() => _roomId = v),
@@ -123,7 +123,7 @@ class _AdminAppointmentCreateScreenState extends ConsumerState<AdminAppointmentC
             const SizedBox(height: 12),
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Start time'),
+              title: const Text('Početak'),
               subtitle: Text(df.format(_start)),
               trailing: OutlinedButton(onPressed: _pickStart, child: const Text('Pick')),
             ),
@@ -132,7 +132,7 @@ class _AdminAppointmentCreateScreenState extends ConsumerState<AdminAppointmentC
               controller: _note,
               maxLines: 3,
               decoration: const InputDecoration(
-                labelText: 'Doctor note (optional)',
+                labelText: 'Napomena doktora (opcionalno)',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -145,7 +145,7 @@ class _AdminAppointmentCreateScreenState extends ConsumerState<AdminAppointmentC
               onPressed: _saving ? null : _save,
               child: _saving
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Create'),
+                  : const Text('Kreiraj'),
             ),
           ],
         ),

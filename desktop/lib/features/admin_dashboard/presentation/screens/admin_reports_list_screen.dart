@@ -43,7 +43,7 @@ class _AdminReportsListScreenState extends ConsumerState<AdminReportsListScreen>
     final df = DateFormat.yMMMd().add_Hm();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reports'),
+        title: const Text('Izvještaji'),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _reload),
         ],
@@ -59,7 +59,7 @@ class _AdminReportsListScreenState extends ConsumerState<AdminReportsListScreen>
               children: [
                 FilledButton.tonalIcon(
                   icon: const Icon(Icons.picture_as_pdf_outlined),
-                  label: const Text('PDF: Appointments summary'),
+                  label: const Text('PDF: Pregled termina'),
                   onPressed: () => _downloadPdf(
                     () => SohExtraApi(ref.read(apiClientProvider)).downloadAppointmentsSummaryPdf(),
                     'appointments-summary',
@@ -67,15 +67,15 @@ class _AdminReportsListScreenState extends ConsumerState<AdminReportsListScreen>
                 ),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.print_outlined),
-                  label: const Text('Print: Appointments summary'),
+                  label: const Text('Štampaj: Pregled termina'),
                   onPressed: () => _printPdf(
                     () => SohExtraApi(ref.read(apiClientProvider)).downloadAppointmentsSummaryPdf(),
-                    'Appointments summary',
+                    'Pregled termina',
                   ),
                 ),
                 FilledButton.tonalIcon(
                   icon: const Icon(Icons.pie_chart_outline),
-                  label: const Text('PDF: Revenue by service'),
+                  label: const Text('PDF: Prihod po uslugama'),
                   onPressed: () => _downloadPdf(
                     () => SohExtraApi(ref.read(apiClientProvider)).downloadRevenueByServicePdf(months: 6),
                     'revenue-by-service',
@@ -83,15 +83,15 @@ class _AdminReportsListScreenState extends ConsumerState<AdminReportsListScreen>
                 ),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.print_outlined),
-                  label: const Text('Print: Revenue by service'),
+                  label: const Text('Štampaj: Prihod po uslugama'),
                   onPressed: () => _printPdf(
                     () => SohExtraApi(ref.read(apiClientProvider)).downloadRevenueByServicePdf(months: 6),
-                    'Revenue by service',
+                    'Prihod po uslugama',
                   ),
                 ),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.content_copy),
-                  label: const Text('Export appointments CSV'),
+                  label: const Text('Izvezi termine (CSV)'),
                   onPressed: _exportCsv,
                 ),
               ],
@@ -101,8 +101,8 @@ class _AdminReportsListScreenState extends ConsumerState<AdminReportsListScreen>
           Expanded(
             child: PaginatedSearchView<ReportResponse>(
               refreshKey: _refresh,
-              searchHint: 'Search reports by type or parameters…',
-              emptyLabel: 'No report records yet. Download a PDF above to create an audit entry.',
+              searchHint: 'Pretraži izvještaje po tipu ili parametrima…',
+              emptyLabel: 'Još nema zapisa o izvještajima. Preuzmite PDF iznad da kreirate zapis.',
               fetch: (query, page, pageSize) async {
                 final r = await ref.read(reportApiProvider).reportGet(
                       FTS: query.isEmpty ? null : query,

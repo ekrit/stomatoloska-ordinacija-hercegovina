@@ -29,10 +29,10 @@ class RemindersHygieneScreen extends ConsumerWidget {
   const RemindersHygieneScreen({super.key});
 
   static const _avoid = [
-    'Sugary drinks and frequent snacking on sweets',
-    'Smoking and tobacco use',
-    'Using teeth as tools (opening packages, etc.)',
-    'Skipping regular dental check-ups',
+    'Gazirana i zaslađena pića te često grickanje slatkiša',
+    'Pušenje i duhanske proizvode',
+    'Korištenje zuba kao alata (otvaranje ambalaže i sl.)',
+    'Preskakanje redovnih stomatoloških kontrola',
   ];
 
   @override
@@ -65,12 +65,12 @@ class RemindersHygieneScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Reminders & hygiene')),
+      appBar: AppBar(title: const Text('Podsjetnici i higijena')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
           Text(
-            'Next check-up',
+            'Sljedeća kontrola',
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
@@ -82,18 +82,18 @@ class RemindersHygieneScreen extends ConsumerWidget {
           else
             Text(
               daysUntil == 0
-                  ? 'You have a visit scheduled today or very soon.'
+                  ? 'Imate posjetu zakazanu danas ili vrlo uskoro.'
                   : 'Your next visit is in about $daysUntil day(s) (${MaterialLocalizations.of(context).formatFullDate(nextVisit)}).',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
           const SizedBox(height: 28),
           Text(
-            'Daily brushing goal',
+            'Dnevni cilj pranja zuba',
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
           Text(
-            'Aim for two thorough brushings per day (morning and evening).',
+            'Ciljajte dva temeljita pranja zuba dnevno (jutro i večer).',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 12),
@@ -112,14 +112,14 @@ class RemindersHygieneScreen extends ConsumerWidget {
                     children: [
                       Expanded(
                         child: _BrushingSlotChip(
-                          label: 'Morning',
+                          label: 'Jutro',
                           filled: count >= 1,
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: _BrushingSlotChip(
-                          label: 'Evening',
+                          label: 'Večer',
                           filled: count >= 2,
                         ),
                       ),
@@ -163,13 +163,13 @@ class RemindersHygieneScreen extends ConsumerWidget {
                             } catch (e) {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Could not log brushing.'))),
+                                  SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Pranje zuba nije moguće zabilježiti.'))),
                                 );
                               }
                             }
                           },
                     icon: const Icon(Icons.add),
-                    label: const Text('Log a brushing'),
+                    label: const Text('Zabilježi pranje zuba'),
                   ),
                 ],
               );
@@ -179,7 +179,7 @@ class RemindersHygieneScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 28),
           Text(
-            'Things to avoid for healthier teeth',
+            'Šta izbjegavati za zdravije zube',
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),

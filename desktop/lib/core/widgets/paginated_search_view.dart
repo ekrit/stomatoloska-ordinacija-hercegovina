@@ -22,9 +22,9 @@ class PaginatedSearchView<T> extends StatefulWidget {
     super.key,
     required this.fetch,
     required this.itemBuilder,
-    this.searchHint = 'Search…',
+    this.searchHint = 'Pretraži…',
     this.pageSize = 20,
-    this.emptyLabel = 'Nothing to show.',
+    this.emptyLabel = 'Nema podataka za prikaz.',
     this.refreshKey = 0,
   });
 
@@ -84,7 +84,7 @@ class _PaginatedSearchViewState<T> extends State<PaginatedSearchView<T>> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = extractApiErrorMessage(e, fallback: 'Could not load the list.');
+        _error = extractApiErrorMessage(e, fallback: 'Listu nije moguće učitati.');
         _loading = false;
       });
     }
@@ -157,7 +157,7 @@ class _PaginatedSearchViewState<T> extends State<PaginatedSearchView<T>> {
             children: [
               Text(_error!, textAlign: TextAlign.center),
               const SizedBox(height: 16),
-              FilledButton(onPressed: _load, child: const Text('Retry')),
+              FilledButton(onPressed: _load, child: const Text('Pokušaj ponovo')),
             ],
           ),
         ),
@@ -186,7 +186,7 @@ class _PaginatedSearchViewState<T> extends State<PaginatedSearchView<T>> {
         children: [
           IconButton(
             icon: const Icon(Icons.chevron_left),
-            tooltip: 'Previous',
+            tooltip: 'Prethodna',
             onPressed: _page > 0
                 ? () {
                     setState(() => _page -= 1);
@@ -197,7 +197,7 @@ class _PaginatedSearchViewState<T> extends State<PaginatedSearchView<T>> {
           Text(label),
           IconButton(
             icon: const Icon(Icons.chevron_right),
-            tooltip: 'Next',
+            tooltip: 'Sljedeća',
             onPressed: _hasNext
                 ? () {
                     setState(() => _page += 1);

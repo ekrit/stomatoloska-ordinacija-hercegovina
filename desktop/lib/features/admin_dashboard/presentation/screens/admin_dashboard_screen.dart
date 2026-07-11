@@ -92,7 +92,7 @@ class AdminDashboardScreen extends ConsumerWidget {
           ),
           IconButton(
             onPressed: logout,
-            tooltip: 'Log out',
+            tooltip: 'Odjava',
             icon: const Icon(Icons.logout),
           ),
           const SizedBox(width: 12),
@@ -122,21 +122,21 @@ class AdminDashboardScreen extends ConsumerWidget {
                             children: [
                               Expanded(
                                 child: _DashboardPanel(
-                                  title: 'Monthly Appointments Trend',
+                                  title: 'Termini po mjesecima',
                                   child: _buildAppointmentsChart(ref),
                                 ),
                               ),
                               const SizedBox(width: 24),
                               Expanded(
                                 child: _DashboardPanel(
-                                  title: 'Service Revenue Breakdown',
+                                  title: 'Prihod po uslugama',
                                   child: _buildRevenueChart(ref),
                                 ),
                               ),
                               const SizedBox(width: 24),
                               Expanded(
                                 child: _DashboardPanel(
-                                  title: 'Quick Actions',
+                                  title: 'Brze radnje',
                                   child: const QuickActionsGrid(),
                                 ),
                               ),
@@ -151,7 +151,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                             children: [
                               Expanded(
                                 child: _DashboardPanel(
-                                  title: 'Patient Growth (new registrations)',
+                                  title: 'Rast broja pacijenata (nove registracije)',
                                   child: _buildPatientGrowthChart(ref),
                                 ),
                               ),
@@ -171,7 +171,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                         SizedBox(
                           height: AdminDashboardScreen._insightsRowHeight,
                           child: _DashboardPanel(
-                            title: 'Monthly Appointments Trend',
+                            title: 'Termini po mjesecima',
                             child: _buildAppointmentsChart(ref),
                           ),
                         ),
@@ -179,7 +179,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                         SizedBox(
                           height: AdminDashboardScreen._insightsRowHeight,
                           child: _DashboardPanel(
-                            title: 'Service Revenue Breakdown',
+                            title: 'Prihod po uslugama',
                             child: _buildRevenueChart(ref),
                           ),
                         ),
@@ -187,7 +187,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                         SizedBox(
                           height: AdminDashboardScreen._insightsRowHeight,
                           child: _DashboardPanel(
-                            title: 'Patient Growth (new registrations)',
+                            title: 'Rast broja pacijenata (nove registracije)',
                             child: _buildPatientGrowthChart(ref),
                           ),
                         ),
@@ -195,7 +195,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                         SizedBox(
                           height: AdminDashboardScreen._insightsRowHeight,
                           child: _DashboardPanel(
-                            title: 'Quick Actions',
+                            title: 'Brze radnje',
                             child: const QuickActionsGrid(),
                           ),
                         ),
@@ -223,31 +223,31 @@ class AdminDashboardScreen extends ConsumerWidget {
         height: 140,
         child: Center(child: CircularProgressIndicator()),
       ),
-      error: (error, _) => Text('Failed to load stats: $error'),
+      error: (error, _) => Text('Greška pri učitavanju statistike: $error'),
       data: (stats) {
         final primary = [
           StatCard(
-            title: 'Active users',
+            title: 'Aktivni korisnici',
             value: stats.activeUsers.toString(),
-            subtitle: 'Accounts currently marked active',
+            subtitle: 'Nalozi trenutno označeni kao aktivni',
             icon: Icons.people_outline,
           ),
           StatCard(
-            title: 'Doctors',
+            title: 'Doktori',
             value: stats.totalDoctors.toString(),
-            subtitle: 'Registered doctors',
+            subtitle: 'Registrovani doktori',
             icon: Icons.medical_services_outlined,
           ),
           StatCard(
-            title: 'Rooms',
+            title: 'Prostorije',
             value: stats.totalRooms.toString(),
-            subtitle: 'Clinic treatment rooms',
+            subtitle: 'Ordinacijske prostorije',
             icon: Icons.meeting_room_outlined,
           ),
           StatCard(
-            title: 'Average earnings',
+            title: 'Prosječna zarada',
             value: '€ ${stats.averageEarnings.toStringAsFixed(0)}',
-            subtitle: 'Per doctor, last 30 days',
+            subtitle: 'Po doktoru, zadnjih 30 dana',
             icon: Icons.euro_outlined,
             accentColor: Colors.green,
           ),
@@ -255,35 +255,35 @@ class AdminDashboardScreen extends ConsumerWidget {
 
         final secondary = [
           StatCard(
-            title: 'Total users',
+            title: 'Ukupno korisnika',
             value: stats.totalUsers.toString(),
-            subtitle: 'All user accounts in system',
+            subtitle: 'Svi korisnički nalozi u sistemu',
             icon: Icons.groups_outlined,
           ),
           StatCard(
-            title: 'Completed appointments',
+            title: 'Završeni termini',
             value: stats.completedAppointments.toString(),
-            subtitle: 'Last 30 days',
+            subtitle: 'Zadnjih 30 dana',
             icon: Icons.check_circle_outline,
           ),
           StatCard(
-            title: 'Cancelled appointments',
+            title: 'Otkazani termini',
             value: stats.cancelledAppointments.toString(),
-            subtitle: 'Last 30 days',
+            subtitle: 'Zadnjih 30 dana',
             icon: Icons.cancel_outlined,
             accentColor: Colors.orange,
           ),
           StatCard(
-            title: 'New patients (month)',
+            title: 'Novi pacijenti (mjesec)',
             value: stats.newPatientsThisMonth.toString(),
-            subtitle: 'In the current month',
+            subtitle: 'U tekućem mjesecu',
             icon: Icons.person_add_alt_1_outlined,
             accentColor: Colors.blueGrey,
           ),
           StatCard(
-            title: 'Revenue growth',
+            title: 'Rast prihoda',
             value: '${stats.revenueGrowth >= 0 ? '+' : ''}${stats.revenueGrowth.toStringAsFixed(1)}%',
-            subtitle: 'Compared to previous 30 days',
+            subtitle: 'U odnosu na prethodnih 30 dana',
             icon: Icons.trending_up_outlined,
             accentColor: Colors.purple,
           ),
@@ -308,7 +308,7 @@ class AdminDashboardScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Overview',
+              'Pregled',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Colors.black54,
@@ -327,13 +327,13 @@ class AdminDashboardScreen extends ConsumerWidget {
                 data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                 child: ExpansionTile(
                   title: Text(
-                    'More insights',
+                    'Dodatni pokazatelji',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                   ),
                   subtitle: Text(
-                    'Extended KPIs (users, appointments, growth)',
+                    'Prošireni pokazatelji (korisnici, termini, rast)',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Colors.black54,
                         ),
@@ -355,7 +355,7 @@ class AdminDashboardScreen extends ConsumerWidget {
     final statsAsync = ref.watch(appointmentStatsProvider);
     return statsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Text('Failed to load appointments: $error'),
+      error: (error, _) => Text('Greška pri učitavanju termina: $error'),
       data: (stats) => MonthlyAppointmentsChart(stats: stats),
     );
   }
@@ -364,7 +364,7 @@ class AdminDashboardScreen extends ConsumerWidget {
     final statsAsync = ref.watch(revenueStatsProvider);
     return statsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Text('Failed to load revenue: $error'),
+      error: (error, _) => Text('Greška pri učitavanju prihoda: $error'),
       data: (stats) => RevenueBreakdownChart(stats: stats),
     );
   }
@@ -373,7 +373,7 @@ class AdminDashboardScreen extends ConsumerWidget {
     final statsAsync = ref.watch(patientGrowthProvider);
     return statsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Text('Failed to load patient growth: $error'),
+      error: (error, _) => Text('Greška pri učitavanju rasta pacijenata: $error'),
       data: (stats) => MonthlyAppointmentsChart(stats: stats),
     );
   }
@@ -385,7 +385,7 @@ class AdminDashboardScreen extends ConsumerWidget {
         height: 220,
         child: Center(child: CircularProgressIndicator()),
       ),
-      error: (error, _) => Text('Failed to load staff: $error'),
+      error: (error, _) => Text('Greška pri učitavanju osoblja: $error'),
       data: (doctors) => StaffSpotlightCard(doctors: doctors),
     );
   }

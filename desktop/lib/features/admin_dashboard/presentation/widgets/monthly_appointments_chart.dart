@@ -16,7 +16,7 @@ class MonthlyAppointmentsChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (stats.monthly.isEmpty) {
-      return const Center(child: Text('No appointment data.'));
+      return const Center(child: Text('Nema podataka o terminima.'));
     }
 
     final spots = <FlSpot>[

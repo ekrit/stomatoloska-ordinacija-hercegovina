@@ -16,7 +16,7 @@ void main() {
     );
 
     await tester.enterText(find.byType(TextField), 'testquery');
-    await tester.tap(find.byTooltip('Search'));
+    await tester.tap(find.byTooltip('Pretraga'));
     await tester.pumpAndSettle();
 
     expect(find.byType(AppBar), findsOneWidget);

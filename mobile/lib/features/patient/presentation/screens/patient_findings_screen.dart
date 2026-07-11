@@ -23,7 +23,7 @@ class PatientFindingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(_recordsForAppointmentPatientProvider(appointmentId));
     return Scaffold(
-      appBar: AppBar(title: const Text('Findings / documents')),
+      appBar: AppBar(title: const Text('Nalazi i dokumenti')),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text(extractApiErrorMessage(e))),
@@ -33,7 +33,7 @@ class PatientFindingsScreen extends ConsumerWidget {
               child: Padding(
                 padding: EdgeInsets.all(24),
                 child: Text(
-                  'No documents are available for this visit yet.',
+                  'Za ovu posjetu još nema dostupnih dokumenata.',
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -50,11 +50,11 @@ class PatientFindingsScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Findings', style: Theme.of(context).textTheme.titleMedium),
+                        Text('Nalazi', style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 8),
                         Text(r.diagnosis ?? '—'),
                         const SizedBox(height: 16),
-                        Text('Expert opinion',
+                        Text('Stručno mišljenje',
                             style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 8),
                         Text((r.treatment ?? '').trim().isEmpty ? '—' : r.treatment!),

@@ -33,15 +33,15 @@ class _UsersListScreenState extends ConsumerState<UsersListScreen> {
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
-        title: const Text('Users', style: TextStyle(color: Colors.black)),
+        title: const Text('Korisnici', style: TextStyle(color: Colors.black)),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _reload),
         ],
       ),
       body: PaginatedSearchView<UserResponse>(
         refreshKey: _refresh,
-        searchHint: 'Search by name, username, or email…',
-        emptyLabel: 'No users found.',
+        searchHint: 'Pretraži po imenu, korisničkom imenu ili e-mailu…',
+        emptyLabel: 'Nema pronađenih korisnika.',
         fetch: (query, page, pageSize) async {
           final r = await ref.read(usersApiProvider).usersGet(
                 FTS: query.isEmpty ? null : query,

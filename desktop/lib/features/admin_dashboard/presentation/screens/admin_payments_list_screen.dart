@@ -20,11 +20,11 @@ final _paymentsProvider = FutureProvider.autoDispose<List<PaymentResponse>>((ref
 });
 
 String _statusLabel(PaymentStatus? s) {
-  if (s == PaymentStatus.number1) return 'Pending';
-  if (s == PaymentStatus.number2) return 'Paid';
-  if (s == PaymentStatus.number3) return 'Failed';
-  if (s == PaymentStatus.number4) return 'Refunded';
-  return 'Unknown';
+  if (s == PaymentStatus.number1) return 'Na čekanju';
+  if (s == PaymentStatus.number2) return 'Plaćeno';
+  if (s == PaymentStatus.number3) return 'Neuspjelo';
+  if (s == PaymentStatus.number4) return 'Refundirano';
+  return 'Nepoznato';
 }
 
 class AdminPaymentsListScreen extends ConsumerWidget {
@@ -38,7 +38,7 @@ class AdminPaymentsListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Payments'),
+        title: const Text('Uplate'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -54,11 +54,11 @@ class AdminPaymentsListScreen extends ConsumerWidget {
             child: Wrap(
               spacing: 8,
               children: [
-                _filterChip(ref, null, 'All', filter),
-                _filterChip(ref, PaymentStatus.number2, 'Paid', filter),
-                _filterChip(ref, PaymentStatus.number1, 'Pending', filter),
-                _filterChip(ref, PaymentStatus.number4, 'Refunded', filter),
-                _filterChip(ref, PaymentStatus.number3, 'Failed', filter),
+                _filterChip(ref, null, 'Sve', filter),
+                _filterChip(ref, PaymentStatus.number2, 'Plaćeno', filter),
+                _filterChip(ref, PaymentStatus.number1, 'Na čekanju', filter),
+                _filterChip(ref, PaymentStatus.number4, 'Refundirano', filter),
+                _filterChip(ref, PaymentStatus.number3, 'Neuspjelo', filter),
               ],
             ),
           ),
@@ -69,7 +69,7 @@ class AdminPaymentsListScreen extends ConsumerWidget {
               error: (e, _) => Center(child: Text(extractApiErrorMessage(e))),
               data: (items) {
                 if (items.isEmpty) {
-                  return const Center(child: Text('No payments found.'));
+                  return const Center(child: Text('Nema pronađenih uplata.'));
                 }
                 return ListView.separated(
                   padding: const EdgeInsets.all(12),
@@ -89,11 +89,11 @@ class AdminPaymentsListScreen extends ConsumerWidget {
                       isThreeLine: (p.transactionRef ?? '').isNotEmpty,
                       trailing: Tooltip(
                         message: canRefund
-                            ? 'Refund this payment via PayPal'
-                            : 'Refund is only available for paid payments.',
+                            ? 'Refundiraj ovu uplatu putem PayPal-a'
+                            : 'Povrat je dostupan samo za plaćene uplate.',
                         child: OutlinedButton.icon(
                           icon: const Icon(Icons.currency_exchange, size: 18),
-                          label: const Text('Refund'),
+                          label: const Text('Refundiraj'),
                           onPressed:
                               canRefund ? () => _confirmRefund(context, ref, p.id!) : null,
                         ),
@@ -122,14 +122,14 @@ class AdminPaymentsListScreen extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Refund payment?'),
+        title: const Text('Refundirati uplatu?'),
         content: const Text(
-          'This refunds the payment via PayPal and cancels the related appointment. '
-          'Refunds are only allowed while the appointment is not completed.',
+          'Uplata će biti refundirana putem PayPal-a i povezani termin otkazan. '
+          'Povrat novca je moguć samo dok termin nije završen.',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Refund')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Odustani')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Refundiraj')),
         ],
       ),
     );
@@ -137,9 +137,9 @@ class AdminPaymentsListScreen extends ConsumerWidget {
     try {
       await SohExtraApi(ref.read(apiClientProvider)).refundPayment(paymentId);
       ref.invalidate(_paymentsProvider);
-      messenger.showSnackBar(const SnackBar(content: Text('Refund completed.')));
+      messenger.showSnackBar(const SnackBar(content: Text('Povrat novca je izvršen.')));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Refund failed.'))));
+      messenger.showSnackBar(SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Povrat novca nije uspio.'))));
     }
   }
 }

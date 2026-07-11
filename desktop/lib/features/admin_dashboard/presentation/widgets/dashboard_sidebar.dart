@@ -13,8 +13,8 @@ class DashboardSidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
-      const _SidebarItem('dashboard', 'Dashboard', Icons.grid_view_rounded),
-      const _SidebarItem('users', 'Users', Icons.group_outlined),
+      const _SidebarItem('dashboard', 'Kontrolna tabla', Icons.grid_view_rounded),
+      const _SidebarItem('users', 'Korisnici', Icons.group_outlined),
     ];
 
     return Container(

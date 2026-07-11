@@ -40,7 +40,7 @@ class _DoctorVisitDocumentScreenState
     final a = widget.appointment;
     final id = a.id;
     if (id == null) {
-      return const Scaffold(body: Center(child: Text('Invalid appointment.')));
+      return const Scaffold(body: Center(child: Text('Nevažeći termin.')));
     }
 
     final existingAsync = ref.watch(_recordsForAppointmentProvider(id));
@@ -60,12 +60,12 @@ class _DoctorVisitDocumentScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Documents / findings'),
+        title: const Text('Dokumenti i nalazi'),
         actions: [
           IconButton(
             onPressed: logout,
             icon: const Icon(Icons.logout),
-            tooltip: 'Log out',
+            tooltip: 'Odjava',
           ),
         ],
       ),
@@ -84,7 +84,7 @@ class _DoctorVisitDocumentScreenState
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Add findings and expert opinion',
+                  'Dodaj nalaz i stručno mišljenje',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 12),
@@ -92,7 +92,7 @@ class _DoctorVisitDocumentScreenState
                   controller: _findingsController,
                   maxLines: 5,
                   decoration: const InputDecoration(
-                    labelText: 'Findings',
+                    labelText: 'Nalaz',
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -101,7 +101,7 @@ class _DoctorVisitDocumentScreenState
                   controller: _opinionController,
                   maxLines: 5,
                   decoration: const InputDecoration(
-                    labelText: 'Expert opinion (optional)',
+                    labelText: 'Stručno mišljenje (opcionalno)',
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -121,7 +121,7 @@ class _DoctorVisitDocumentScreenState
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Save'),
+                      : const Text('Spasi'),
                 ),
               ],
             );
@@ -135,7 +135,7 @@ class _DoctorVisitDocumentScreenState
     final findings = _findingsController.text.trim();
     final opinion = _opinionController.text.trim();
     if (findings.isEmpty) {
-      setState(() => _error = 'Findings are required.');
+      setState(() => _error = 'Nalaz je obavezan.');
       return;
     }
 
@@ -157,14 +157,14 @@ class _DoctorVisitDocumentScreenState
       ref.invalidate(medicalRecordsProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Findings saved and visible to the patient.')),
+          const SnackBar(content: Text('Nalaz je spašen i vidljiv pacijentu.')),
         );
         Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
         setState(() => _error = extractApiErrorMessage(e,
-            fallback: 'Could not save the visit document.'));
+            fallback: 'Nalaz nije moguće spasiti.'));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -195,11 +195,11 @@ class _ExistingRecordView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Findings', style: Theme.of(context).textTheme.titleSmall),
+                Text('Nalaz', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 6),
                 Text(record.diagnosis ?? '—'),
                 const SizedBox(height: 16),
-                Text('Expert opinion',
+                Text('Stručno mišljenje',
                     style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 6),
                 Text((record.treatment ?? '').trim().isEmpty
@@ -211,7 +211,7 @@ class _ExistingRecordView extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          'A document already exists for this appointment.',
+          'Za ovaj termin nalaz već postoji.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
