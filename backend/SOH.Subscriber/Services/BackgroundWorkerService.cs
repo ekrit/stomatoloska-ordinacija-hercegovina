@@ -28,25 +28,46 @@ namespace SOH.Subscriber.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            try
-            {
-                using var bus = RabbitHutch.CreateBus(
-                    $"host={_host};virtualHost={_virtualhost};username={_username};password={_password}");
+            // The broker usually starts alongside this container and may not
+            // accept connections yet, so keep retrying with exponential
+            // backoff — a worker that gives up after one failed subscribe
+            // would silently stay deaf for its whole lifetime.
+            var delay = TimeSpan.FromSeconds(1);
+            var maxDelay = TimeSpan.FromSeconds(30);
 
-                bus.PubSub.Subscribe<AppointmentReminderMessage>(
-                    "Appointment_Reminders",
-                    HandleAppointmentReminder);
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                try
+                {
+                    using var bus = RabbitHutch.CreateBus(
+                        $"host={_host};virtualHost={_virtualhost};username={_username};password={_password}");
 
-                _logger.LogInformation("Subscribed to appointment reminders.");
-                await Task.Delay(Timeout.Infinite, stoppingToken);
-            }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
-                _logger.LogInformation("Subscriber stopping.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in RabbitMQ listener.");
+                    bus.PubSub.Subscribe<AppointmentReminderMessage>(
+                        "Appointment_Reminders",
+                        HandleAppointmentReminder);
+
+                    _logger.LogInformation("Subscribed to appointment reminders.");
+                    delay = TimeSpan.FromSeconds(1);
+                    await Task.Delay(Timeout.Infinite, stoppingToken);
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    _logger.LogInformation("Subscriber stopping.");
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "RabbitMQ listener failed; retrying in {Delay}.", delay);
+                    try
+                    {
+                        await Task.Delay(delay, stoppingToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        return;
+                    }
+                    delay = TimeSpan.FromTicks(Math.Min(delay.Ticks * 2, maxDelay.Ticks));
+                }
             }
         }
 
