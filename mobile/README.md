@@ -33,12 +33,13 @@ remote backend.
 
 ## Regenerate the API client (`packages/soh_api`)
 
-Both the OpenAPI JSON and the generated Dart client are gitignored. After
-backend changes, regenerate against the running API:
+The generated Dart client is committed; the downloaded `openapi.json` is
+not. After backend changes, regenerate against the running API (needs Java
+for the generator; pass `--additional-properties=pubName=soh_api`):
 
 ```powershell
 # From repo root, with the backend running on http://localhost:5130
 Invoke-WebRequest -Uri http://localhost:5130/swagger/v1/swagger.json -OutFile mobile/openapi.json
 cd mobile
-dart run openapi_generator_cli generate -i openapi.json -g dart -o packages/soh_api
+dart run openapi_generator_cli generate -i openapi.json -g dart -o packages/soh_api --additional-properties=pubName=soh_api
 ```

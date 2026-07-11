@@ -46,7 +46,7 @@ Current weights (see `RecommendationService`):
 
 | Signal | Weight | Window | Notes |
 |---|---|---|---|
-| Content (services -> product) | 3.5 | last 6 appointments in the last 9 months | Tokenized name+category+description; overlap with tokens from recent service names. Bounded `1 + 0.35 * overlap` capped at 4 to keep one strong match from dominating. |
+| Content (services -> product) | 3.5 | last 6 appointments in the last 9 months | Tokenized name + category name (FK to ProductCategory) + description; overlap with tokens from recent service names. Bounded `1 + 0.35 * overlap` capped at 4 to keep one strong match from dominating. |
 | Popularity (clinic-wide orders) | 1.2 | last 90 days | Counted from `Order.ProductId` on `Orders.CreatedAt` (quantity summed). Logarithmic so a 100-order spike does not crowd everything else out. |
 | Personal views | 2.0 | all time | `ProductInteractions` of kind `View`. Logarithmic for the same reason. |
 | Detail opened | 3.0 | all time | `ProductInteractions` of kind `DetailOpened`. Stronger personal signal than a passive card view. |
@@ -74,7 +74,7 @@ English. Example:
 
 ```jsonc
 {
-  "product": { "id": 17, "name": "Whitening Toothpaste", "category": "Oral care", ... },
+  "product": { "id": 17, "name": "Whitening Toothpaste", "productCategoryId": 2, "productCategoryName": "Paste za zube", ... },
   "score": 8.4231,
   "reasons": [
     "Matches themes from your recent visits (shared terms: whitening, polish).",
