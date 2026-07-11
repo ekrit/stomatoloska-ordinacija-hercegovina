@@ -37,6 +37,14 @@ namespace SOH.Services.Services
                 query = query.Where(x => x.Specialization.Contains(search.Specialization));
             }
 
+            if (!string.IsNullOrEmpty(search.FTS))
+            {
+                query = query.Where(x =>
+                    x.FirstName.Contains(search.FTS) ||
+                    x.LastName.Contains(search.FTS) ||
+                    x.Specialization.Contains(search.FTS));
+            }
+
             return query;
         }
 

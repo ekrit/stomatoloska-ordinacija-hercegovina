@@ -59,6 +59,14 @@ namespace SOH.Services.Services
                 query = query.Where(x => x.CreatedAt <= search.CreatedTo.Value);
             }
 
+            if (!string.IsNullOrEmpty(search.FTS))
+            {
+                query = query.Where(x =>
+                    x.Product.Name.Contains(search.FTS) ||
+                    x.Patient.FirstName.Contains(search.FTS) ||
+                    x.Patient.LastName.Contains(search.FTS));
+            }
+
             return query.OrderByDescending(x => x.CreatedAt);
         }
 

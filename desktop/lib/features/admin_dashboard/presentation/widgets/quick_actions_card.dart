@@ -2,10 +2,16 @@ import 'package:flutter/material.dart';
 
 import '../screens/admin_add_patient_screen.dart';
 import '../screens/admin_appointments_list_screen.dart';
+import '../screens/admin_doctors_list_screen.dart';
 import '../screens/admin_genders_list_screen.dart';
+import '../screens/admin_medical_records_screen.dart';
 import '../screens/admin_office_locations_screen.dart';
+import '../screens/admin_orders_list_screen.dart';
 import '../screens/admin_payments_list_screen.dart';
+import '../screens/admin_product_categories_screen.dart';
 import '../screens/admin_products_list_screen.dart';
+import '../screens/admin_reviews_list_screen.dart';
+import '../screens/admin_roles_list_screen.dart';
 import '../screens/admin_rooms_list_screen.dart';
 import '../screens/admin_services_list_screen.dart';
 import '../screens/admin_reports_list_screen.dart';
@@ -21,7 +27,7 @@ class QuickActionsGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final actions = [
       _ActionItem('Add Patient', Icons.person_add_alt_1_outlined),
-      _ActionItem('Manage Doctors', Icons.medical_services_outlined),
+      _ActionItem('Manage Users', Icons.group_outlined),
       _ActionItem('Edit Office Info', Icons.edit_outlined),
       _ActionItem('Manage Appointments', Icons.calendar_today_outlined),
       _ActionItem('Generate Reports', Icons.bar_chart_outlined),
@@ -30,6 +36,12 @@ class QuickActionsGrid extends StatelessWidget {
       _ActionItem('Manage Rooms', Icons.meeting_room_outlined),
       _ActionItem('Manage Genders', Icons.wc_outlined),
       _ActionItem('Payments', Icons.payments_outlined),
+      _ActionItem('Manage Doctors', Icons.medical_services_outlined),
+      _ActionItem('Manage Roles', Icons.badge_outlined),
+      _ActionItem('Product Categories', Icons.category_outlined),
+      _ActionItem('Reviews', Icons.reviews_outlined),
+      _ActionItem('Orders', Icons.receipt_long_outlined),
+      _ActionItem('Medical Records', Icons.description_outlined),
     ];
 
     final buttonStyle = OutlinedButton.styleFrom(
@@ -106,6 +118,24 @@ class QuickActionsGrid extends StatelessWidget {
       case 9:
         push(const AdminPaymentsListScreen());
         break;
+      case 10:
+        push(const AdminDoctorsListScreen());
+        break;
+      case 11:
+        push(const AdminRolesListScreen());
+        break;
+      case 12:
+        push(const AdminProductCategoriesScreen());
+        break;
+      case 13:
+        push(const AdminReviewsListScreen());
+        break;
+      case 14:
+        push(const AdminOrdersListScreen());
+        break;
+      case 15:
+        push(const AdminMedicalRecordsScreen());
+        break;
     }
   }
 }
@@ -137,7 +167,7 @@ class QuickActionsCard extends StatelessWidget {
             const SizedBox(height: 12),
             LayoutBuilder(
               builder: (context, constraints) {
-                final rows = (10 / 2).ceil();
+                final rows = (16 / 2).ceil();
                 final h = rows * QuickActionsGrid.rowExtent + (rows - 1) * 8.0;
                 return SizedBox(
                   height: h,

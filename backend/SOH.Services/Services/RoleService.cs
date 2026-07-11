@@ -50,5 +50,15 @@ namespace SOH.Services.Services
                 throw new BusinessException("Uloga s ovim nazivom već postoji.");
             }
         }
+
+        protected override async Task BeforeDelete(Role entity)
+        {
+            // UserRole rows cascade on role delete, so without this check a
+            // delete would silently strip the role from every user.
+            if (await _context.UserRoles.AnyAsync(ur => ur.RoleId == entity.Id))
+            {
+                throw new BusinessException("Uloga se ne može obrisati jer je dodijeljena korisnicima.");
+            }
+        }
     }
 }

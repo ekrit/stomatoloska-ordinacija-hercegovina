@@ -25,7 +25,16 @@ namespace SOH.Services.Services
                 query = query.Where(x => x.Appointment.PatientId == search.PatientId.Value);
             }
 
-            return query;
+            if (!string.IsNullOrEmpty(search.FTS))
+            {
+                query = query.Where(x =>
+                    x.Diagnosis.Contains(search.FTS) ||
+                    x.Treatment.Contains(search.FTS) ||
+                    x.Appointment.Patient.FirstName.Contains(search.FTS) ||
+                    x.Appointment.Patient.LastName.Contains(search.FTS));
+            }
+
+            return query.OrderByDescending(x => x.CreatedAt);
         }
     }
 }

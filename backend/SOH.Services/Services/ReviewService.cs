@@ -40,6 +40,16 @@ namespace SOH.Services.Services
                 query = query.Where(x => x.Rating == search.Rating.Value);
             }
 
+            if (!string.IsNullOrEmpty(search.FTS))
+            {
+                query = query.Where(x =>
+                    (x.Comment != null && x.Comment.Contains(search.FTS)) ||
+                    x.Patient.FirstName.Contains(search.FTS) ||
+                    x.Patient.LastName.Contains(search.FTS) ||
+                    x.Doctor.FirstName.Contains(search.FTS) ||
+                    x.Doctor.LastName.Contains(search.FTS));
+            }
+
             return query.OrderByDescending(x => x.CreatedAt);
         }
 
