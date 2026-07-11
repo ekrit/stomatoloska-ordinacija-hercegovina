@@ -77,8 +77,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
 
       if (user?.id != null) {
+        // Re-read the repository: `session` above was created before the
+        // token existed, so its API client has no Authorization header and
+        // GET /Patient would 401 (bouncing straight back to login).
+        final authedSession = ref.read(patientSessionRepositoryProvider);
         final existing =
-            await session.listPatientsByUserId(user!.id!);
+            await authedSession.listPatientsByUserId(user!.id!);
         final hasPatient = existing.isNotEmpty;
         if (!hasPatient) {
           Navigator.of(context).pushReplacementNamed(AppRoutes.completeProfile);

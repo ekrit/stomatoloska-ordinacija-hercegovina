@@ -44,7 +44,7 @@ class HomeScreen extends ConsumerWidget {
                   children: [
                     const SectionHeader('Dobrodošli'),
                     Text(
-                      'Welcome, ${user?.firstName?.trim().isNotEmpty == true ? user!.firstName : 'there'}',
+                      'Dobrodošli${user?.firstName?.trim().isNotEmpty == true ? ', ${user!.firstName}' : ''}!',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
