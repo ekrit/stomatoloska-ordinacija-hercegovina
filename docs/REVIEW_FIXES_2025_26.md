@@ -62,14 +62,14 @@ u okruženju), grupisane da se `SOHDbContextModelSnapshot.cs` dira što rjeđe.
 
 ### Faza B — registracija i profil
 
-- [ ] **5. Jedan konzistentan tok registracije/kreiranja pacijenta.**
+- [x] **5. Jedan konzistentan tok registracije/kreiranja pacijenta.**
   `Register()` šalje `dateOfBirth: null` → upisuje se datum registracije;
   `complete_profile_screen.dart` zove admin-only `POST /Patient`;
   `admin_add_patient_screen.dart` duplo kreira Patient.
   *Rješenje:* jedan atomaran tok koji kreira User + Patient sa stvarnim
   datumom rođenja; ukloniti/prilagoditi `CompleteProfile`.
 
-- [ ] **6. Duplirani podaci profila između `User`, `Patient`, `Doctor`.**
+- [x] **6. Duplirani podaci profila između `User`, `Patient`, `Doctor`.**
   Mobile mijenja samo `/Users/{id}`, a projekcije čitaju iz `Patient`.
   *Rješenje:* sinhronizacija povezanog Patient/Doctor zapisa u istoj poslovnoj
   operaciji; kod promjene role ne dodjeljivati Doctor/Patient bez domenskog
@@ -171,3 +171,5 @@ u okruženju), grupisane da se `SOHDbContextModelSnapshot.cs` dira što rjeđe.
 | 2026-08-30 | 1 | faza A | `IRecordOwnership` + `EnsureCallerMayAccessAsync`, provjera vlasništva na svakom user-data `GetById` |
 | 2026-08-30 | 2 | faza A | `PatientId` se za Patient rolu uzima iz JWT-a (termin, narudžba, higijena); ownership prije update-a |
 | 2026-08-30 | 3 | faza A | `AppointmentActor` umjesto `isPrivileged`; `PatientId` termina zaključan; doktor vodi nalaze samo svojih termina; `AppointmentId` nalaza nepromjenjiv |
+| 2026-08-30 | 5 | faza B | `DateOfBirth` obavezan pri registraciji; jedan atomaran tok (User+Patient); uklonjen `CompleteProfile`; desktop admin više ne kreira Patient dvaput |
+| 2026-08-30 | 6 | faza B | `SyncDomainProfilesAsync` — User je source-of-truth za ime/telefon, Patient/Doctor se sinhronizuju u istoj operaciji; uloga se ne dodjeljuje bez domenskog profila |

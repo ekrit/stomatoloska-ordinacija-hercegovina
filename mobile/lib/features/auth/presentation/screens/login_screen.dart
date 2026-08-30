@@ -76,20 +76,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         return;
       }
 
-      if (user?.id != null) {
-        // Re-read the repository: `session` above was created before the
-        // token existed, so its API client has no Authorization header and
-        // GET /Patient would 401 (bouncing straight back to login).
-        final authedSession = ref.read(patientSessionRepositoryProvider);
-        final existing =
-            await authedSession.listPatientsByUserId(user!.id!);
-        final hasPatient = existing.isNotEmpty;
-        if (!hasPatient) {
-          Navigator.of(context).pushReplacementNamed(AppRoutes.completeProfile);
-          return;
-        }
-      }
-
+      // No patient-chart probe here any more: registration and the admin
+      // "add patient" flow both create the User and its Patient row in one
+      // server-side transaction, so a signed-in patient always has a chart.
+      // The old fallback sent them to a screen that POSTed to an
+      // administrator-only endpoint, which could never succeed.
       Navigator.of(context).pushReplacementNamed(AppRoutes.patientShell);
     } catch (e) {
       setState(() => _error =

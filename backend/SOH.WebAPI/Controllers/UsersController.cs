@@ -101,12 +101,14 @@ namespace SOH.WebAPI.Controllers
                 IsActive = true,
                 Password = request.Password,
                 Picture = request.Picture,
-                RoleIds = new List<int> { defaultRole.Id }
+                RoleIds = new List<int> { defaultRole.Id },
+                DateOfBirth = request.DateOfBirth
             };
 
             // The user account and its Patient profile are created in one
-            // transaction inside the service (no half-registered accounts).
-            var createdUser = await _userService.RegisterPatientAsync(createRequest, dateOfBirth: null);
+            // transaction inside the service (no half-registered accounts),
+            // with the date of birth the registrant actually entered.
+            var createdUser = await _userService.RegisterPatientAsync(createRequest, request.DateOfBirth);
 
             return CreatedAtAction(nameof(GetById), new { id = createdUser.Id }, createdUser);
         }

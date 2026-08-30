@@ -97,7 +97,11 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
       _error = null;
     });
     try {
-      final user = await ref.read(usersApiProvider).usersRegisterPost(
+      // One call, one transaction: /Users/register creates the account, its
+      // Patient role and the linked chart together. The old flow followed it
+      // with POST /Patient for the same UserId, which duplicated the create
+      // the server had already done.
+      await ref.read(usersApiProvider).usersRegisterPost(
             userRegisterRequest: UserRegisterRequest(
               firstName: first,
               lastName: last,
@@ -107,19 +111,6 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
               genderId: gid,
               cityId: cid,
               password: password,
-            ),
-          );
-      final uid = user?.id;
-      if (uid == null) {
-        setState(() => _error = 'Registracija nije vratila korisnički ID.');
-        return;
-      }
-      await ref.read(patientApiProvider).patientPost(
-            patientUpsertRequest: PatientUpsertRequest(
-              userId: uid,
-              firstName: first,
-              lastName: last,
-              phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
               dateOfBirth: _dob,
             ),
           );

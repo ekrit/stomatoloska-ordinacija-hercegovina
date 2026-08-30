@@ -47,30 +47,26 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             return;
           }
 
+          // A stored session still has to be checked for validity, but the
+          // patient chart no longer needs probing: it is created together with
+          // the account. We only care whether the token is still accepted.
           if (user.id != null) {
             try {
-              final existing = await ref
+              await ref
                   .read(patientSessionRepositoryProvider)
                   .listPatientsByUserId(user.id!);
-              if (!mounted) return;
-              if (existing.isEmpty) {
-                Navigator.of(context).pushReplacementNamed(AppRoutes.completeProfile);
-                return;
-              }
             } on ApiException catch (e) {
               if (!mounted) return;
               if (e.code == 401 || e.code == 403) {
                 await _clearSessionAndGoLogin();
                 return;
               }
-              Navigator.of(context).pushReplacementNamed(AppRoutes.patientShell);
-              return;
             } catch (_) {
-              if (!mounted) return;
-              Navigator.of(context).pushReplacementNamed(AppRoutes.patientShell);
-              return;
+              // Offline or a transient server error: fall through to the shell
+              // rather than bouncing the user back to the login form.
             }
           }
+          if (!mounted) return;
           Navigator.of(context).pushReplacementNamed(AppRoutes.patientShell);
           return;
         }

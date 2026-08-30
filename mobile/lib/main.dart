@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/app_globals.dart';
 import 'core/router/app_routes.dart';
-import 'features/auth/presentation/screens/complete_profile_screen.dart';
 import 'features/auth/presentation/screens/guest_locations_screen.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/auth/presentation/screens/register_screen.dart';
@@ -25,7 +24,6 @@ class SohMobileApp extends StatelessWidget {
     AppRoutes.login: (_) => const LoginScreen(),
     AppRoutes.register: (_) => const RegisterScreen(),
     AppRoutes.guest: (_) => const GuestLocationsScreen(),
-    AppRoutes.completeProfile: (_) => const CompleteProfileScreen(),
     AppRoutes.patientShell: (_) => const PatientShellScreen(),
     AppRoutes.doctorShell: (_) => const DoctorShellScreen(),
     AppRoutes.booking: (_) => const BookingScreen(),

@@ -5,7 +5,6 @@ abstract final class AppRoutes {
   static const login = '/login';
   static const register = '/register';
   static const guest = '/guest';
-  static const completeProfile = '/complete-profile';
   static const patientShell = '/patient';
   static const doctorShell = '/doctor';
   static const booking = '/booking';

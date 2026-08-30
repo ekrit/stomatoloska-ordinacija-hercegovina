@@ -11,9 +11,11 @@ namespace SOH.Services.Interfaces
 
         /// <summary>
         /// Public registration: creates the user account, its roles, and the
-        /// clinic Patient profile in a single transaction.
+        /// clinic Patient profile in a single transaction. This is the only
+        /// path that creates a patient, so the real date of birth is required
+        /// rather than defaulted to the registration date.
         /// </summary>
-        Task<UserResponse> RegisterPatientAsync(UserUpsertRequest request, DateTime? dateOfBirth);
+        Task<UserResponse> RegisterPatientAsync(UserUpsertRequest request, DateTime dateOfBirth);
         /// <summary>
         /// Updates a user. When <paramref name="callerIsAdmin"/> is false, the
         /// service ignores <see cref="UserUpsertRequest.RoleIds"/> and

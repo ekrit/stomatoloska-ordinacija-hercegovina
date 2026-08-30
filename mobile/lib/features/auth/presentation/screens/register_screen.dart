@@ -33,6 +33,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _password = TextEditingController();
   int? _genderId;
   int? _cityId;
+  DateTime? _dob;
   bool _loading = false;
   String? _error;
   bool _obscure = true;
@@ -80,12 +81,31 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     return null;
   }
 
+  Future<void> _pickDob() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _dob ?? DateTime(now.year - 30, 1, 1),
+      firstDate: DateTime(now.year - 120),
+      lastDate: now,
+    );
+    if (picked != null) setState(() => _dob = picked);
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     final gid = _genderId;
     final cid = _cityId;
     if (gid == null || cid == null) {
       setState(() => _error = 'Odaberite spol i grad.');
+      return;
+    }
+    // The chart needs a real birth date. Registration used to omit it and the
+    // server stored the registration date, so every patient's recorded
+    // birthday was the day they signed up.
+    final dob = _dob;
+    if (dob == null) {
+      setState(() => _error = 'Odaberite datum rođenja.');
       return;
     }
 
@@ -104,6 +124,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               genderId: gid,
               cityId: cid,
               password: _password.text,
+              dateOfBirth: dob,
             ),
           );
       if (!mounted) return;
@@ -177,6 +198,44 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     keyboardType: TextInputType.phone,
                     validator: _validatePhone,
+                  ),
+                  const SizedBox(height: 8),
+                  FormField<DateTime>(
+                    initialValue: _dob,
+                    validator: (_) =>
+                        _dob == null ? 'Odaberite datum rođenja.' : null,
+                    builder: (state) {
+                      final theme = Theme.of(context);
+                      return InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: 'Datum rođenja',
+                          errorText: state.errorText,
+                          border: const OutlineInputBorder(),
+                        ),
+                        child: InkWell(
+                          onTap: () async {
+                            await _pickDob();
+                            state.didChange(_dob);
+                          },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _dob == null
+                                    ? 'Odaberite datum'
+                                    : MaterialLocalizations.of(context)
+                                        .formatFullDate(_dob!),
+                                style: _dob == null
+                                    ? theme.textTheme.bodyMedium
+                                        ?.copyWith(color: theme.hintColor)
+                                    : theme.textTheme.bodyMedium,
+                              ),
+                              const Icon(Icons.calendar_today, size: 18),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 8),
                   genders.when(
