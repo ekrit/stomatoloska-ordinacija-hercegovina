@@ -37,7 +37,9 @@ class AppointmentDetailScreen extends ConsumerWidget {
     final status = a.status;
     final isUpcoming =
         status == AppointmentStatuses.requested || status == AppointmentStatuses.accepted;
-    final canPay = isUpcoming && a.isPaid != true;
+    // Mirrors the server rule: an appointment is payable only after the doctor
+    // has accepted it, never while it is still Requested.
+    final canPay = status == AppointmentStatuses.accepted && a.isPaid != true;
     final canRefund = a.isPaid == true && a.paymentId != null && status != AppointmentStatuses.completed;
 
     return Scaffold(

@@ -26,6 +26,13 @@ kasnije poslovne provjere.
 Sve izmjene sheme idu kroz **ručno pisane EF migracije** (nema `dotnet ef`
 u okruženju), grupisane da se `SOHDbContextModelSnapshot.cs` dira što rjeđe.
 
+> **Ručno pisane migracije — šta provjeriti lokalno:** migracija
+> `20260830050000_PaymentCurrencyAndSettlement` nema prateći `.Designer.cs`
+> (generator nije dostupan), pa su `[DbContext]` i `[Migration]` atributi
+> stavljeni direktno na klasu — `Database.Migrate()` je zbog toga vidi
+> normalno. `SOHDbContextModelSnapshot.cs` je ažuriran ručno. Prije sljedećeg
+> `dotnet ef migrations add` provjeriti da diff ne prijavi zaostale promjene.
+
 ---
 
 ## Stavke
@@ -77,16 +84,16 @@ u okruženju), grupisane da se `SOHDbContextModelSnapshot.cs` dira što rjeđe.
 
 ### Faza C — plaćanje
 
-- [ ] **7. PayPal valuta nije usklađena s cijenama (KM vs EUR).**
+- [x] **7. PayPal valuta nije usklađena s cijenama (KM vs EUR).**
   *Rješenje:* jedna definisana valuta sistema; ako PayPal mora u EUR, serverska
   konverzija po jasnom pravilu uz čuvanje naplaćenog iznosa i valute.
 
-- [ ] **8. Webhook verifikacija mora biti fail-closed.**
+- [x] **8. Webhook verifikacija mora biti fail-closed.**
   `VerifyWebhookAsync()` vraća `true` kada konfiguracija nedostaje.
   *Rješenje:* bez konfiguracije → odbiti događaj; mock samo iza eksplicitne
   development-only opcije.
 
-- [ ] **9. Payment state nije vezan za stanje termina.**
+- [x] **9. Payment state nije vezan za stanje termina.**
   Postojeći `Pending` se prepisuje; ne provjerava se `Appointment.Status`;
   moguće `Paid` + `Declined`; nakon plaćanja usluga/vrijeme ostaju promjenjivi;
   admin raw CRUD može proizvoljno postaviti `Paid`/`TransactionRef`.
@@ -173,3 +180,6 @@ u okruženju), grupisane da se `SOHDbContextModelSnapshot.cs` dira što rjeđe.
 | 2026-08-30 | 3 | faza A | `AppointmentActor` umjesto `isPrivileged`; `PatientId` termina zaključan; doktor vodi nalaze samo svojih termina; `AppointmentId` nalaza nepromjenjiv |
 | 2026-08-30 | 5 | faza B | `DateOfBirth` obavezan pri registraciji; jedan atomaran tok (User+Patient); uklonjen `CompleteProfile`; desktop admin više ne kreira Patient dvaput |
 | 2026-08-30 | 6 | faza B | `SyncDomainProfilesAsync` — User je source-of-truth za ime/telefon, Patient/Doctor se sinhronizuju u istoj operaciji; uloga se ne dodjeljuje bez domenskog profila |
+| 2026-08-30 | 7 | faza C | `MoneyPolicy`: BAM je valuta sistema, PayPal se naplaćuje u EUR po fiksnom kursu 1 EUR = 1.95583 KM; `Payment` čuva i naplaćeni iznos/valutu |
+| 2026-08-30 | 8 | faza C | `VerifyWebhookAsync` fail-closed; mock samo uz eksplicitni `PAYPAL__ALLOW_UNVERIFIED_WEBHOOKS=true` |
+| 2026-08-30 | 9 | faza C | Plaćanje tek nakon `Accepted`; postojeći Pending se reuse-uje preko `GetApprovalUrlAsync`; usluga/vrijeme zaključani nakon `Paid`; admin CRUD ne može postaviti `Paid`/`TransactionRef` |

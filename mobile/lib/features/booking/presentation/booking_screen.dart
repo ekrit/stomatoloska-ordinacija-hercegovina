@@ -11,7 +11,6 @@ import '../../../core/utils/api_errors.dart';
 import '../../../core/utils/appointment_labels.dart';
 import '../../patient/presentation/providers/patient_data_providers.dart';
 import '../../patient/presentation/providers/patient_repository_providers.dart';
-import 'payment_screen.dart';
 
 class BookingScreen extends ConsumerStatefulWidget {
   const BookingScreen({super.key});
@@ -99,7 +98,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       _error = null;
     });
     try {
-      final created = await ref.read(patientCareRepositoryProvider).createAppointment(
+      await ref.read(patientCareRepositoryProvider).createAppointment(
             AppointmentUpsertRequest(
               patientId: user!.id!,
               doctorId: doctorId,
@@ -116,30 +115,18 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           );
       if (!mounted) return;
       ref.invalidate(myAppointmentsProvider);
+      // Payment is deliberately not offered here. The appointment is still only
+      // Requested, and the doctor may yet decline it — paying now was how a
+      // Paid payment could end up attached to a Declined appointment. The pay
+      // action appears on the appointment once it has been accepted.
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Zahtjev za termin je poslan.')),
+        const SnackBar(
+          content: Text(
+            'Zahtjev za termin je poslan. Plaćanje je moguće nakon što doktor prihvati termin.',
+          ),
+        ),
       );
 
-      final appointmentId = created?.id;
-      if (appointmentId != null) {
-        final paid = await Navigator.of(context).push<bool>(
-          MaterialPageRoute<bool>(
-            builder: (_) => PaymentScreen(
-              appointmentId: appointmentId,
-              serviceName: svc.name,
-            ),
-          ),
-        );
-        if (!mounted) return;
-        ref.invalidate(myAppointmentsProvider);
-        if (paid == true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Plaćanje je završeno.')),
-          );
-        }
-      }
-
-      if (!mounted) return;
       Navigator.of(context).pop();
     } catch (e) {
       setState(() => _error = extractApiErrorMessage(e,

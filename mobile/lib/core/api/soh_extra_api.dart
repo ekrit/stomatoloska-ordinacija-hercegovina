@@ -288,23 +288,44 @@ class PaymentOrderInfo {
     required this.orderId,
     required this.approvalUrl,
     required this.amount,
+    required this.currency,
+    required this.chargedAmount,
+    required this.chargedCurrency,
   });
 
   final int paymentId;
   final String orderId;
   final String approvalUrl;
+
+  /// What the patient owes, in the clinic's currency (KM).
   final double amount;
+  final String currency;
+
+  /// What PayPal actually charges, after the server-side conversion. Kept
+  /// separate from [amount] so the screen can show both instead of labelling
+  /// a KM figure as EUR.
+  final double chargedAmount;
+  final String chargedCurrency;
+
+  static double _num(Object? v) =>
+      v is num ? v.toDouble() : double.tryParse('$v') ?? 0;
 
   static PaymentOrderInfo fromJson(Map<String, dynamic> j) {
     final paymentId = j['paymentId'] ?? j['PaymentId'];
     final orderId = j['orderId'] ?? j['OrderId'];
     final approvalUrl = j['approvalUrl'] ?? j['ApprovalUrl'];
     final amount = j['amount'] ?? j['Amount'];
+    final currency = j['currency'] ?? j['Currency'];
+    final chargedAmount = j['chargedAmount'] ?? j['ChargedAmount'];
+    final chargedCurrency = j['chargedCurrency'] ?? j['ChargedCurrency'];
     return PaymentOrderInfo(
       paymentId: paymentId is int ? paymentId : int.parse('$paymentId'),
       orderId: orderId as String? ?? '',
       approvalUrl: approvalUrl as String? ?? '',
-      amount: amount is num ? amount.toDouble() : double.tryParse('$amount') ?? 0,
+      amount: _num(amount),
+      currency: currency as String? ?? 'BAM',
+      chargedAmount: _num(chargedAmount),
+      chargedCurrency: chargedCurrency as String? ?? 'EUR',
     );
   }
 }

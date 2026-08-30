@@ -110,6 +110,31 @@ namespace SOH.Services.Services
             // letting an update move someone else's visit onto this slot.
             request.PatientId = entity.PatientId;
 
+            // Once money has been taken, the commercially meaningful fields are
+            // frozen. Otherwise the service or the slot could be swapped after
+            // payment and the captured amount would silently belong to a
+            // different (possibly more expensive) treatment. Status changes and
+            // notes stay open; changing the service or time needs a refund and
+            // a new booking.
+            var isPaid = await _context.Payments
+                .AsNoTracking()
+                .AnyAsync(p => p.AppointmentId == entity.Id && p.Status == PaymentStatus.Paid);
+
+            if (isPaid)
+            {
+                if (request.ServiceId != entity.ServiceId ||
+                    request.StartTime != entity.StartTime ||
+                    request.EndTime != entity.EndTime)
+                {
+                    throw new BusinessException(
+                        "Termin je plaćen; usluga i vrijeme se ne mogu mijenjati. Zatražite povrat novca i zakažite ponovo.");
+                }
+
+                request.ServiceId = entity.ServiceId;
+                request.StartTime = entity.StartTime;
+                request.EndTime = entity.EndTime;
+            }
+
             var newStatus = (AppointmentStatus)(int)request.Status;
             ValidateStatusTransition(entity.Status, newStatus);
 
