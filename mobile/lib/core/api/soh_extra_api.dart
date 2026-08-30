@@ -85,11 +85,10 @@ class SohExtraApi {
     var resp = await invoke('POST', <String, dynamic>{}, 'application/json');
     if (resp.statusCode >= 200 && resp.statusCode < 300) return;
 
-    // Some stacks route POST differently; retry on 404 only.
+    // Some stacks route POST differently; retry on 404 only. The GET fallback
+    // is gone with the GET route: marking read is a write.
     if (resp.statusCode == 404) {
       resp = await invoke('PATCH', <String, dynamic>{}, 'application/json');
-      if (resp.statusCode >= 200 && resp.statusCode < 300) return;
-      resp = await invoke('GET', null, null);
       if (resp.statusCode >= 200 && resp.statusCode < 300) return;
     }
 
