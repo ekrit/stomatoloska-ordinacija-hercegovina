@@ -66,7 +66,8 @@ class _AdminAppointmentCreateScreenState extends ConsumerState<AdminAppointmentC
               startTime: _start,
               endTime: _start.add(const Duration(minutes: 30)),
               status: AppointmentStatuses.requested,
-              doctorNote: _note.text.trim().isEmpty ? null : _note.text.trim(),
+              // On create this is the patient's complaint, not a doctor's note.
+              patientComplaint: _note.text.trim().isEmpty ? null : _note.text.trim(),
             ),
           );
       if (!mounted) return;
@@ -132,7 +133,7 @@ class _AdminAppointmentCreateScreenState extends ConsumerState<AdminAppointmentC
               controller: _note,
               maxLines: 3,
               decoration: const InputDecoration(
-                labelText: 'Napomena doktora (opcionalno)',
+                labelText: 'Opis tegoba pacijenta (opcionalno)',
                 border: OutlineInputBorder(),
               ),
             ),

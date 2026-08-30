@@ -26,7 +26,16 @@ namespace SOH.Model.Requests
 
         public AppointmentStatus Status { get; set; }
 
+        /// <summary>What the patient reports when booking.</summary>
+        [MaxLength(2000)]
+        public string? PatientComplaint { get; set; }
+
+        /// <summary>The doctor's own note; not a substitute for a reason.</summary>
         [MaxLength(2000)]
         public string? DoctorNote { get; set; }
+
+        /// <summary>Required when moving the appointment to Declined.</summary>
+        [MaxLength(2000)]
+        public string? DeclineReason { get; set; }
     }
 }

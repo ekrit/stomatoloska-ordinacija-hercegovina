@@ -389,10 +389,7 @@ class _AppointmentList extends ConsumerWidget {
       );
       if (ok != true) return;
 
-      final mergedNote = _mergeNotes(
-        existing: appointment.doctorNote,
-        doctorNote: noteController.text,
-      );
+      final text = noteController.text.trim();
 
       await ref.read(patientCareRepositoryProvider).updateAppointment(
             appointment.id!,
@@ -404,7 +401,12 @@ class _AppointmentList extends ConsumerWidget {
               startTime: appointment.startTime!,
               endTime: appointment.endTime!,
               status: next,
-              doctorNote: mergedNote,
+              // A rejection reason is not the doctor's note; the server now
+              // requires the reason in its own field.
+              declineReason: isDecline ? text : null,
+              doctorNote: isDecline
+                  ? appointment.doctorNote
+                  : _mergeNotes(existing: appointment.doctorNote, doctorNote: text),
             ),
           );
       ref.invalidate(_doctorAppointmentsProvider);

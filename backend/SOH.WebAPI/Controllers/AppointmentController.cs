@@ -66,7 +66,7 @@ namespace SOH.WebAPI.Controllers
                     DoctorId = created.DoctorId,
                     ServiceId = created.ServiceId,
                     StartTimeUtc = created.StartTime.ToUniversalTime(),
-                    ClientComplaint = request.DoctorNote
+                    ClientComplaint = request.PatientComplaint
                 });
             }
 
@@ -92,12 +92,33 @@ namespace SOH.WebAPI.Controllers
         [Authorize(Roles = RoleNames.Administrator)]
         public override Task<bool> Delete(int id) => base.Delete(id);
 
+        /// <summary>
+        /// Bookable slots for a doctor, day and service. The client renders
+        /// this instead of deriving free time from its own appointment list,
+        /// which was patient-scoped and therefore blind to other patients'
+        /// bookings.
+        /// </summary>
+        [HttpGet("availability")]
+        [Authorize(Roles = RoleNames.Administrator + "," + RoleNames.Doctor + "," + RoleNames.Patient)]
+        public async Task<ActionResult<IReadOnlyList<AvailabilitySlotResponse>>> Availability(
+            [FromQuery] int doctorId,
+            [FromQuery] DateTime date,
+            [FromQuery] int serviceId)
+        {
+            if (doctorId <= 0 || serviceId <= 0)
+            {
+                return BadRequest("Doktor i usluga su obavezni.");
+            }
+
+            return Ok(await _appointments.GetAvailabilityAsync(doctorId, date, serviceId));
+        }
+
         // Dedicated cancel path so patients can cancel their own bookings
         // without the broad Update authorization. Ownership and the legal
         // status transition are enforced in the service.
         [HttpPost("{id:int}/cancel")]
         [Authorize(Roles = RoleNames.Administrator + "," + RoleNames.Doctor + "," + RoleNames.Patient)]
-        public async Task<ActionResult<AppointmentResponse>> Cancel(int id)
+        public async Task<ActionResult<AppointmentResponse>> Cancel(int id, [FromBody] AppointmentCancelRequest request)
         {
             // A doctor is not simply "privileged": they may cancel the
             // appointments assigned to them, not a colleague's.
@@ -106,7 +127,7 @@ namespace SOH.WebAPI.Controllers
                 : CallerIsDoctor
                     ? AppointmentActor.Doctor
                     : AppointmentActor.Patient;
-            var result = await _appointments.CancelOwnAsync(id, CallerUserId, actor);
+            var result = await _appointments.CancelOwnAsync(id, CallerUserId, actor, request.Reason);
             return Ok(result);
         }
     }

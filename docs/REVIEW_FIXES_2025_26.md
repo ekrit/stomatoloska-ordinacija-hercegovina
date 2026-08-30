@@ -103,7 +103,7 @@ u okruženju), grupisane da se `SOHDbContextModelSnapshot.cs` dira što rjeđe.
 
 ### Faza D — dostupnost i audit
 
-- [ ] **10. Slobodni termini se računaju na klijentu.**
+- [x] **10. Slobodni termini se računaju na klijentu.**
   Pacijent ne vidi tuđa zauzeća; fiksnih 30 min umjesto trajanja usluge; mobile
   sam bira prostoriju i pada na `rooms.first`; `EndTime` dolazi od klijenta;
   radno vrijeme samo u client konfiguraciji.
@@ -111,7 +111,7 @@ u okruženju), grupisane da se `SOHDbContextModelSnapshot.cs` dira što rjeđe.
   stvarni slotovi) uz trajanje usluge, `Room.IsAvailable` i radno vrijeme;
   backend pri kreiranju ponovo potvrđuje ista pravila.
 
-- [ ] **11. Audit i razlozi promjene statusa.**
+- [x] **11. Audit i razlozi promjene statusa.**
   `Cancel(int id)` nema razlog; `DoctorNote` se koristi za tri različite stvari;
   moguće `Accepted -> Completed` prije kraja termina.
   *Rješenje:* odvojiti `PatientComplaint` od `DeclineReason`/`DoctorNote`,
@@ -182,4 +182,6 @@ u okruženju), grupisane da se `SOHDbContextModelSnapshot.cs` dira što rjeđe.
 | 2026-08-30 | 6 | faza B | `SyncDomainProfilesAsync` — User je source-of-truth za ime/telefon, Patient/Doctor se sinhronizuju u istoj operaciji; uloga se ne dodjeljuje bez domenskog profila |
 | 2026-08-30 | 7 | faza C | `MoneyPolicy`: BAM je valuta sistema, PayPal se naplaćuje u EUR po fiksnom kursu 1 EUR = 1.95583 KM; `Payment` čuva i naplaćeni iznos/valutu |
 | 2026-08-30 | 8 | faza C | `VerifyWebhookAsync` fail-closed; mock samo uz eksplicitni `PAYPAL__ALLOW_UNVERIFIED_WEBHOOKS=true` |
+| 2026-08-30 | 10 | faza D | `GET /Appointment/availability` računa stvarne slotove (trajanje usluge, slobodan doktor i prostorija, radno vrijeme); `EndTime` i prostorija se izvode serverski; klijent samo prikazuje |
+| 2026-08-30 | 11 | faza D | `PatientComplaint`/`DeclineReason`/`CancelReason` odvojeni; obavezan razlog otkazivanja i odbijanja; `AppointmentStatusHistory` (ko/kad/iz→u/zašto); nema `Completed` prije kraja termina |
 | 2026-08-30 | 9 | faza C | Plaćanje tek nakon `Accepted`; postojeći Pending se reuse-uje preko `GetApprovalUrlAsync`; usluga/vrijeme zaključani nakon `Paid`; admin CRUD ne može postaviti `Paid`/`TransactionRef` |

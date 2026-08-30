@@ -18,8 +18,26 @@ namespace SOH.Services.Database
 
         public AppointmentStatus Status { get; set; }
 
+        /// <summary>
+        /// What the patient wrote when booking. Kept apart from
+        /// <see cref="DoctorNote"/>: one field previously carried the
+        /// complaint, the doctor's note and the rejection reason at once, so a
+        /// "reason is present" check passed on text the patient had typed.
+        /// </summary>
+        [MaxLength(2000)]
+        public string? PatientComplaint { get; set; }
+
+        /// <summary>The doctor's own note about the visit.</summary>
         [MaxLength(2000)]
         public string? DoctorNote { get; set; }
+
+        /// <summary>Why the doctor rejected the request. Required to decline.</summary>
+        [MaxLength(2000)]
+        public string? DeclineReason { get; set; }
+
+        /// <summary>Why the appointment was cancelled. Required to cancel.</summary>
+        [MaxLength(2000)]
+        public string? CancelReason { get; set; }
 
         [ForeignKey(nameof(PatientId))]
         public Patient Patient { get; set; } = null!;
@@ -36,5 +54,7 @@ namespace SOH.Services.Database
         public MedicalRecord? MedicalRecord { get; set; }
         public Payment? Payment { get; set; }
         public Review? Review { get; set; }
+
+        public ICollection<AppointmentStatusHistory> StatusHistory { get; set; } = new List<AppointmentStatusHistory>();
     }
 }

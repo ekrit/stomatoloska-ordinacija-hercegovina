@@ -20,6 +20,7 @@ class AdminAppointmentEditScreen extends ConsumerStatefulWidget {
 
 class _AdminAppointmentEditScreenState extends ConsumerState<AdminAppointmentEditScreen> {
   late AppointmentStatus _status;
+  final _declineReason = TextEditingController();
   late DateTime _start;
   late DateTime _end;
   late final TextEditingController _note;
@@ -39,6 +40,7 @@ class _AdminAppointmentEditScreenState extends ConsumerState<AdminAppointmentEdi
   @override
   void dispose() {
     _note.dispose();
+    _declineReason.dispose();
     super.dispose();
   }
 
@@ -111,6 +113,10 @@ class _AdminAppointmentEditScreenState extends ConsumerState<AdminAppointmentEdi
               startTime: _start,
               endTime: _end,
               status: _status,
+              // Required by the server when moving to Declined.
+              declineReason: _status == AppointmentStatuses.declined
+                  ? _declineReason.text.trim()
+                  : null,
               doctorNote: _note.text.trim().isEmpty ? null : _note.text.trim(),
             ),
           );
@@ -204,6 +210,17 @@ class _AdminAppointmentEditScreenState extends ConsumerState<AdminAppointmentEdi
                 .toList(),
             onChanged: _saving ? null : (v) => setState(() => _status = v ?? _status),
           ),
+          if (_status == AppointmentStatuses.declined) ...[
+            const SizedBox(height: 8),
+            TextField(
+              controller: _declineReason,
+              maxLines: 2,
+              decoration: const InputDecoration(
+                labelText: 'Razlog odbijanja (obavezno)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           Text('Početak', style: Theme.of(context).textTheme.titleMedium),
           ListTile(

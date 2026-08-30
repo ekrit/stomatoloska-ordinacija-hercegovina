@@ -7,6 +7,7 @@ import '../../../../core/api/api_providers.dart';
 import '../../../../core/api/soh_extra_api.dart';
 import '../../../../core/utils/api_errors.dart';
 import '../../../../core/utils/appointment_labels.dart';
+import '../../../../core/utils/appointment_cancel_dialog.dart';
 import '../../../booking/presentation/payment_screen.dart';
 import '../providers/patient_data_providers.dart';
 import 'patient_findings_screen.dart';
@@ -151,57 +152,13 @@ class AppointmentDetailScreen extends ConsumerWidget {
   Future<void> _refund(BuildContext context, WidgetRef ref, AppointmentResponse a) async {
     final paymentId = a.paymentId;
     if (paymentId == null) return;
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Zatražiti povrat novca?'),
-        content: const Text(
-          'Vaša uplata će biti refundirana putem PayPal-a i termin će biti otkazan. '
-          'Ova radnja se ne može poništiti.',
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('No')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Da, refundiraj')),
-        ],
-      ),
-    );
-    if (ok != true) return;
-    try {
-      await SohExtraApi(ref.read(apiClientProvider)).refundPayment(paymentId);
-      ref.invalidate(myAppointmentsProvider);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Povrat novca je izvršen. Termin je otkazan.')),
-        );
-        Navigator.of(context).pop();
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Povrat novca nije uspio.'))),
-        );
-      }
-    }
-  }
-
-  Future<void> _cancel(BuildContext context, WidgetRef ref, AppointmentResponse a) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Otkazati termin?'),
-        content: const Text('Vaša posjeta će biti označena kao otkazana.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('No')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Da, otkaži')),
-        ],
-      ),
-    );
-    if (ok != true) return;
+    final reason = await promptCancelReason(context);
+    if (reason == null) return;
     if (a.id == null) {
       return;
     }
     try {
-      await SohExtraApi(ref.read(apiClientProvider)).cancelAppointment(a.id!);
+      await SohExtraApi(ref.read(apiClientProvider)).cancelAppointment(a.id!, reason);
       ref.invalidate(myAppointmentsProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
