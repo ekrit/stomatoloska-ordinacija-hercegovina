@@ -279,6 +279,51 @@ namespace SOH.Services.Services
             // calendar (the slot might already be in the past).
             if (BlockingStatuses.Contains(newStatus))
             {
+                // A reschedule is governed by the same server-side rules as a
+                // new booking: the visit length is derived from the service
+                // (never trusted from the client's EndTime) and the range must
+                // fall inside working hours. Applying this only on insert left
+                // the update path able to accept an arbitrary EndTime and to
+                // move a visit outside 08-18 — the exact defect the original
+                // review raised, still live on reschedules. Paid appointments
+                // already have service/time pinned above, so only an unpaid
+                // reschedule recomputes them.
+                var scheduleChanged = !isPaid &&
+                    (request.ServiceId != entity.ServiceId || request.StartTime != entity.StartTime);
+
+                if (scheduleChanged)
+                {
+                    var durationMinutes = await _context.Services
+                        .AsNoTracking()
+                        .Where(s => s.Id == request.ServiceId)
+                        .Select(s => (int?)s.DurationMinutes)
+                        .FirstOrDefaultAsync()
+                        ?? throw new NotFoundException("Usluga nije pronađena.");
+
+                    if (durationMinutes <= 0)
+                    {
+                        throw new BusinessException("Usluga nema definisano trajanje; termin se ne može zakazati.");
+                    }
+
+                    request.EndTime = request.StartTime.AddMinutes(durationMinutes);
+
+                    if (!ClinicSchedule.IsWithinWorkingHours(request.StartTime, request.EndTime))
+                    {
+                        throw new BusinessException(
+                            $"Termin mora biti unutar radnog vremena ({ClinicSchedule.WorkdayStartHour:00}-{ClinicSchedule.WorkdayEndHour:00}) i završiti istog dana.");
+                    }
+                }
+                else
+                {
+                    // A status-only change (accept, complete) does not let the
+                    // client move the schedule: pin service and both times to
+                    // the stored values so a stray EndTime in the body is
+                    // ignored.
+                    request.ServiceId = entity.ServiceId;
+                    request.StartTime = entity.StartTime;
+                    request.EndTime = entity.EndTime;
+                }
+
                 // EF tracks `entity` so EndTime / StartTime already reflect
                 // the in-flight request via Mapster mapping happening after
                 // BeforeUpdate. We re-derive them from the request to make
