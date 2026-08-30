@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace SOH.Model.Requests
@@ -36,5 +37,13 @@ namespace SOH.Model.Requests
         [Required]
         [MinLength(4)]
         public string Password { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Real date of birth for the clinic chart. Registration previously
+        /// left this out and the server stored the registration date instead,
+        /// so every new patient's birthday was the day they signed up.
+        /// </summary>
+        [Required]
+        public DateTime DateOfBirth { get; set; }
     }
 }

@@ -136,31 +136,139 @@ namespace SOH.Services.Services
             // or fail together, so the whole operation runs in a transaction.
             await using var transaction = await _context.Database.BeginTransactionAsync();
             var user = await CreateUserCoreAsync(request);
+
+            // Assigning a domain role has to produce the matching profile in
+            // the same operation, otherwise an admin can mint a Patient account
+            // that logs in but has no chart to book against.
+            await SyncDomainProfilesAsync(user, await GetRoleNamesAsync(user.Id), request.DateOfBirth);
+            await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
             return await GetUserResponseWithRolesAsync(user.Id);
         }
 
-        public async Task<UserResponse> RegisterPatientAsync(UserUpsertRequest request, DateTime? dateOfBirth)
+        public async Task<UserResponse> RegisterPatientAsync(UserUpsertRequest request, DateTime dateOfBirth)
         {
             // Public registration creates the account AND the clinic patient
             // profile atomically; a half-registered user (account without a
-            // Patient row) could log in but never book.
+            // Patient row) could log in but never book. This is the single
+            // entry point for creating a patient — there is no follow-up
+            // "complete profile" call to an endpoint patients cannot reach.
+            ValidateDateOfBirth(dateOfBirth);
+
             await using var transaction = await _context.Database.BeginTransactionAsync();
             var user = await CreateUserCoreAsync(request);
 
-            _context.Patients.Add(new Patient
-            {
-                UserId = user.Id,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                Phone = string.IsNullOrWhiteSpace(request.PhoneNumber) ? string.Empty : request.PhoneNumber.Trim(),
-                DateOfBirth = dateOfBirth ?? DateTime.UtcNow.Date
-            });
+            await SyncDomainProfilesAsync(user, await GetRoleNamesAsync(user.Id), dateOfBirth);
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
             return await GetUserResponseWithRolesAsync(user.Id);
+        }
+
+        private Task<List<string>> GetRoleNamesAsync(int userId)
+        {
+            return _context.UserRoles
+                .Where(ur => ur.UserId == userId)
+                .Select(ur => ur.Role.Name)
+                .ToListAsync();
+        }
+
+        private static bool IsPatientRole(string name)
+        {
+            var v = name.Trim().ToLowerInvariant();
+            return v is "patient" or "user";
+        }
+
+        private static bool IsDoctorRole(string name)
+        {
+            var v = name.Trim().ToLowerInvariant();
+            return v is "doctor" or "dentist" or "stomatolog";
+        }
+
+        private static void ValidateDateOfBirth(DateTime dateOfBirth)
+        {
+            var today = DateTime.UtcNow.Date;
+            if (dateOfBirth.Date > today)
+            {
+                throw new BusinessException("Datum rođenja ne može biti u budućnosti.");
+            }
+            if (dateOfBirth.Date < today.AddYears(-120))
+            {
+                throw new BusinessException("Datum rođenja nije ispravan.");
+            }
+        }
+
+        /// <summary>
+        /// Keeps <see cref="User"/>, <see cref="Patient"/> and
+        /// <see cref="Doctor"/> in step within one business operation.
+        /// <para>
+        /// The three tables repeat the person's name and phone, and the
+        /// appointment/order projections read them from Patient — so a profile
+        /// edit that touched only User left the rest of the app showing the old
+        /// surname or phone. User is the source of truth for those shared
+        /// fields and they are written through here.
+        /// </para>
+        /// <para>
+        /// Role assignment is handled here too: a domain role without its
+        /// profile is a broken account. Patient charts are created on demand
+        /// (they need only a date of birth); a Doctor profile carries a
+        /// specialization the user form does not collect, so the Doctor role is
+        /// refused until that profile exists rather than inventing a blank one.
+        /// </para>
+        /// </summary>
+        private async Task SyncDomainProfilesAsync(User user, IReadOnlyCollection<string> roleNames, DateTime? dateOfBirth)
+        {
+            var phone = string.IsNullOrWhiteSpace(user.PhoneNumber)
+                ? string.Empty
+                : user.PhoneNumber.Trim();
+
+            var patient = await _context.Patients.FirstOrDefaultAsync(p => p.UserId == user.Id);
+            if (roleNames.Any(IsPatientRole) && patient == null)
+            {
+                if (dateOfBirth == null)
+                {
+                    throw new BusinessException(
+                        "Za pacijentsku ulogu je potreban datum rođenja.");
+                }
+
+                ValidateDateOfBirth(dateOfBirth.Value);
+                _context.Patients.Add(new Patient
+                {
+                    UserId = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Phone = phone,
+                    DateOfBirth = dateOfBirth.Value.Date,
+                });
+            }
+            else if (patient != null)
+            {
+                // The chart is kept even if the role is later removed, because
+                // appointments and orders still reference it.
+                patient.FirstName = user.FirstName;
+                patient.LastName = user.LastName;
+                patient.Phone = phone;
+
+                if (dateOfBirth != null)
+                {
+                    ValidateDateOfBirth(dateOfBirth.Value);
+                    patient.DateOfBirth = dateOfBirth.Value.Date;
+                }
+            }
+
+            var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.UserId == user.Id);
+            if (roleNames.Any(IsDoctorRole) && doctor == null)
+            {
+                throw new BusinessException(
+                    "Doktorski profil za ovog korisnika ne postoji. Kreirajte doktora prije dodjele Doctor uloge.");
+            }
+
+            if (doctor != null)
+            {
+                doctor.FirstName = user.FirstName;
+                doctor.LastName = user.LastName;
+            }
         }
 
         private async Task<User> CreateUserCoreAsync(UserUpsertRequest request)
@@ -309,6 +417,7 @@ namespace SOH.Services.Services
             }
 
             // Update roles only when an admin asked for it.
+            List<string>? effectiveRoleNames = null;
             if (callerIsAdmin && request.RoleIds != null)
             {
                 // Remove existing roles
@@ -326,14 +435,25 @@ namespace SOH.Services.Services
                     _context.UserRoles.Add(userRole);
                 }
 
-                var names = await _context.Roles
+                // Read the names from the request rather than the database: the
+                // rows above are only tracked, not saved yet, so a query would
+                // still return the roles being replaced.
+                effectiveRoleNames = await _context.Roles
                     .Where(r => request.RoleIds.Contains(r.Id))
                     .Select(r => r.Name)
                     .ToListAsync();
-                user.Role = names.Count > 0
-                    ? InferDomainRoleFromRoleNames(names)
+                user.Role = effectiveRoleNames.Count > 0
+                    ? InferDomainRoleFromRoleNames(effectiveRoleNames)
                     : UserRoleType.Patient;
             }
+
+            // Runs on every update, not just role changes: the Patient/Doctor
+            // rows carry their own copy of the name and phone, and the booking
+            // and order screens read them from there.
+            await SyncDomainProfilesAsync(
+                user,
+                effectiveRoleNames ?? await GetRoleNamesAsync(user.Id),
+                request.DateOfBirth);
 
             await _context.SaveChangesAsync();
             return await GetUserResponseWithRolesAsync(user.Id);

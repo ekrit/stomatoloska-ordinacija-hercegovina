@@ -22,6 +22,7 @@ class UserRegisterRequest {
     required this.genderId,
     required this.cityId,
     required this.password,
+    required this.dateOfBirth,
   });
 
   String firstName;
@@ -42,6 +43,8 @@ class UserRegisterRequest {
 
   String password;
 
+  DateTime dateOfBirth;
+
   @override
   bool operator ==(Object other) => identical(this, other) || other is UserRegisterRequest &&
     other.firstName == firstName &&
@@ -52,7 +55,8 @@ class UserRegisterRequest {
     other.phoneNumber == phoneNumber &&
     other.genderId == genderId &&
     other.cityId == cityId &&
-    other.password == password;
+    other.password == password &&
+    other.dateOfBirth == dateOfBirth;
 
   @override
   int get hashCode =>
@@ -65,10 +69,11 @@ class UserRegisterRequest {
     (phoneNumber == null ? 0 : phoneNumber!.hashCode) +
     (genderId.hashCode) +
     (cityId.hashCode) +
-    (password.hashCode);
+    (password.hashCode) +
+    (dateOfBirth.hashCode);
 
   @override
-  String toString() => 'UserRegisterRequest[firstName=$firstName, lastName=$lastName, picture=$picture, email=$email, username=$username, phoneNumber=$phoneNumber, genderId=$genderId, cityId=$cityId, password=$password]';
+  String toString() => 'UserRegisterRequest[firstName=$firstName, lastName=$lastName, picture=$picture, email=$email, username=$username, phoneNumber=$phoneNumber, genderId=$genderId, cityId=$cityId, password=$password, dateOfBirth=$dateOfBirth]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -89,6 +94,7 @@ class UserRegisterRequest {
       json[r'genderId'] = this.genderId;
       json[r'cityId'] = this.cityId;
       json[r'password'] = this.password;
+      json[r'dateOfBirth'] = this.dateOfBirth.toUtc().toIso8601String();
     return json;
   }
 
@@ -120,6 +126,7 @@ class UserRegisterRequest {
         genderId: mapValueOfType<int>(json, r'genderId')!,
         cityId: mapValueOfType<int>(json, r'cityId')!,
         password: mapValueOfType<String>(json, r'password')!,
+        dateOfBirth: mapDateTime(json, r'dateOfBirth', r'')!,
       );
     }
     return null;
@@ -174,6 +181,7 @@ class UserRegisterRequest {
     'genderId',
     'cityId',
     'password',
+    'dateOfBirth',
   };
 }
 

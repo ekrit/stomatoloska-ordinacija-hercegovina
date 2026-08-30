@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -47,5 +48,12 @@ namespace SOH.Model.Requests
         
         // Collection of role IDs to assign to the user
         public List<int> RoleIds { get; set; } = new List<int>();
+
+        /// <summary>
+        /// Date of birth for the linked Patient chart. Required the first time
+        /// the Patient role is assigned (the chart cannot be created without
+        /// it); optional afterwards, when it simply updates the stored value.
+        /// </summary>
+        public DateTime? DateOfBirth { get; set; }
     }
 } 

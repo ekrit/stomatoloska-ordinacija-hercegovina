@@ -44,6 +44,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
   int? _cityId;
   final Set<int> _roleIds = {};
   bool _isActive = true;
+  DateTime? _dateOfBirth;
   bool _pictureUpdated = false;
   String? _pictureBase64;
 
@@ -239,6 +240,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
         genderId: gid,
         cityId: cid,
         isActive: _isActive,
+        dateOfBirth: _dateOfBirth,
         password: setPasswordViaUpsert ? pwd : null,
         roleIds: _roleIds.toList(),
         picture: _pictureUpdated ? _pictureBase64 : null,
@@ -507,6 +509,35 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                                   value: _isActive,
                                   onChanged: (v) =>
                                       setState(() => _isActive = v),
+                                ),
+                                const SizedBox(height: 8),
+                                // Needed the first time the Patient role is
+                                // assigned: the server creates the linked chart
+                                // in the same operation and a chart cannot
+                                // exist without a birth date.
+                                ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: const Text('Datum rođenja'),
+                                  subtitle: Text(
+                                    _dateOfBirth == null
+                                        ? 'Obavezno pri prvom dodjeljivanju pacijentske uloge'
+                                        : MaterialLocalizations.of(context)
+                                            .formatFullDate(_dateOfBirth!),
+                                  ),
+                                  trailing: const Icon(Icons.calendar_today),
+                                  onTap: () async {
+                                    final now = DateTime.now();
+                                    final picked = await showDatePicker(
+                                      context: context,
+                                      initialDate: _dateOfBirth ??
+                                          DateTime(now.year - 30, 1, 1),
+                                      firstDate: DateTime(now.year - 120),
+                                      lastDate: now,
+                                    );
+                                    if (picked != null) {
+                                      setState(() => _dateOfBirth = picked);
+                                    }
+                                  },
                                 ),
                                 const SizedBox(height: 8),
                                 Text(

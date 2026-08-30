@@ -25,6 +25,7 @@ class UserUpsertRequest {
     this.password,
     this.oldPassword,
     this.roleIds = const [],
+    this.dateOfBirth,
   });
 
   String firstName;
@@ -57,6 +58,8 @@ class UserUpsertRequest {
 
   List<int>? roleIds;
 
+  DateTime? dateOfBirth;
+
   @override
   bool operator ==(Object other) => identical(this, other) || other is UserUpsertRequest &&
     other.firstName == firstName &&
@@ -70,7 +73,8 @@ class UserUpsertRequest {
     other.isActive == isActive &&
     other.password == password &&
     other.oldPassword == oldPassword &&
-    _deepEquality.equals(other.roleIds, roleIds);
+    _deepEquality.equals(other.roleIds, roleIds) &&
+    other.dateOfBirth == dateOfBirth;
 
   @override
   int get hashCode =>
@@ -86,10 +90,11 @@ class UserUpsertRequest {
     (isActive == null ? 0 : isActive!.hashCode) +
     (password == null ? 0 : password!.hashCode) +
     (oldPassword == null ? 0 : oldPassword!.hashCode) +
-    (roleIds == null ? 0 : roleIds!.hashCode);
+    (roleIds == null ? 0 : roleIds!.hashCode) +
+    (dateOfBirth == null ? 0 : dateOfBirth!.hashCode);
 
   @override
-  String toString() => 'UserUpsertRequest[firstName=$firstName, lastName=$lastName, picture=$picture, email=$email, username=$username, phoneNumber=$phoneNumber, genderId=$genderId, cityId=$cityId, isActive=$isActive, password=$password, oldPassword=$oldPassword, roleIds=$roleIds]';
+  String toString() => 'UserUpsertRequest[firstName=$firstName, lastName=$lastName, picture=$picture, email=$email, username=$username, phoneNumber=$phoneNumber, genderId=$genderId, cityId=$cityId, isActive=$isActive, password=$password, oldPassword=$oldPassword, roleIds=$roleIds, dateOfBirth=$dateOfBirth]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -129,6 +134,11 @@ class UserUpsertRequest {
     } else {
       json[r'roleIds'] = null;
     }
+    if (this.dateOfBirth != null) {
+      json[r'dateOfBirth'] = this.dateOfBirth!.toUtc().toIso8601String();
+    } else {
+      json[r'dateOfBirth'] = null;
+    }
     return json;
   }
 
@@ -165,6 +175,7 @@ class UserUpsertRequest {
         roleIds: json[r'roleIds'] is Iterable
             ? (json[r'roleIds'] as Iterable).cast<int>().toList(growable: false)
             : const [],
+        dateOfBirth: mapDateTime(json, r'dateOfBirth', r''),
       );
     }
     return null;
