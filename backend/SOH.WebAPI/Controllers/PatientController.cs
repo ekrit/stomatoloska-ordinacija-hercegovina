@@ -1,3 +1,4 @@
+using SOH.Model.Exceptions;
 using SOH.Model.Requests;
 using SOH.Model.Responses;
 using SOH.Model.SearchObjects;
@@ -5,7 +6,6 @@ using SOH.Services.Interfaces;
 using SOH.WebAPI.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace SOH.WebAPI.Controllers
 {
@@ -20,12 +20,23 @@ namespace SOH.WebAPI.Controllers
         public override Task<PagedResult<PatientResponse>> Get([FromQuery] PatientSearchObject? search = null)
         {
             search ??= new PatientSearchObject();
-            if (!User.IsInRole(RoleNames.Administrator) && !User.IsInRole(RoleNames.Doctor))
+            if (!CallerIsAdmin && !CallerIsDoctor)
             {
-                var uid = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
-                search.UserId = uid;
+                search.UserId = CallerUserId;
             }
             return base.Get(search);
+        }
+
+        // Staff read the whole directory (a doctor needs the chart of whoever
+        // walks in), but a patient may only read their own record — the Patient
+        // primary key is the UserId, so the route id is the owner's id.
+        public override async Task<PatientResponse?> GetById(int id)
+        {
+            if (!CallerIsAdmin && !CallerIsDoctor && id != CallerUserId)
+            {
+                throw new ForbiddenException("Nemate pravo pristupa ovom zapisu.");
+            }
+            return await base.GetById(id);
         }
 
         [Authorize(Roles = RoleNames.Administrator)]

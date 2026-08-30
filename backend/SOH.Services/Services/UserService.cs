@@ -444,6 +444,16 @@ namespace SOH.Services.Services
             if (user == null || !VerifyPassword(request.Password, user.PasswordHash, user.PasswordSalt))
                 return null;
 
+            // An administrator deactivating an account must actually keep that
+            // account out: without this check `IsActive = false` only hid the
+            // user from parts of the UI while a fresh login still issued a JWT.
+            // The message is deliberately distinct from "wrong credentials" so
+            // the user knows to contact the clinic rather than retry.
+            if (!user.IsActive)
+            {
+                throw new BusinessException("Vaš račun je deaktiviran. Obratite se administraciji ordinacije.");
+            }
+
             // Update last login time
             user.LastLoginAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();

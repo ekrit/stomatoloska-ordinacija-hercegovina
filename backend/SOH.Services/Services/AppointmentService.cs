@@ -74,6 +74,16 @@ namespace SOH.Services.Services
 
         protected override async Task BeforeInsert(Appointment entity, AppointmentUpsertRequest request)
         {
+            // A patient books for themselves and nobody else. The PatientId in
+            // the request is client input, so it is replaced with the identity
+            // from the JWT rather than validated against it — a direct API call
+            // cannot book in another patient's name. Only an administrator,
+            // who books on behalf of patients at the desk, keeps the sent id.
+            if (_currentUser.IsPatient && _currentUser.UserId is int callerId)
+            {
+                entity.PatientId = callerId;
+            }
+
             ValidateTimeRange(entity, isNew: true);
 
             // New appointments must always start in the future. Allowing past
@@ -94,6 +104,12 @@ namespace SOH.Services.Services
 
         protected override async Task BeforeUpdate(Appointment entity, AppointmentUpsertRequest request)
         {
+            // The appointment stays pinned to the patient who booked it. The
+            // request still carries a PatientId (it shares the insert model),
+            // and Mapster would otherwise write it straight onto the entity,
+            // letting an update move someone else's visit onto this slot.
+            request.PatientId = entity.PatientId;
+
             var newStatus = (AppointmentStatus)(int)request.Status;
             ValidateStatusTransition(entity.Status, newStatus);
 
@@ -140,6 +156,17 @@ namespace SOH.Services.Services
             }
         }
 
+        public async Task<RecordOwner?> GetOwnerAsync(int id, CancellationToken cancellationToken = default)
+        {
+            var owner = await _context.Appointments
+                .AsNoTracking()
+                .Where(a => a.Id == id)
+                .Select(a => new { a.PatientId, a.DoctorId })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return owner == null ? null : new RecordOwner(owner.PatientId, owner.DoctorId);
+        }
+
         public async Task EnsureDoctorOwnsAsync(int appointmentId, int doctorUserId, CancellationToken cancellationToken = default)
         {
             var doctorId = await _context.Appointments
@@ -151,7 +178,7 @@ namespace SOH.Services.Services
 
             if (doctorId != doctorUserId)
             {
-                throw new BusinessException("Možete uređivati samo termine koji su vam dodijeljeni.");
+                throw new ForbiddenException("Možete uređivati samo termine koji su vam dodijeljeni.");
             }
         }
 
@@ -243,18 +270,26 @@ namespace SOH.Services.Services
             };
         }
 
-        public async Task<AppointmentResponse> CancelOwnAsync(int appointmentId, int callerUserId, bool isPrivileged, CancellationToken cancellationToken = default)
+        public async Task<AppointmentResponse> CancelOwnAsync(int appointmentId, int callerUserId, AppointmentActor actor, CancellationToken cancellationToken = default)
         {
             var entity = await _context.Appointments
                 .Include(a => a.Payment)
                 .FirstOrDefaultAsync(a => a.Id == appointmentId, cancellationToken)
                 ?? throw new NotFoundException("Termin nije pronađen.");
 
-            // Patients can only cancel their own bookings; the Patient PK is the
-            // user id, so PatientId already equals the JWT user id.
-            if (!isPrivileged && entity.PatientId != callerUserId)
+            // Each role is bound to the appointments it owns. Patient and Doctor
+            // primary keys are both the user id, so the JWT id compares directly.
+            // Only an administrator may cancel an appointment that is not theirs.
+            switch (actor)
             {
-                throw new BusinessException("Možete otkazati samo vlastite termine.");
+                case AppointmentActor.Administrator:
+                    break;
+
+                case AppointmentActor.Doctor when entity.DoctorId != callerUserId:
+                    throw new ForbiddenException("Možete otkazati samo termine koji su vam dodijeljeni.");
+
+                case AppointmentActor.Patient when entity.PatientId != callerUserId:
+                    throw new ForbiddenException("Možete otkazati samo vlastite termine.");
             }
 
             // Already cancelled is a no-op so a double tap does not error.

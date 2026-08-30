@@ -27,6 +27,20 @@ namespace SOH.Services.Services
             _notifications = notifications;
         }
 
+        // A payment belongs to the patient and the doctor of its appointment.
+        // PaymentResponse carries the amount, status and PayPal references, so
+        // a single-record read has to be owner-checked, not just the list.
+        public async Task<RecordOwner?> GetOwnerAsync(int id, CancellationToken cancellationToken = default)
+        {
+            var owner = await _context.Payments
+                .AsNoTracking()
+                .Where(p => p.Id == id)
+                .Select(p => new { p.Appointment.PatientId, p.Appointment.DoctorId })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return owner == null ? null : new RecordOwner(owner.PatientId, owner.DoctorId);
+        }
+
         protected override IQueryable<Payment> ApplyFilter(IQueryable<Payment> query, PaymentSearchObject search)
         {
             if (search.AppointmentId.HasValue)
@@ -235,7 +249,7 @@ namespace SOH.Services.Services
         {
             if (!isAdmin && appointment.PatientId != callerUserId)
             {
-                throw new BusinessException("Možete platiti samo vlastite termine.");
+                throw new ForbiddenException("Možete platiti samo vlastite termine.");
             }
             return Task.CompletedTask;
         }

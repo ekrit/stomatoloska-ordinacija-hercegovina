@@ -11,18 +11,52 @@ namespace SOH.Services.Services
 {
     public class OrderService : BaseCRUDService<OrderResponse, OrderSearchObject, Order, OrderUpsertRequest, OrderUpsertRequest>, IOrderService
     {
-        public OrderService(SOHDbContext context, IMapper mapper) : base(context, mapper)
+        private readonly ICurrentUserAccessor _currentUser;
+
+        public OrderService(SOHDbContext context, IMapper mapper, ICurrentUserAccessor currentUser) : base(context, mapper)
         {
+            _currentUser = currentUser;
+        }
+
+        /// <summary>
+        /// A patient orders for themselves. The PatientId in the request is
+        /// client input, so it is replaced with the identity from the JWT — a
+        /// direct API call cannot place an order in another patient's name.
+        /// Administrators, who order at the desk on a patient's behalf, keep
+        /// the id they sent.
+        /// </summary>
+        private void BindOwnerToCaller(Order entity)
+        {
+            if (_currentUser.IsPatient && _currentUser.UserId is int callerId)
+            {
+                entity.PatientId = callerId;
+            }
+        }
+
+        public async Task<RecordOwner?> GetOwnerAsync(int id, CancellationToken cancellationToken = default)
+        {
+            var owner = await _context.Orders
+                .AsNoTracking()
+                .Where(o => o.Id == id)
+                .Select(o => new { o.PatientId })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return owner == null ? null : new RecordOwner(owner.PatientId, null);
         }
 
         // The order total always comes from the catalog price, never the client.
         protected override async Task BeforeInsert(Order entity, OrderUpsertRequest request)
         {
+            BindOwnerToCaller(entity);
             entity.TotalAmount = await ComputeTotalAsync(request.ProductId, request.Quantity);
         }
 
         protected override async Task BeforeUpdate(Order entity, OrderUpsertRequest request)
         {
+            // An existing order keeps its patient: the request shares the insert
+            // model, so Mapster would otherwise move the order to another
+            // patient on update.
+            request.PatientId = entity.PatientId;
             entity.TotalAmount = await ComputeTotalAsync(request.ProductId, request.Quantity);
         }
 

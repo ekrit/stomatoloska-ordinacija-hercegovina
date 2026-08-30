@@ -4,7 +4,7 @@ using SOH.Model.SearchObjects;
 
 namespace SOH.Services.Interfaces
 {
-    public interface IOrderService : ICRUDService<OrderResponse, OrderSearchObject, OrderUpsertRequest, OrderUpsertRequest>
+    public interface IOrderService : ICRUDService<OrderResponse, OrderSearchObject, OrderUpsertRequest, OrderUpsertRequest>, IRecordOwnership
     {
     }
 }

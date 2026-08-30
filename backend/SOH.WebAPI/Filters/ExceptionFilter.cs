@@ -35,6 +35,12 @@ namespace SOH.WebAPI.Filters
                     errorMessage = notFound.Message;
                     break;
 
+                case ForbiddenException forbidden:
+                    statusCode = (int)HttpStatusCode.Forbidden;
+                    errorKey = "forbidden";
+                    errorMessage = forbidden.Message;
+                    break;
+
                 case BusinessException businessError:
                     statusCode = (int)HttpStatusCode.BadRequest;
                     // UserException inherits BusinessException so the legacy

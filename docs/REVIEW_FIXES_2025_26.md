@@ -32,12 +32,12 @@ u okruženju), grupisane da se `SOHDbContextModelSnapshot.cs` dira što rjeđe.
 
 ### Faza A — autorizacija
 
-- [ ] **4. Deaktivirani korisnik se i dalje može prijaviti.**
+- [x] **4. Deaktivirani korisnik se i dalje može prijaviti.**
   `UserService.AuthenticateAsync()` ne provjerava `IsActive`.
   *Rješenje:* odbiti login neaktivnom korisniku uz jasnu poruku, prije
   izdavanja JWT-a.
 
-- [ ] **1. Autorizacija po konkretnom zapisu (IDOR).**
+- [x] **1. Autorizacija po konkretnom zapisu (IDOR).**
   `BaseController.GetById(int id)` vraća zapis samo po ID-u; kontroleri sužavaju
   samo list endpoint. Najosjetljiviji je `PaymentResponse` (iznos, status,
   PayPal reference).
@@ -45,13 +45,13 @@ u okruženju), grupisane da se `SOHDbContextModelSnapshot.cs` dira što rjeđe.
   (Appointment, Patient, Order, HygieneTracker, Review, Payment,
   MedicalRecord), po roli iz JWT-a.
 
-- [ ] **2. Klijentski `PatientId` na write operacijama.**
+- [x] **2. Klijentski `PatientId` na write operacijama.**
   `AppointmentUpsertRequest`, `OrderUpsertRequest`, `HygieneTrackerUpsertRequest`
   nose `PatientId` koji se ne veže za `ClaimTypes.NameIdentifier`.
   *Rješenje:* za Patient rolu identitet uvijek iz JWT-a; kod update-a provjera
   vlasništva prije izmjene.
 
-- [ ] **3. Prava doktora nad terminima i nalazima.**
+- [x] **3. Prava doktora nad terminima i nalazima.**
   `AppointmentController.Cancel()` tretira doktora kao privilegovanog bez
   provjere da je termin njegov; `Update()` zaključava `DoctorId` ali ne
   `PatientId`; `MedicalRecordService` ne provjerava da je doktor doktor tog
@@ -167,3 +167,7 @@ u okruženju), grupisane da se `SOHDbContextModelSnapshot.cs` dira što rjeđe.
 | Datum | Stavka | Commit | Napomena |
 |---|---|---|---|
 | 2026-08-30 | — | plan | Analiziran review i codebase, napravljen plan |
+| 2026-08-30 | 4 | faza A | `AuthenticateAsync` odbija neaktivnog korisnika |
+| 2026-08-30 | 1 | faza A | `IRecordOwnership` + `EnsureCallerMayAccessAsync`, provjera vlasništva na svakom user-data `GetById` |
+| 2026-08-30 | 2 | faza A | `PatientId` se za Patient rolu uzima iz JWT-a (termin, narudžba, higijena); ownership prije update-a |
+| 2026-08-30 | 3 | faza A | `AppointmentActor` umjesto `isPrivileged`; `PatientId` termina zaključan; doktor vodi nalaze samo svojih termina; `AppointmentId` nalaza nepromjenjiv |

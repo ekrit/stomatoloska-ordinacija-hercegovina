@@ -15,6 +15,19 @@ namespace SOH.Services.Services
         {
         }
 
+        // The Patient primary key is the UserId, so the record id is already
+        // the owning user's id.
+        public async Task<RecordOwner?> GetOwnerAsync(int id, CancellationToken cancellationToken = default)
+        {
+            var owner = await _context.Patients
+                .AsNoTracking()
+                .Where(p => p.UserId == id)
+                .Select(p => new { p.UserId })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return owner == null ? null : new RecordOwner(owner.UserId, null);
+        }
+
         protected override IQueryable<Patient> ApplyFilter(IQueryable<Patient> query, PatientSearchObject search)
         {
             if (search.UserId.HasValue)

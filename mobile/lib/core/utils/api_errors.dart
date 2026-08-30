@@ -45,7 +45,7 @@ String? _messageFromBody(String? body) {
     if (decoded is Map<String, dynamic>) {
       final errors = decoded['errors'];
       if (errors is Map<String, dynamic>) {
-        for (final key in const ['businessError', 'userError', 'notFound', 'validationError', 'ERROR']) {
+        for (final key in const ['businessError', 'userError', 'forbidden', 'notFound', 'validationError', 'ERROR']) {
           final entry = errors[key];
           final msg = _firstNonEmpty(entry);
           if (msg != null) return msg;
