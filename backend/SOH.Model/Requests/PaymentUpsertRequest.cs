@@ -5,10 +5,10 @@ namespace SOH.Model.Requests
 {
     public class PaymentUpsertRequest
     {
-        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Odaberite ispravnu vrijednost.")]
         public int AppointmentId { get; set; }
 
-        [Required]
+        [Range(0.01, 1000000, ErrorMessage = "Iznos mora biti veći od nule.")]
         public decimal Amount { get; set; }
 
         [Required]

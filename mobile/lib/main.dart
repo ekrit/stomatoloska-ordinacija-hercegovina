@@ -10,6 +10,7 @@ import 'features/auth/presentation/screens/splash_screen.dart';
 import 'features/booking/presentation/booking_screen.dart';
 import 'features/doctor/presentation/doctor_shell_screen.dart';
 import 'features/patient/presentation/patient_shell_screen.dart';
+import 'features/auth/presentation/screens/forgot_password_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +24,7 @@ class SohMobileApp extends StatelessWidget {
     AppRoutes.splash: (_) => const SplashScreen(),
     AppRoutes.login: (_) => const LoginScreen(),
     AppRoutes.register: (_) => const RegisterScreen(),
+    AppRoutes.forgotPassword: (_) => const ForgotPasswordScreen(),
     AppRoutes.guest: (_) => const GuestLocationsScreen(),
     AppRoutes.patientShell: (_) => const PatientShellScreen(),
     AppRoutes.doctorShell: (_) => const DoctorShellScreen(),

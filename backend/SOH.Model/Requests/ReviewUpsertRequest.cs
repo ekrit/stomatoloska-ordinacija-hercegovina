@@ -14,6 +14,7 @@ namespace SOH.Model.Requests
         public int DoctorId { get; set; }
 
         [Required]
+        [Range(1, 5, ErrorMessage = "Ocjena mora biti između 1 i 5.")]
         public int Rating { get; set; }
 
         [MaxLength(1000)]

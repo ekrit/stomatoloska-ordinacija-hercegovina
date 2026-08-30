@@ -7,6 +7,7 @@ import '../../../../core/api/api_providers.dart';
 import '../../../../core/utils/appointment_labels.dart';
 import '../../../../widgets/user_appbar_actions.dart' show decodeUserPictureBytes;
 import '../../../admin_users/presentation/screens/user_edit_screen.dart';
+import '../../../../core/utils/api_errors.dart';
 
 final _adminSearchProvider = FutureProvider.autoDispose
     .family<AdminSearchResults, String>((ref, query) async {
@@ -83,7 +84,7 @@ class AdminSearchScreen extends ConsumerWidget {
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('$e')),
+        error: (e, _) => Center(child: Text(extractApiErrorMessage(e))),
         data: (data) {
           if (data.total == 0) {
             return const Center(child: Text('Nema rezultata.'));

@@ -73,7 +73,7 @@ class _DoctorVisitDocumentScreenState
         padding: const EdgeInsets.all(20),
         child: existingAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('$e')),
+          error: (e, _) => Center(child: Text(extractApiErrorMessage(e))),
           data: (records) {
             final existing = records.isNotEmpty ? records.first : null;
             if (existing != null) {

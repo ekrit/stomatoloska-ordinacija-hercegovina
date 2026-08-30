@@ -31,5 +31,23 @@ namespace SOH.Services.Interfaces
         /// Used by the self-service change-password flow on both clients.
         /// </summary>
         Task ChangeOwnPasswordAsync(int userId, string oldPassword, string newPassword);
+
+        /// <summary>
+        /// Issues a one-time reset code, or null when the identifier matches no
+        /// active account. Callers must respond identically either way so the
+        /// endpoint cannot be used to discover which accounts exist.
+        /// </summary>
+        Task<PasswordResetIssue?> RequestPasswordResetAsync(string usernameOrEmail, CancellationToken cancellationToken = default);
+
+        /// <summary>Sets a new password after verifying the one-time code.</summary>
+        Task ResetPasswordAsync(string usernameOrEmail, string code, string newPassword, CancellationToken cancellationToken = default);
     }
+
+    /// <summary>A freshly issued reset code and who it belongs to.</summary>
+    public readonly record struct PasswordResetIssue(
+        int UserId,
+        string Email,
+        string FirstName,
+        string Code,
+        DateTime ExpiresAtUtc);
 }

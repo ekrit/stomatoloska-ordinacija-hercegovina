@@ -24,6 +24,7 @@ class AdminAddPatientScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _first = TextEditingController();
   final _last = TextEditingController();
   final _email = TextEditingController();
@@ -59,7 +60,36 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
     if (picked != null) setState(() => _dob = picked);
   }
 
+  String? _required(String? v, String field) =>
+      (v ?? '').trim().isEmpty ? '$field je obavezno polje.' : null;
+
+  String? _validateEmail(String? v) {
+    final t = (v ?? '').trim();
+    if (t.isEmpty) return 'E-mail je obavezno polje.';
+    return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(t)
+        ? null
+        : 'Unesite validnu e-mail adresu (npr. ime@example.com).';
+  }
+
+  String? _validateUsername(String? v) =>
+      (v ?? '').trim().length < 3 ? 'Korisničko ime mora imati najmanje 3 znaka.' : null;
+
+  String? _validatePhone(String? v) {
+    final t = (v ?? '').trim();
+    if (t.isEmpty) return null;
+    return RegExp(r'^[+0-9\s().-]{6,20}$').hasMatch(t)
+        ? null
+        : 'Unesite validan telefon (cifre, razmaci, +, -, zagrade).';
+  }
+
+  String? _validatePassword(String? v) =>
+      (v ?? '').length < 8 ? 'Lozinka mora imati najmanje 8 znakova.' : null;
+
   Future<void> _submit() async {
+    // Each rule is now attached to its own field, so the admin sees which
+    // input is wrong rather than one shared line at the bottom of the form.
+    if (!_formKey.currentState!.validate()) return;
+
     final gid = _genderId;
     final cid = _cityId;
     if (gid == null || cid == null) {
@@ -71,26 +101,6 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
     final email = _email.text.trim();
     final username = _username.text.trim();
     final password = _password.text;
-    if (first.isEmpty || last.isEmpty) {
-      setState(() => _error = 'Ime i prezime su obavezni.');
-      return;
-    }
-    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
-      setState(() => _error = 'Unesite validnu e-mail adresu.');
-      return;
-    }
-    if (username.length < 3) {
-      setState(() => _error = 'Korisničko ime mora imati najmanje 3 znaka.');
-      return;
-    }
-    if (password.length < 8) {
-      setState(() => _error = 'Lozinka mora imati najmanje 8 znakova.');
-      return;
-    }
-    if (_dob.isAfter(DateTime.now())) {
-      setState(() => _error = 'Datum rođenja ne može biti u budućnosti.');
-      return;
-    }
 
     setState(() {
       _loading = true;
@@ -139,41 +149,49 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
           padding: const EdgeInsets.all(20),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 440),
-            child: Column(
+            child: Form(
+              key: _formKey,
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Creates a login and patient profile. The new user can sign in with the username and password you set.',
+                  'Kreira nalog i pacijentski karton. Novi korisnik se prijavljuje '
+                  'korisničkim imenom i lozinkom koje ovdje postavite.',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 16),
-                TextField(
+                TextFormField(
                   controller: _first,
                   decoration: const InputDecoration(labelText: 'Ime'),
                   textCapitalization: TextCapitalization.words,
+                  validator: (v) => _required(v, 'Ime'),
                 ),
                 const SizedBox(height: 8),
-                TextField(
+                TextFormField(
                   controller: _last,
                   decoration: const InputDecoration(labelText: 'Prezime'),
                   textCapitalization: TextCapitalization.words,
+                  validator: (v) => _required(v, 'Prezime'),
                 ),
                 const SizedBox(height: 8),
-                TextField(
+                TextFormField(
                   controller: _email,
                   decoration: const InputDecoration(labelText: 'E-mail'),
                   keyboardType: TextInputType.emailAddress,
+                  validator: _validateEmail,
                 ),
                 const SizedBox(height: 8),
-                TextField(
+                TextFormField(
                   controller: _username,
                   decoration: const InputDecoration(labelText: 'Korisničko ime'),
+                  validator: _validateUsername,
                 ),
                 const SizedBox(height: 8),
-                TextField(
+                TextFormField(
                   controller: _phone,
                   decoration: const InputDecoration(labelText: 'Telefon (opcionalno)'),
                   keyboardType: TextInputType.phone,
+                  validator: _validatePhone,
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton(
@@ -183,7 +201,7 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
                 const SizedBox(height: 8),
                 genders.when(
                   loading: () => const LinearProgressIndicator(),
-                  error: (e, _) => Text('Genders: $e'),
+                  error: (e, _) => Text(extractApiErrorMessage(e, fallback: 'Spolove nije moguće učitati.')),
                   data: (list) {
                     return DropdownButtonFormField<int>(
                       value: _genderId,
@@ -204,7 +222,7 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
                 const SizedBox(height: 8),
                 cities.when(
                   loading: () => const LinearProgressIndicator(),
-                  error: (e, _) => Text('Cities: $e'),
+                  error: (e, _) => Text(extractApiErrorMessage(e, fallback: 'Gradove nije moguće učitati.')),
                   data: (list) {
                     return DropdownButtonFormField<int>(
                       value: _cityId,
@@ -223,9 +241,10 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
                   },
                 ),
                 const SizedBox(height: 8),
-                TextField(
+                TextFormField(
                   controller: _password,
                   obscureText: _obscure,
+                  validator: _validatePassword,
                   decoration: InputDecoration(
                     labelText: 'Lozinka',
                     suffixIcon: IconButton(
@@ -250,6 +269,7 @@ class _AdminAddPatientScreenState extends ConsumerState<AdminAddPatientScreen> {
                       : const Text('Kreiraj pacijenta'),
                 ),
               ],
+            ),
             ),
           ),
         ),

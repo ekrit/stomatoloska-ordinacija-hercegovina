@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
+using System.Text;
 using SOH.Model.Exceptions;
 using SOH.Model.Responses;
 using SOH.Model.SearchObjects;
@@ -457,6 +458,118 @@ namespace SOH.Services.Services
 
             await _context.SaveChangesAsync();
             return await GetUserResponseWithRolesAsync(user.Id);
+        }
+
+        /// <summary>
+        /// Issues a one-time reset code for whoever owns the username or
+        /// e-mail, or returns null when nobody does.
+        /// <para>
+        /// The caller must not reveal which of those happened: answering
+        /// differently for a known and an unknown account turns this endpoint
+        /// into a way to enumerate users. Any earlier unused code is
+        /// invalidated so only the newest one works.
+        /// </para>
+        /// </summary>
+        public async Task<PasswordResetIssue?> RequestPasswordResetAsync(string usernameOrEmail, CancellationToken cancellationToken = default)
+        {
+            var needle = (usernameOrEmail ?? string.Empty).Trim();
+            if (needle.Length == 0)
+            {
+                return null;
+            }
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Username == needle || u.Email == needle, cancellationToken);
+
+            // A deactivated account must not be recoverable either: letting it
+            // reset a password would hand back an account an administrator
+            // deliberately closed.
+            if (user == null || !user.IsActive)
+            {
+                return null;
+            }
+
+            var previous = await _context.PasswordResetTokens
+                .Where(t => t.UserId == user.Id && t.UsedAt == null)
+                .ToListAsync(cancellationToken);
+            foreach (var stale in previous)
+            {
+                stale.UsedAt = DateTime.UtcNow;
+            }
+
+            var code = GenerateResetCode();
+            var expiresAt = DateTime.UtcNow.AddMinutes(ResetCodeLifetimeMinutes);
+
+            _context.PasswordResetTokens.Add(new PasswordResetToken
+            {
+                UserId = user.Id,
+                CodeHash = HashResetCode(code),
+                ExpiresAt = expiresAt,
+                CreatedAt = DateTime.UtcNow,
+            });
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return new PasswordResetIssue(user.Id, user.Email, user.FirstName, code, expiresAt);
+        }
+
+        /// <summary>
+        /// Sets a new password once the one-time code checks out. The code is
+        /// verified server-side against its stored hash, must not be expired,
+        /// and is consumed on success so it cannot be replayed.
+        /// </summary>
+        public async Task ResetPasswordAsync(string usernameOrEmail, string code, string newPassword, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 8)
+            {
+                throw new BusinessException("Nova lozinka mora imati najmanje 8 znakova.");
+            }
+
+            var needle = (usernameOrEmail ?? string.Empty).Trim();
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Username == needle || u.Email == needle, cancellationToken);
+
+            // One message for every failure mode below, so a wrong code cannot
+            // be told apart from an unknown account.
+            const string invalid = "Kod za reset lozinke nije ispravan ili je istekao.";
+
+            if (user == null || !user.IsActive)
+            {
+                throw new BusinessException(invalid);
+            }
+
+            var hash = HashResetCode((code ?? string.Empty).Trim());
+            var now = DateTime.UtcNow;
+            var token = await _context.PasswordResetTokens
+                .Where(t => t.UserId == user.Id && t.UsedAt == null && t.ExpiresAt > now)
+                .OrderByDescending(t => t.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (token == null || !CryptographicOperations.FixedTimeEquals(
+                    Encoding.UTF8.GetBytes(token.CodeHash), Encoding.UTF8.GetBytes(hash)))
+            {
+                throw new BusinessException(invalid);
+            }
+
+            user.PasswordHash = HashPassword(newPassword, out byte[] salt);
+            user.PasswordSalt = Convert.ToBase64String(salt);
+            token.UsedAt = now;
+
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        private const int ResetCodeLifetimeMinutes = 15;
+
+        /// <summary>Six digits, from a cryptographic RNG rather than Random.</summary>
+        private static string GenerateResetCode()
+        {
+            return RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
+        }
+
+        private static string HashResetCode(string code)
+        {
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(code));
+            return Convert.ToBase64String(bytes);
         }
 
         public async Task ChangeOwnPasswordAsync(int userId, string oldPassword, string newPassword)
