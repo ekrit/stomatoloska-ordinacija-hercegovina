@@ -96,4 +96,87 @@ class SohExtraApi {
     }
     return resp.bodyBytes;
   }
+
+  // --- Status codebooks -------------------------------------------------
+  // Reference data maintained by administration. Served through this
+  // hand-written client because the generated OpenAPI package predates the
+  // endpoints; regenerating it will supersede these.
+
+  Future<List<StatusTypeItem>> listStatusTypes(String resource) async {
+    final resp = await _client.invokeAPI(
+      '/$resource',
+      'GET',
+      <QueryParam>[QueryParam('pageSize', '100')],
+      null,
+      <String, String>{},
+      <String, String>{},
+      null,
+    );
+    if (resp.statusCode < 200 || resp.statusCode >= 300) {
+      throw ApiException(resp.statusCode, resp.body);
+    }
+    final decoded = jsonDecode(utf8.decode(resp.bodyBytes));
+    final items = decoded is Map ? decoded['items'] : decoded;
+    if (items is! List) return const [];
+    return items
+        .whereType<Map<String, dynamic>>()
+        .map(StatusTypeItem.fromJson)
+        .toList();
+  }
+
+  Future<void> saveStatusType(
+    String resource, {
+    required int id,
+    required String name,
+    String? description,
+    required bool isNew,
+  }) async {
+    final body = jsonEncode({'id': id, 'name': name, 'description': description});
+    final resp = await _client.invokeAPI(
+      isNew ? '/$resource' : '/$resource/$id',
+      isNew ? 'POST' : 'PUT',
+      <QueryParam>[],
+      body,
+      <String, String>{},
+      <String, String>{},
+      'application/json',
+    );
+    if (resp.statusCode < 200 || resp.statusCode >= 300) {
+      throw ApiException(resp.statusCode, resp.body);
+    }
+  }
+
+  Future<void> deleteStatusType(String resource, int id) async {
+    final resp = await _client.invokeAPI(
+      '/$resource/$id',
+      'DELETE',
+      <QueryParam>[],
+      null,
+      <String, String>{},
+      <String, String>{},
+      null,
+    );
+    if (resp.statusCode < 200 || resp.statusCode >= 300) {
+      throw ApiException(resp.statusCode, resp.body);
+    }
+  }
 }
+
+/// One row of a status codebook.
+class StatusTypeItem {
+  StatusTypeItem({required this.id, required this.name, this.description});
+
+  final int id;
+  final String name;
+  final String? description;
+
+  static StatusTypeItem fromJson(Map<String, dynamic> j) {
+    final id = j['id'] ?? j['Id'];
+    return StatusTypeItem(
+      id: id is int ? id : int.tryParse('$id') ?? 0,
+      name: (j['name'] ?? j['Name']) as String? ?? '',
+      description: (j['description'] ?? j['Description']) as String?,
+    );
+  }
+}
+

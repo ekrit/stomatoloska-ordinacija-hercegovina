@@ -48,6 +48,44 @@ namespace SOH.Services.Services
             return query;
         }
 
+        /// <summary>
+        /// The Doctor primary key is the UserId, so a second profile for the
+        /// same user would be a raw key violation surfacing as a 500. Check it
+        /// here and also confirm the user exists, and copy the name from the
+        /// user account so the two cannot be created out of step.
+        /// </summary>
+        protected override async Task BeforeInsert(Doctor entity, DoctorUpsertRequest request)
+        {
+            var user = await _context.Users
+                .AsNoTracking()
+                .Where(u => u.Id == request.UserId)
+                .Select(u => new { u.FirstName, u.LastName })
+                .FirstOrDefaultAsync()
+                ?? throw new NotFoundException("Korisnik nije pronađen.");
+
+            if (await _context.Doctors.AnyAsync(d => d.UserId == request.UserId))
+            {
+                throw new BusinessException("Ovaj korisnik već ima doktorski profil.");
+            }
+
+            entity.FirstName = user.FirstName;
+            entity.LastName = user.LastName;
+
+            // Rating is earned from reviews, never set by the caller.
+            entity.Rating = 0m;
+        }
+
+        protected override Task BeforeUpdate(Doctor entity, DoctorUpsertRequest request)
+        {
+            // Identity and the aggregate rating stay server-owned; the admin
+            // form edits the specialization and biography.
+            request.UserId = entity.UserId;
+            request.FirstName = entity.FirstName;
+            request.LastName = entity.LastName;
+            request.Rating = entity.Rating;
+            return Task.CompletedTask;
+        }
+
         protected override async Task BeforeDelete(Doctor entity)
         {
             if (await _context.Appointments.AnyAsync(a => a.DoctorId == entity.UserId))

@@ -14,6 +14,7 @@ import '../screens/admin_reviews_list_screen.dart';
 import '../screens/admin_roles_list_screen.dart';
 import '../screens/admin_rooms_list_screen.dart';
 import '../screens/admin_services_list_screen.dart';
+import '../screens/admin_status_types_screen.dart';
 import '../screens/admin_reports_list_screen.dart';
 import '../../../admin_users/presentation/screens/users_list_screen.dart';
 
@@ -42,6 +43,8 @@ class QuickActionsGrid extends StatelessWidget {
       _ActionItem('Recenzije', Icons.reviews_outlined),
       _ActionItem('Narudžbe', Icons.receipt_long_outlined),
       _ActionItem('Nalazi', Icons.description_outlined),
+      _ActionItem('Statusi termina', Icons.flag_outlined),
+      _ActionItem('Statusi plaćanja', Icons.price_check_outlined),
     ];
 
     final buttonStyle = OutlinedButton.styleFrom(
@@ -134,6 +137,18 @@ class QuickActionsGrid extends StatelessWidget {
         break;
       case 15:
         push(const AdminMedicalRecordsScreen());
+        break;
+      case 16:
+        push(const AdminStatusTypesScreen(
+          title: 'Statusi termina',
+          resource: 'AppointmentStatusType',
+        ));
+        break;
+      case 17:
+        push(const AdminStatusTypesScreen(
+          title: 'Statusi plaćanja',
+          resource: 'PaymentStatusType',
+        ));
         break;
     }
   }
