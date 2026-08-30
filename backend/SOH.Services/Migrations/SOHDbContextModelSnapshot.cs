@@ -433,6 +433,44 @@ namespace SOH.Services.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SOH.Services.Database.AppointmentStatusType", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AppointmentStatusTypes");
+                });
+
+            modelBuilder.Entity("SOH.Services.Database.PaymentStatusType", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PaymentStatusTypes");
+                });
+
             modelBuilder.Entity("SOH.Services.Database.AppointmentStatusHistory", b =>
                 {
                     b.Property<int>("Id")

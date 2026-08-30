@@ -30,6 +30,8 @@ namespace SOH.Services.Database
         public DbSet<ProductInteraction> ProductInteractions { get; set; }
         public DbSet<UserNotification> UserNotifications { get; set; }
         public DbSet<AppointmentStatusHistory> AppointmentStatusHistories { get; set; }
+        public DbSet<AppointmentStatusType> AppointmentStatusTypes { get; set; }
+        public DbSet<PaymentStatusType> PaymentStatusTypes { get; set; }
     
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -120,13 +120,13 @@ u okruženju), grupisane da se `SOHDbContextModelSnapshot.cs` dira što rjeđe.
 
 ### Faza E — šifarnici i desktop administracija
 
-- [ ] **12. CRUD za referentne podatke.**
+- [x] **12. CRUD za referentne podatke.**
   `AppointmentStatus` i `PaymentStatus` su samo enum-i; `City` ima API CRUD ali
   desktop nema kompletan delete tok.
   *Rješenje:* administratorski CRUD (GET/POST/PUT/DELETE) za sve šifarnike koje
   projekat koristi, uz odgovarajuće desktop ekrane.
 
-- [ ] **13. Nepotpuna desktop administracija.**
+- [x] **13. Nepotpuna desktop administracija.**
   Nema dodavanja/brisanja doktora; `admin_city_edit_screen.dart` šalje samo
   `Name` iako lokacija ima adresu, telefon, email i radno vrijeme; nema
   kompletan delete tok za lokacije.
@@ -182,6 +182,8 @@ u okruženju), grupisane da se `SOHDbContextModelSnapshot.cs` dira što rjeđe.
 | 2026-08-30 | 6 | faza B | `SyncDomainProfilesAsync` — User je source-of-truth za ime/telefon, Patient/Doctor se sinhronizuju u istoj operaciji; uloga se ne dodjeljuje bez domenskog profila |
 | 2026-08-30 | 7 | faza C | `MoneyPolicy`: BAM je valuta sistema, PayPal se naplaćuje u EUR po fiksnom kursu 1 EUR = 1.95583 KM; `Payment` čuva i naplaćeni iznos/valutu |
 | 2026-08-30 | 8 | faza C | `VerifyWebhookAsync` fail-closed; mock samo uz eksplicitni `PAYPAL__ALLOW_UNVERIFIED_WEBHOOKS=true` |
+| 2026-08-30 | 12 | faza E | Šifarnici `AppointmentStatusType`/`PaymentStatusType` (GET/POST/PUT/DELETE + desktop ekran), seedani iz enum-a; enum ostaje autoritet za state machine, brisanje blokirano dok status koristi ijedan zapis |
+| 2026-08-30 | 13 | faza E | Desktop: dodavanje i brisanje doktora, kompletan delete tok za lokacije, forma lokacije obuhvata adresu/telefon/e-mail/radno vrijeme |
 | 2026-08-30 | 10 | faza D | `GET /Appointment/availability` računa stvarne slotove (trajanje usluge, slobodan doktor i prostorija, radno vrijeme); `EndTime` i prostorija se izvode serverski; klijent samo prikazuje |
 | 2026-08-30 | 11 | faza D | `PatientComplaint`/`DeclineReason`/`CancelReason` odvojeni; obavezan razlog otkazivanja i odbijanja; `AppointmentStatusHistory` (ko/kad/iz→u/zašto); nema `Completed` prije kraja termina |
 | 2026-08-30 | 9 | faza C | Plaćanje tek nakon `Accepted`; postojeći Pending se reuse-uje preko `GetApprovalUrlAsync`; usluga/vrijeme zaključani nakon `Paid`; admin CRUD ne može postaviti `Paid`/`TransactionRef` |
