@@ -20,7 +20,9 @@ class AppointmentUpsertRequest {
     required this.startTime,
     required this.endTime,
     this.status,
+    this.patientComplaint,
     this.doctorNote,
+    this.declineReason,
   });
 
   int patientId;
@@ -43,7 +45,11 @@ class AppointmentUpsertRequest {
   ///
   AppointmentStatus? status;
 
+  String? patientComplaint;
+
   String? doctorNote;
+
+  String? declineReason;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is AppointmentUpsertRequest &&
@@ -54,7 +60,9 @@ class AppointmentUpsertRequest {
     other.startTime == startTime &&
     other.endTime == endTime &&
     other.status == status &&
-    other.doctorNote == doctorNote;
+    other.patientComplaint == patientComplaint &&
+    other.doctorNote == doctorNote &&
+    other.declineReason == declineReason;
 
   @override
   int get hashCode =>
@@ -66,10 +74,12 @@ class AppointmentUpsertRequest {
     (startTime.hashCode) +
     (endTime.hashCode) +
     (status == null ? 0 : status!.hashCode) +
-    (doctorNote == null ? 0 : doctorNote!.hashCode);
+    (patientComplaint == null ? 0 : patientComplaint!.hashCode) +
+    (doctorNote == null ? 0 : doctorNote!.hashCode) +
+    (declineReason == null ? 0 : declineReason!.hashCode);
 
   @override
-  String toString() => 'AppointmentUpsertRequest[patientId=$patientId, doctorId=$doctorId, serviceId=$serviceId, roomId=$roomId, startTime=$startTime, endTime=$endTime, status=$status, doctorNote=$doctorNote]';
+  String toString() => 'AppointmentUpsertRequest[patientId=$patientId, doctorId=$doctorId, serviceId=$serviceId, roomId=$roomId, startTime=$startTime, endTime=$endTime, status=$status, patientComplaint=$patientComplaint, doctorNote=$doctorNote, declineReason=$declineReason]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -84,10 +94,20 @@ class AppointmentUpsertRequest {
     } else {
       json[r'status'] = null;
     }
+    if (this.patientComplaint != null) {
+      json[r'patientComplaint'] = this.patientComplaint;
+    } else {
+      json[r'patientComplaint'] = null;
+    }
     if (this.doctorNote != null) {
       json[r'doctorNote'] = this.doctorNote;
     } else {
       json[r'doctorNote'] = null;
+    }
+    if (this.declineReason != null) {
+      json[r'declineReason'] = this.declineReason;
+    } else {
+      json[r'declineReason'] = null;
     }
     return json;
   }
@@ -118,7 +138,9 @@ class AppointmentUpsertRequest {
         startTime: mapDateTime(json, r'startTime', r'')!,
         endTime: mapDateTime(json, r'endTime', r'')!,
         status: AppointmentStatus.fromJson(json[r'status']),
+        patientComplaint: mapValueOfType<String>(json, r'patientComplaint'),
         doctorNote: mapValueOfType<String>(json, r'doctorNote'),
+        declineReason: mapValueOfType<String>(json, r'declineReason'),
       );
     }
     return null;

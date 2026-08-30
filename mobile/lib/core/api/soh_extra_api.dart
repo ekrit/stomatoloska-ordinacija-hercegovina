@@ -139,11 +139,40 @@ class SohExtraApi {
 
   /// Cancels the patient's own appointment. Uses the dedicated cancel route so
   /// patients are not blocked by the admin/doctor-only update authorization.
-  Future<void> cancelAppointment(int appointmentId) async {
+  /// The reason is required: it goes into the status history and the patient
+  /// notification.
+  Future<void> cancelAppointment(int appointmentId, String reason) async {
     final resp = await _client.invokeAPI(
       '/Appointment/$appointmentId/cancel',
       'POST',
       <QueryParam>[],
+      jsonEncode({'reason': reason}),
+      <String, String>{},
+      <String, String>{},
+      'application/json',
+    );
+    if (resp.statusCode < 200 || resp.statusCode >= 300) {
+      throw ApiException(resp.statusCode, resp.body);
+    }
+  }
+
+  /// Bookable slots for a doctor, day and service, as computed by the server.
+  /// The client no longer derives free time from its own appointment list —
+  /// that list is patient-scoped and cannot see other patients' bookings.
+  Future<List<AvailabilitySlot>> getAvailability({
+    required int doctorId,
+    required DateTime date,
+    required int serviceId,
+  }) async {
+    final day = DateTime(date.year, date.month, date.day);
+    final resp = await _client.invokeAPI(
+      '/Appointment/availability',
+      'GET',
+      <QueryParam>[
+        QueryParam('doctorId', '$doctorId'),
+        QueryParam('date', day.toIso8601String()),
+        QueryParam('serviceId', '$serviceId'),
+      ],
       null,
       <String, String>{},
       <String, String>{},
@@ -152,6 +181,12 @@ class SohExtraApi {
     if (resp.statusCode < 200 || resp.statusCode >= 300) {
       throw ApiException(resp.statusCode, resp.body);
     }
+    final decoded = jsonDecode(utf8.decode(resp.bodyBytes));
+    if (decoded is! List) return const [];
+    return decoded
+        .whereType<Map<String, dynamic>>()
+        .map(AvailabilitySlot.fromJson)
+        .toList();
   }
 
   /// Refunds a paid payment (only allowed while the appointment is not completed).
@@ -279,6 +314,35 @@ class UserNotificationItem {
       if (s == 'false' || s == '0') return false;
     }
     return null;
+  }
+}
+
+/// One slot the server has confirmed as bookable, including the room it
+/// reserved it against.
+class AvailabilitySlot {
+  AvailabilitySlot({
+    required this.startTime,
+    required this.endTime,
+    required this.roomId,
+    required this.roomName,
+  });
+
+  final DateTime startTime;
+  final DateTime endTime;
+  final int roomId;
+  final String roomName;
+
+  static AvailabilitySlot fromJson(Map<String, dynamic> j) {
+    final start = j['startTime'] ?? j['StartTime'];
+    final end = j['endTime'] ?? j['EndTime'];
+    final roomId = j['roomId'] ?? j['RoomId'];
+    final roomName = j['roomName'] ?? j['RoomName'];
+    return AvailabilitySlot(
+      startTime: DateTime.parse('$start'),
+      endTime: DateTime.parse('$end'),
+      roomId: roomId is int ? roomId : int.tryParse('$roomId') ?? 0,
+      roomName: roomName as String? ?? '',
+    );
   }
 }
 

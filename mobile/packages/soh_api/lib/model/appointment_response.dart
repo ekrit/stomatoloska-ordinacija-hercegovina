@@ -21,7 +21,10 @@ class AppointmentResponse {
     this.startTime,
     this.endTime,
     this.status,
+    this.patientComplaint,
     this.doctorNote,
+    this.declineReason,
+    this.cancelReason,
     this.isPaid,
     this.paymentId,
   });
@@ -90,7 +93,13 @@ class AppointmentResponse {
   ///
   AppointmentStatus? status;
 
+  String? patientComplaint;
+
   String? doctorNote;
+
+  String? declineReason;
+
+  String? cancelReason;
 
   ///
   /// Please note: This property should have been non-nullable! Since the specification file
@@ -112,7 +121,10 @@ class AppointmentResponse {
     other.startTime == startTime &&
     other.endTime == endTime &&
     other.status == status &&
+    other.patientComplaint == patientComplaint &&
     other.doctorNote == doctorNote &&
+    other.declineReason == declineReason &&
+    other.cancelReason == cancelReason &&
     other.isPaid == isPaid &&
     other.paymentId == paymentId;
 
@@ -127,12 +139,15 @@ class AppointmentResponse {
     (startTime == null ? 0 : startTime!.hashCode) +
     (endTime == null ? 0 : endTime!.hashCode) +
     (status == null ? 0 : status!.hashCode) +
+    (patientComplaint == null ? 0 : patientComplaint!.hashCode) +
     (doctorNote == null ? 0 : doctorNote!.hashCode) +
+    (declineReason == null ? 0 : declineReason!.hashCode) +
+    (cancelReason == null ? 0 : cancelReason!.hashCode) +
     (isPaid == null ? 0 : isPaid!.hashCode) +
     (paymentId == null ? 0 : paymentId!.hashCode);
 
   @override
-  String toString() => 'AppointmentResponse[id=$id, patientId=$patientId, doctorId=$doctorId, serviceId=$serviceId, roomId=$roomId, startTime=$startTime, endTime=$endTime, status=$status, doctorNote=$doctorNote, isPaid=$isPaid, paymentId=$paymentId]';
+  String toString() => 'AppointmentResponse[id=$id, patientId=$patientId, doctorId=$doctorId, serviceId=$serviceId, roomId=$roomId, startTime=$startTime, endTime=$endTime, status=$status, patientComplaint=$patientComplaint, doctorNote=$doctorNote, declineReason=$declineReason, cancelReason=$cancelReason, isPaid=$isPaid, paymentId=$paymentId]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -176,10 +191,25 @@ class AppointmentResponse {
     } else {
       json[r'status'] = null;
     }
+    if (this.patientComplaint != null) {
+      json[r'patientComplaint'] = this.patientComplaint;
+    } else {
+      json[r'patientComplaint'] = null;
+    }
     if (this.doctorNote != null) {
       json[r'doctorNote'] = this.doctorNote;
     } else {
       json[r'doctorNote'] = null;
+    }
+    if (this.declineReason != null) {
+      json[r'declineReason'] = this.declineReason;
+    } else {
+      json[r'declineReason'] = null;
+    }
+    if (this.cancelReason != null) {
+      json[r'cancelReason'] = this.cancelReason;
+    } else {
+      json[r'cancelReason'] = null;
     }
     if (this.isPaid != null) {
       json[r'isPaid'] = this.isPaid;
@@ -221,7 +251,10 @@ class AppointmentResponse {
         startTime: mapDateTime(json, r'startTime', r''),
         endTime: mapDateTime(json, r'endTime', r''),
         status: AppointmentStatus.fromJson(json[r'status']),
+        patientComplaint: mapValueOfType<String>(json, r'patientComplaint'),
         doctorNote: mapValueOfType<String>(json, r'doctorNote'),
+        declineReason: mapValueOfType<String>(json, r'declineReason'),
+        cancelReason: mapValueOfType<String>(json, r'cancelReason'),
         isPaid: mapValueOfType<bool>(json, r'isPaid'),
         paymentId: mapValueOfType<int>(json, r'paymentId'),
       );

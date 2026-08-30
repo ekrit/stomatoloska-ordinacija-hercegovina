@@ -72,7 +72,19 @@ namespace SOH.Services.Migrations
                     b.Property<int>("DoctorId")
                         .HasColumnType("int");
 
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("DeclineReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
                     b.Property<string>("DoctorNote")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("PatientComplaint")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
@@ -419,6 +431,44 @@ namespace SOH.Services.Migrations
                             LastName = "Patient",
                             Phone = ""
                         });
+                });
+
+            modelBuilder.Entity("SOH.Services.Database.AppointmentStatusHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AppointmentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ChangedByUsername")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("ChangedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FromStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("ToStatus")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.ToTable("AppointmentStatusHistories");
                 });
 
             modelBuilder.Entity("SOH.Services.Database.Payment", b =>
@@ -1237,6 +1287,17 @@ namespace SOH.Services.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SOH.Services.Database.AppointmentStatusHistory", b =>
+                {
+                    b.HasOne("SOH.Services.Database.Appointment", "Appointment")
+                        .WithMany("StatusHistory")
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
+                });
+
             modelBuilder.Entity("SOH.Services.Database.Payment", b =>
                 {
                     b.HasOne("SOH.Services.Database.Appointment", "Appointment")
@@ -1361,6 +1422,8 @@ namespace SOH.Services.Migrations
                     b.Navigation("Payment");
 
                     b.Navigation("Review");
+
+                    b.Navigation("StatusHistory");
                 });
 
             modelBuilder.Entity("SOH.Services.Database.Doctor", b =>

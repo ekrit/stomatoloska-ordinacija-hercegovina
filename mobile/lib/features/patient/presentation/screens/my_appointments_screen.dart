@@ -6,6 +6,7 @@ import 'package:soh_api/api.dart';
 import '../../../../core/api/api_providers.dart';
 import '../../../../core/api/soh_extra_api.dart';
 import '../../../../core/utils/api_errors.dart';
+import '../../../../core/utils/appointment_cancel_dialog.dart';
 import '../../../../core/utils/appointment_labels.dart';
 import '../providers/patient_data_providers.dart';
 import '../providers/patient_repository_providers.dart';
@@ -427,23 +428,13 @@ class _AppointmentPatientCard extends ConsumerWidget {
     WidgetRef ref,
     AppointmentResponse a,
   ) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Otkazati termin?'),
-        content: const Text('Vaša posjeta će biti označena kao otkazana.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('No')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Da, otkaži')),
-        ],
-      ),
-    );
-    if (ok != true) return;
+    final reason = await promptCancelReason(context);
+    if (reason == null) return;
     if (a.id == null) {
       return;
     }
     try {
-      await SohExtraApi(ref.read(apiClientProvider)).cancelAppointment(a.id!);
+      await SohExtraApi(ref.read(apiClientProvider)).cancelAppointment(a.id!, reason);
       ref.invalidate(myAppointmentsProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Termin je otkazan.')));

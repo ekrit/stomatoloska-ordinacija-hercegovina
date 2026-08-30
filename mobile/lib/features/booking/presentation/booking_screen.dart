@@ -5,8 +5,7 @@ import 'package:soh_api/api.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../../../core/api/api_providers.dart';
-import '../../../core/config/booking_config.dart';
-import '../../../core/domain/booking_slots.dart';
+import '../../../core/api/soh_extra_api.dart';
 import '../../../core/utils/api_errors.dart';
 import '../../../core/utils/appointment_labels.dart';
 import '../../patient/presentation/providers/patient_data_providers.dart';
@@ -24,7 +23,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   DoctorResponse? _doctor;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  DateTime? _slotStart;
+  AvailabilitySlot? _slot;
   ServiceResponse? _service;
   final _complaintController = TextEditingController();
   bool _submitting = false;
@@ -36,14 +35,14 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     super.dispose();
   }
 
-  Future<List<AppointmentResponse>> _loadDayBusy(int doctorUserId, DateTime day) async {
-    final start = DateTime(day.year, day.month, day.day);
-    final end = start.add(const Duration(days: 1));
-    return ref.read(patientCareRepositoryProvider).listAppointmentsForDoctorBetween(
-          doctorId: doctorUserId,
-          startInclusive: start,
-          endExclusive: end,
-        );
+  /// Slots come from the server, which can see every patient's bookings and
+  /// knows the service duration, room availability and working hours.
+  Future<List<AvailabilitySlot>> _loadSlots(int doctorUserId, DateTime day, int serviceId) {
+    return SohExtraApi(ref.read(apiClientProvider)).getAvailability(
+      doctorId: doctorUserId,
+      date: day,
+      serviceId: serviceId,
+    );
   }
 
   Future<void> _submit() async {
@@ -51,7 +50,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     final doctor = _doctor;
     final doctorId = doctor?.userId;
     final day = _selectedDay;
-    final slot = _slotStart;
+    final slot = _slot;
     final svc = _service;
     if (user?.id == null ||
         doctorId == null ||
@@ -62,37 +61,21 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       return;
     }
 
-    if (slot.isBefore(DateTime.now())) {
+    if (slot.startTime.isBefore(DateTime.now())) {
       setState(() => _error = 'Odaberite termin u budućnosti.');
       return;
     }
 
     final confirmed = await _confirmBooking(
       doctorName: '${doctor?.firstName ?? ''} ${doctor?.lastName ?? ''}'.trim(),
-      when: slot,
+      when: slot.startTime,
       serviceName: svc?.name ?? '',
     );
     if (!confirmed) return;
 
-    List<RoomResponse> rooms;
-    try {
-      rooms = await ref.read(roomsProvider.future);
-    } catch (_) {
-      rooms = await ref.read(patientCatalogRepositoryProvider).listRooms();
-    }
-    final available =
-        rooms.where((r) => r.isAvailable == true).toList();
-    final room = available.isNotEmpty
-        ? available.first
-        : (rooms.isNotEmpty ? rooms.first : null);
-    if (room?.id == null) {
-      setState(() => _error = 'Nema slobodne prostorije. Kontaktirajte ordinaciju.');
-      return;
-    }
-
-    final durationMin = svc!.durationMinutes ?? BookingConfig.slotMinutes;
-    final end = slot.add(Duration(minutes: durationMin));
-
+    // The room comes from the slot the server issued. The client used to pick
+    // one itself and fall back to rooms.first when none were available, which
+    // could book a room that was out of service.
     setState(() {
       _submitting = true;
       _error = null;
@@ -103,14 +86,15 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               patientId: user!.id!,
               doctorId: doctorId,
               serviceId: svc.id!,
-              roomId: room!.id!,
-              startTime: slot,
-              endTime: end,
+              roomId: slot.roomId,
+              startTime: slot.startTime,
+              // EndTime is derived server-side from the service duration; it is
+              // sent only because the request model requires it.
+              endTime: slot.endTime,
               status: AppointmentStatuses.requested,
-              doctorNote: _composeNotes(
-                serviceName: svc.name,
-                complaint: _complaintController.text,
-              ),
+              patientComplaint: _complaintController.text.trim().isEmpty
+                  ? null
+                  : _complaintController.text.trim(),
             ),
           );
       if (!mounted) return;
@@ -243,101 +227,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       loading: () => const Center(child: CircularProgressIndicator()),
                       error: (e, _) => Text(extractApiErrorMessage(e)),
                     ),
-                  if (_step == 1) ...[
-                    Text(
-                      'Odaberite datum',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    TableCalendar<void>(
-                      firstDay: DateTime.now(),
-                      lastDay: DateTime.now().add(const Duration(days: 365)),
-                      focusedDay: _focusedDay,
-                      selectedDayPredicate: (d) => isSameDay(_selectedDay, d),
-                      onDaySelected: (selected, focused) {
-                        setState(() {
-                          _selectedDay = selected;
-                          _focusedDay = focused;
-                          _slotStart = null;
-                        });
-                      },
-                      onPageChanged: (focused) => setState(() => _focusedDay = focused),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        TextButton(
-                          onPressed: () => setState(() => _step = 0),
-                          child: const Text('Nazad'),
-                        ),
-                        const Spacer(),
-                        FilledButton(
-                          onPressed: _selectedDay == null
-                              ? null
-                              : () => setState(() => _step = 2),
-                          child: const Text('Dalje'),
-                        ),
-                      ],
-                    ),
-                  ],
-                  if (_step == 2 && _doctor?.userId != null && _selectedDay != null)
-                    FutureBuilder<List<AppointmentResponse>>(
-                      future: _loadDayBusy(_doctor!.userId!, _selectedDay!),
-                      builder: (context, snap) {
-                        if (!snap.hasData) {
-                          return const Center(child: CircularProgressIndicator());
-                        }
-                        final free = computeFreeSlotStarts(
-                          day: _selectedDay!,
-                          busy: snap.data!,
-                          slotMinutes: BookingConfig.slotMinutes,
-                        );
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              'Slobodni termini',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const SizedBox(height: 8),
-                            if (free.isEmpty)
-                              const Text('Nema slobodnih termina za ovaj dan. Odaberite drugi datum.')
-                            else
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: free.map((t) {
-                                  final sel = _slotStart != null &&
-                                      _slotStart!.millisecondsSinceEpoch ==
-                                          t.millisecondsSinceEpoch;
-                                  return ChoiceChip(
-                                    label: Text(timeFmt.format(t)),
-                                    selected: sel,
-                                    onSelected: (_) =>
-                                        setState(() => _slotStart = t),
-                                  );
-                                }).toList(),
-                              ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                TextButton(
-                                  onPressed: () => setState(() => _step = 1),
-                                  child: const Text('Nazad'),
-                                ),
-                                const Spacer(),
-                                FilledButton(
-                                  onPressed: _slotStart == null
-                                      ? null
-                                      : () => setState(() => _step = 3),
-                                  child: const Text('Dalje'),
-                                ),
-                              ],
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  if (_step == 3)
+                  if (_step == 1)
                     services.when(
                       data: (list) {
                         if (list.isEmpty) {
@@ -365,14 +255,17 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                             Row(
                               children: [
                                 TextButton(
-                                  onPressed: () => setState(() => _step = 2),
+                                  onPressed: () => setState(() => _step = 0),
                                   child: const Text('Nazad'),
                                 ),
                                 const Spacer(),
                                 FilledButton(
                                   onPressed: _service == null
                                       ? null
-                                      : () => setState(() => _step = 4),
+                                      : () => setState(() {
+                                            _step = 2;
+                                            _slot = null;
+                                          }),
                                   child: const Text('Dalje'),
                                 ),
                               ],
@@ -383,10 +276,108 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       loading: () => const Center(child: CircularProgressIndicator()),
                       error: (e, _) => Text(extractApiErrorMessage(e)),
                     ),
+                  if (_step == 2) ...[
+                    Text(
+                      'Odaberite datum',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    TableCalendar<void>(
+                      firstDay: DateTime.now(),
+                      lastDay: DateTime.now().add(const Duration(days: 365)),
+                      focusedDay: _focusedDay,
+                      selectedDayPredicate: (d) => isSameDay(_selectedDay, d),
+                      onDaySelected: (selected, focused) {
+                        setState(() {
+                          _selectedDay = selected;
+                          _focusedDay = focused;
+                          _slot = null;
+                        });
+                      },
+                      onPageChanged: (focused) => setState(() => _focusedDay = focused),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        TextButton(
+                          onPressed: () => setState(() => _step = 1),
+                          child: const Text('Nazad'),
+                        ),
+                        const Spacer(),
+                        FilledButton(
+                          onPressed: _selectedDay == null
+                              ? null
+                              : () => setState(() => _step = 3),
+                          child: const Text('Dalje'),
+                        ),
+                      ],
+                    ),
+                  ],
+                  if (_step == 3 &&
+                      _doctor?.userId != null &&
+                      _selectedDay != null &&
+                      _service?.id != null)
+                    FutureBuilder<List<AvailabilitySlot>>(
+                      future: _loadSlots(_doctor!.userId!, _selectedDay!, _service!.id!),
+                      builder: (context, snap) {
+                        if (snap.hasError) {
+                          return Text(extractApiErrorMessage(snap.error!));
+                        }
+                        if (!snap.hasData) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        final free = snap.data!;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              'Slobodni termini',
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            const SizedBox(height: 8),
+                            if (free.isEmpty)
+                              const Text('Nema slobodnih termina za ovaj dan. Odaberite drugi datum.')
+                            else
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: free.map((slot) {
+                                  final sel = _slot != null &&
+                                      _slot!.startTime.millisecondsSinceEpoch ==
+                                          slot.startTime.millisecondsSinceEpoch;
+                                  return ChoiceChip(
+                                    label: Text(
+                                      '${timeFmt.format(slot.startTime)}'
+                                      ' - ${timeFmt.format(slot.endTime)}',
+                                    ),
+                                    selected: sel,
+                                    onSelected: (_) => setState(() => _slot = slot),
+                                  );
+                                }).toList(),
+                              ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                TextButton(
+                                  onPressed: () => setState(() => _step = 2),
+                                  child: const Text('Nazad'),
+                                ),
+                                const Spacer(),
+                                FilledButton(
+                                  onPressed: _slot == null
+                                      ? null
+                                      : () => setState(() => _step = 4),
+                                  child: const Text('Dalje'),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                   if (_step == 4 &&
                       _doctor != null &&
                       _selectedDay != null &&
-                      _slotStart != null &&
+                      _slot != null &&
                       _service != null) ...[
                     Text(
                       'Potvrdi',
@@ -404,7 +395,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             Text(DateFormat.yMMMd().format(_selectedDay!)),
-                            Text(timeFmt.format(_slotStart!)),
+                            Text(
+                              '${timeFmt.format(_slot!.startTime)}'
+                              ' - ${timeFmt.format(_slot!.endTime)}',
+                            ),
                             Text(_service!.name ?? ''),
                           ],
                         ),
@@ -458,16 +452,3 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   }
 }
 
-String? _composeNotes({String? serviceName, required String complaint}) {
-  final parts = <String>[];
-  final s = (serviceName ?? '').trim();
-  if (s.isNotEmpty) {
-    parts.add('Service: $s');
-  }
-  final c = complaint.trim();
-  if (c.isNotEmpty) {
-    parts.add('Client complaint: $c');
-  }
-  if (parts.isEmpty) return null;
-  return parts.join('\n');
-}

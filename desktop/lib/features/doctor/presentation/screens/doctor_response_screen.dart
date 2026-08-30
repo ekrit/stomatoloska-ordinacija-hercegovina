@@ -12,6 +12,7 @@ import '../../../../core/utils/role_utils.dart';
 import '../../../../widgets/user_appbar_actions.dart' show showLogoutConfirm;
 import '../../../patient/presentation/providers/patient_repository_providers.dart';
 import 'doctor_visit_document_screen.dart';
+import '../../../../core/utils/api_errors.dart';
 
 final _doctorAppointmentsProvider =
     FutureProvider.autoDispose<List<AppointmentResponse>>((ref) async {
@@ -268,24 +269,45 @@ class _AppointmentList extends ConsumerWidget {
       return;
     }
 
+    // Rejecting requires a reason, and it is a reason — not the optional
+    // "doctor's note" this dialog used to collect, which the server accepted
+    // as a stand-in even though booking had already filled that field.
+    final isDecline = next == AppointmentStatuses.declined;
     final noteController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
     try {
       final ok = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: Text(next == AppointmentStatuses.accepted ? 'Prihvatiti zahtjev?' : 'Odbiti zahtjev?'),
-          content: TextField(
-            controller: noteController,
-            maxLines: 3,
-            decoration: const InputDecoration(
-              labelText: 'Napomena doktora (opcionalno)',
-              border: OutlineInputBorder(),
+          title: Text(isDecline ? 'Odbiti zahtjev?' : 'Prihvatiti zahtjev?'),
+          content: Form(
+            key: formKey,
+            child: TextFormField(
+              controller: noteController,
+              maxLines: 3,
+              autofocus: isDecline,
+              decoration: InputDecoration(
+                labelText: isDecline
+                    ? 'Razlog odbijanja (obavezno)'
+                    : 'Napomena doktora (opcionalno)',
+                border: const OutlineInputBorder(),
+              ),
+              validator: (v) {
+                if (!isDecline) return null;
+                final t = (v ?? '').trim();
+                if (t.isEmpty) return 'Razlog odbijanja je obavezan.';
+                if (t.length < 3) return 'Razlog mora imati najmanje 3 znaka.';
+                return null;
+              },
             ),
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Odustani')),
             FilledButton(
-              onPressed: () => Navigator.pop(ctx, true),
+              onPressed: () {
+                if (formKey.currentState?.validate() != true) return;
+                Navigator.pop(ctx, true);
+              },
               child: const Text('Potvrdi'),
             ),
           ],
@@ -293,10 +315,7 @@ class _AppointmentList extends ConsumerWidget {
       );
       if (ok != true) return;
 
-      final mergedNote = _mergeNotes(
-        existing: appointment.doctorNote,
-        doctorNote: noteController.text,
-      );
+      final text = noteController.text.trim();
 
       await ref.read(patientCareRepositoryProvider).updateAppointment(
             appointment.id!,
@@ -308,7 +327,12 @@ class _AppointmentList extends ConsumerWidget {
               startTime: appointment.startTime!,
               endTime: appointment.endTime!,
               status: next,
-              doctorNote: mergedNote,
+              // The rejection reason has its own field; the doctor's note stays
+              // the doctor's note.
+              declineReason: isDecline ? text : null,
+              doctorNote: isDecline
+                  ? appointment.doctorNote
+                  : _mergeNotes(existing: appointment.doctorNote, doctorNote: text),
             ),
           );
       ref.invalidate(_doctorAppointmentsProvider);
@@ -321,7 +345,10 @@ class _AppointmentList extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(extractApiErrorMessage(e,
+              fallback: 'Status termina nije moguće promijeniti.')),
+        ));
       }
     } finally {
       noteController.dispose();

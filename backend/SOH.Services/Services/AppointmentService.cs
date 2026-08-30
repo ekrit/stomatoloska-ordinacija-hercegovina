@@ -84,6 +84,23 @@ namespace SOH.Services.Services
                 entity.PatientId = callerId;
             }
 
+            // The visit's length is a property of the service, not something
+            // the client gets to declare. A client-supplied EndTime could book
+            // a 60-minute treatment into a 30-minute hole.
+            var durationMinutes = await _context.Services
+                .AsNoTracking()
+                .Where(s => s.Id == entity.ServiceId)
+                .Select(s => (int?)s.DurationMinutes)
+                .FirstOrDefaultAsync()
+                ?? throw new NotFoundException("Usluga nije pronađena.");
+
+            if (durationMinutes <= 0)
+            {
+                throw new BusinessException("Usluga nema definisano trajanje; termin se ne može zakazati.");
+            }
+
+            entity.EndTime = entity.StartTime.AddMinutes(durationMinutes);
+
             ValidateTimeRange(entity, isNew: true);
 
             // New appointments must always start in the future. Allowing past
@@ -94,12 +111,102 @@ namespace SOH.Services.Services
                 throw new BusinessException("Termin mora početi u budućnosti.");
             }
 
+            // Working hours are enforced here, not only in the client, so a
+            // direct API call cannot book outside them.
+            if (!ClinicSchedule.IsWithinWorkingHours(entity.StartTime, entity.EndTime))
+            {
+                throw new BusinessException(
+                    $"Termin mora biti unutar radnog vremena ({ClinicSchedule.WorkdayStartHour:00}-{ClinicSchedule.WorkdayEndHour:00}) i završiti istog dana.");
+            }
+
+            entity.RoomId = await ResolveRoomAsync(entity.RoomId, entity.StartTime, entity.EndTime, ignoreId: null);
+
+            // Booking notes are the patient's complaint, and nothing else: the
+            // doctor's note and the rejection reason have their own fields.
+            entity.PatientComplaint = string.IsNullOrWhiteSpace(request.PatientComplaint)
+                ? null
+                : request.PatientComplaint.Trim();
+            entity.DoctorNote = null;
+            entity.DeclineReason = null;
+            entity.CancelReason = null;
+
             // Force the initial status to Requested regardless of what the
             // client sent. Letting the client jump straight to Accepted /
             // Completed would bypass the doctor approval flow.
             entity.Status = AppointmentStatus.Requested;
 
             await EnsureNoConflictsAsync(entity, ignoreId: null);
+        }
+
+        /// <summary>
+        /// Validates the requested room, or picks one when the caller did not
+        /// name a usable one. The client used to choose the room itself and
+        /// fall back to <c>rooms.first</c> when none were available, while the
+        /// server checked neither <see cref="Room.IsAvailable"/> nor whether
+        /// the room was free.
+        /// </summary>
+        private async Task<int> ResolveRoomAsync(int requestedRoomId, DateTime start, DateTime end, int? ignoreId)
+        {
+            if (requestedRoomId > 0)
+            {
+                var room = await _context.Rooms
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(r => r.Id == requestedRoomId)
+                    ?? throw new NotFoundException("Prostorija nije pronađena.");
+
+                if (!room.IsAvailable)
+                {
+                    throw new BusinessException("Odabrana prostorija nije u upotrebi.");
+                }
+
+                if (await IsRoomBusyAsync(room.Id, start, end, ignoreId))
+                {
+                    throw new BusinessException("Prostorija je već zauzeta u ovom terminu.");
+                }
+
+                return room.Id;
+            }
+
+            var freeRoomId = await FindFreeRoomIdAsync(start, end, ignoreId);
+            return freeRoomId
+                ?? throw new BusinessException("Nema slobodne prostorije u odabranom terminu.");
+        }
+
+        private Task<bool> IsRoomBusyAsync(int roomId, DateTime start, DateTime end, int? ignoreId)
+        {
+            return _context.Appointments
+                .AsNoTracking()
+                .Where(a => ignoreId == null || a.Id != ignoreId.Value)
+                .Where(a => a.RoomId == roomId)
+                .Where(a => BlockingStatuses.Contains(a.Status))
+                .AnyAsync(a => a.StartTime < end && start < a.EndTime);
+        }
+
+        private async Task<int?> FindFreeRoomIdAsync(DateTime start, DateTime end, int? ignoreId)
+        {
+            var usableRoomIds = await _context.Rooms
+                .AsNoTracking()
+                .Where(r => r.IsAvailable)
+                .OrderBy(r => r.Id)
+                .Select(r => r.Id)
+                .ToListAsync();
+
+            if (usableRoomIds.Count == 0)
+            {
+                return null;
+            }
+
+            var takenRoomIds = await _context.Appointments
+                .AsNoTracking()
+                .Where(a => ignoreId == null || a.Id != ignoreId.Value)
+                .Where(a => BlockingStatuses.Contains(a.Status))
+                .Where(a => a.StartTime < end && start < a.EndTime)
+                .Select(a => a.RoomId)
+                .ToListAsync();
+
+            return usableRoomIds.FirstOrDefault(id => !takenRoomIds.Contains(id)) is var found && found != 0
+                ? found
+                : null;
         }
 
         protected override async Task BeforeUpdate(Appointment entity, AppointmentUpsertRequest request)
@@ -138,14 +245,34 @@ namespace SOH.Services.Services
             var newStatus = (AppointmentStatus)(int)request.Status;
             ValidateStatusTransition(entity.Status, newStatus);
 
-            // A declined booking must carry the reason: the patient sees it in
-            // the notification and the record keeps the audit trail complete.
+            // A declined booking must carry its own reason. This used to accept
+            // DoctorNote, which booking had already filled with the service name
+            // and the patient's complaint — so the check passed without the
+            // doctor ever giving a reason.
             if (newStatus == AppointmentStatus.Declined &&
-                entity.Status != AppointmentStatus.Declined &&
-                string.IsNullOrWhiteSpace(request.DoctorNote))
+                entity.Status != AppointmentStatus.Declined)
             {
-                throw new BusinessException("Razlog odbijanja termina je obavezan.");
+                if (string.IsNullOrWhiteSpace(request.DeclineReason))
+                {
+                    throw new BusinessException("Razlog odbijanja termina je obavezan.");
+                }
+
+                entity.DeclineReason = request.DeclineReason!.Trim();
             }
+
+            // A visit cannot be completed before it has happened. Completing
+            // early makes everything gated on a finished appointment — a review,
+            // most obviously — available too soon.
+            if (newStatus == AppointmentStatus.Completed &&
+                entity.Status != AppointmentStatus.Completed &&
+                DateTime.UtcNow < entity.EndTime)
+            {
+                throw new BusinessException("Termin se može označiti završenim tek nakon njegovog kraja.");
+            }
+
+            // The patient's complaint belongs to the patient; a doctor editing
+            // the appointment must not overwrite it.
+            request.PatientComplaint = entity.PatientComplaint;
 
             // Only re-validate scheduling concerns when the appointment is
             // still active. Completing or cancelling does not need a clean
@@ -172,13 +299,116 @@ namespace SOH.Services.Services
 
             if (entity.Status != newStatus)
             {
+                var reason = newStatus == AppointmentStatus.Declined
+                    ? entity.DeclineReason
+                    : null;
+
+                RecordStatusChange(entity.Id, entity.Status, newStatus, reason);
+
                 await _notifications.NotifyAppointmentStatusChangedAsync(
                     entity.PatientId,
                     entity.Id,
                     entity.Status,
                     newStatus,
-                    newStatus == AppointmentStatus.Declined ? request.DoctorNote : null);
+                    reason);
             }
+        }
+
+        /// <summary>
+        /// Real bookable slots for a doctor, day and service.
+        /// <para>
+        /// The client used to build this itself from the appointment list, but
+        /// that list is patient-scoped: a patient never saw other patients'
+        /// bookings, so slots already taken looked free. It also assumed a flat
+        /// 30 minutes before the service was even chosen, picked the room on
+        /// its own, and knew the working hours only from its own config. All of
+        /// that is decided here now, and <c>BeforeInsert</c> re-checks the same
+        /// rules when the booking actually arrives.
+        /// </para>
+        /// </summary>
+        public async Task<IReadOnlyList<AvailabilitySlotResponse>> GetAvailabilityAsync(
+            int doctorId,
+            DateTime date,
+            int serviceId,
+            CancellationToken cancellationToken = default)
+        {
+            var duration = await _context.Services
+                .AsNoTracking()
+                .Where(s => s.Id == serviceId)
+                .Select(s => (int?)s.DurationMinutes)
+                .FirstOrDefaultAsync(cancellationToken)
+                ?? throw new NotFoundException("Usluga nije pronađena.");
+
+            if (duration <= 0)
+            {
+                throw new BusinessException("Usluga nema definisano trajanje.");
+            }
+
+            if (!await _context.Doctors.AsNoTracking().AnyAsync(d => d.UserId == doctorId, cancellationToken))
+            {
+                throw new NotFoundException("Doktor nije pronađen.");
+            }
+
+            var day = date.Date;
+            var dayStart = day.AddHours(ClinicSchedule.WorkdayStartHour);
+            var dayEnd = day.AddHours(ClinicSchedule.WorkdayEndHour);
+
+            var usableRooms = await _context.Rooms
+                .AsNoTracking()
+                .Where(r => r.IsAvailable)
+                .OrderBy(r => r.Id)
+                .Select(r => new { r.Id, r.Name })
+                .ToListAsync(cancellationToken);
+
+            if (usableRooms.Count == 0)
+            {
+                return Array.Empty<AvailabilitySlotResponse>();
+            }
+
+            // Every booking that still holds time that day — for this doctor
+            // (whoever the patient is) and for the rooms.
+            var busy = await _context.Appointments
+                .AsNoTracking()
+                .Where(a => BlockingStatuses.Contains(a.Status))
+                .Where(a => a.StartTime < dayEnd && a.EndTime > dayStart)
+                .Select(a => new { a.DoctorId, a.RoomId, a.StartTime, a.EndTime })
+                .ToListAsync(cancellationToken);
+
+            var now = DateTime.UtcNow;
+            var slots = new List<AvailabilitySlotResponse>();
+
+            for (var start = dayStart; start.AddMinutes(duration) <= dayEnd; start = start.AddMinutes(ClinicSchedule.SlotStepMinutes))
+            {
+                var end = start.AddMinutes(duration);
+                if (start <= now)
+                {
+                    continue;
+                }
+
+                var doctorBusy = busy.Any(b =>
+                    b.DoctorId == doctorId && b.StartTime < end && start < b.EndTime);
+                if (doctorBusy)
+                {
+                    continue;
+                }
+
+                var room = usableRooms.FirstOrDefault(r =>
+                    !busy.Any(b => b.RoomId == r.Id && b.StartTime < end && start < b.EndTime));
+                if (room == null)
+                {
+                    continue;
+                }
+
+                slots.Add(new AvailabilitySlotResponse
+                {
+                    StartTime = start,
+                    EndTime = end,
+                    RoomId = room.Id,
+                    RoomName = room.Name,
+                });
+            }
+
+            return slots;
         }
 
         public async Task<RecordOwner?> GetOwnerAsync(int id, CancellationToken cancellationToken = default)
@@ -282,6 +512,25 @@ namespace SOH.Services.Services
             await _context.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Appends the who / when / from → to / why row for a status change.
+        /// Saved by the caller's SaveChanges, inside the same transaction as
+        /// the change itself.
+        /// </summary>
+        private void RecordStatusChange(int appointmentId, AppointmentStatus from, AppointmentStatus to, string? reason)
+        {
+            _context.AppointmentStatusHistories.Add(new AppointmentStatusHistory
+            {
+                AppointmentId = appointmentId,
+                FromStatus = from,
+                ToStatus = to,
+                Reason = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim(),
+                ChangedByUserId = _currentUser.UserId,
+                ChangedByUsername = _currentUser.Username,
+                ChangedAt = DateTime.UtcNow,
+            });
+        }
+
         private ActivityLog NewActivityLog(string action, int appointmentId)
         {
             return new ActivityLog
@@ -295,7 +544,7 @@ namespace SOH.Services.Services
             };
         }
 
-        public async Task<AppointmentResponse> CancelOwnAsync(int appointmentId, int callerUserId, AppointmentActor actor, CancellationToken cancellationToken = default)
+        public async Task<AppointmentResponse> CancelOwnAsync(int appointmentId, int callerUserId, AppointmentActor actor, string reason, CancellationToken cancellationToken = default)
         {
             var entity = await _context.Appointments
                 .Include(a => a.Payment)
@@ -330,15 +579,23 @@ namespace SOH.Services.Services
                 throw new BusinessException("Ovaj termin je plaćen. Zatražite povrat novca da biste ga otkazali.");
             }
 
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                throw new BusinessException("Razlog otkazivanja termina je obavezan.");
+            }
+
+            var trimmedReason = reason.Trim();
             var fromStatus = entity.Status;
             ValidateStatusTransition(fromStatus, AppointmentStatus.Cancelled);
             entity.Status = AppointmentStatus.Cancelled;
+            entity.CancelReason = trimmedReason;
 
             _context.ActivityLogs.Add(NewActivityLog("AppointmentCancelled", entity.Id));
+            RecordStatusChange(entity.Id, fromStatus, AppointmentStatus.Cancelled, trimmedReason);
 
             await _context.SaveChangesAsync(cancellationToken);
             await _notifications.NotifyAppointmentStatusChangedAsync(
-                entity.PatientId, entity.Id, fromStatus, AppointmentStatus.Cancelled, reason: null, cancellationToken);
+                entity.PatientId, entity.Id, fromStatus, AppointmentStatus.Cancelled, trimmedReason, cancellationToken);
 
             return MapToResponse(entity);
         }
