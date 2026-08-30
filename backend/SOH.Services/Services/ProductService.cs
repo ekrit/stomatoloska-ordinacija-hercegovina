@@ -16,6 +16,35 @@ namespace SOH.Services.Services
         {
         }
 
+        public Task<byte[]?> GetPictureAsync(int id, CancellationToken cancellationToken = default)
+        {
+            return _context.Products
+                .AsNoTracking()
+                .Where(p => p.Id == id)
+                .Select(p => p.Picture)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        protected override ProductResponse MapToResponse(Product entity)
+        {
+            var response = base.MapToResponse(entity);
+            response.HasPicture = entity.Picture is { Length: > 0 };
+            return response;
+        }
+
+        /// <summary>
+        /// A catalog page shows thumbnails, not originals, and pictures are
+        /// allowed up to 2 MB each — so a page of 30 rows could ship 60 MB the
+        /// UI immediately downscales. List rows carry the flag; the bytes come
+        /// from <c>GET /Product/{id}/picture</c> when a card actually needs one.
+        /// </summary>
+        protected override ProductResponse MapToListResponse(Product entity)
+        {
+            var response = MapToResponse(entity);
+            response.Picture = null;
+            return response;
+        }
+
         protected override IQueryable<Product> ApplyFilter(IQueryable<Product> query, ProductSearchObject search)
         {
             query = query.Include(x => x.ProductCategory);

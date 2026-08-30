@@ -10,7 +10,15 @@ namespace SOH.Model.Responses
         public string LastName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Username { get; set; } = string.Empty;
+        /// <summary>
+        /// Full image bytes. Populated on the details endpoint only; list rows
+        /// leave this null and set <see cref="HasPicture"/> instead. Fetch the
+        /// image from <c>GET /Users/{id}/picture</c>.
+        /// </summary>
         public byte[]? Picture { get; set; }
+
+        /// <summary>True when a picture exists, whether or not it is included.</summary>
+        public bool HasPicture { get; set; }
 
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }

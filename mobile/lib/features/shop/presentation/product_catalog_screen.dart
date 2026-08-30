@@ -4,8 +4,8 @@ import 'package:soh_api/api.dart';
 
 import '../../../core/api/api_providers.dart';
 import '../../../core/utils/api_errors.dart';
-import '../../../widgets/user_appbar_actions.dart' show decodeUserPictureBytes;
 import '../../home/presentation/product_detail_screen.dart';
+import '../../../core/widgets/remote_image.dart';
 
 /// Katalog preporučenih proizvoda za njegu zuba: pregled po kategorijama,
 /// pretraga i naručivanje preko detalja proizvoda.
@@ -87,23 +87,21 @@ class _ProductCatalogScreenState extends ConsumerState<ProductCatalogScreen> {
                     itemCount: list.length,
                     itemBuilder: (context, i) {
                       final p = list[i];
-                      final bytes = decodeUserPictureBytes(p.picture);
                       return Card(
                         margin: const EdgeInsets.only(bottom: 10),
                         clipBehavior: Clip.antiAlias,
                         child: ListTile(
-                          leading: bytes != null
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.memory(bytes,
-                                      width: 52, height: 52, fit: BoxFit.cover),
-                                )
-                              : CircleAvatar(
-                                  backgroundColor: Theme.of(context)
-                                      .colorScheme
-                                      .surfaceContainerHighest,
-                                  child: const Icon(Icons.medical_services_outlined),
-                                ),
+                          leading: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: RemoteImage(
+                              path: '/Product/${p.id}/picture',
+                              hasImage: p.hasPicture == true && p.id != null,
+                              width: 52,
+                              height: 52,
+                              placeholder:
+                                  const Icon(Icons.medical_services_outlined),
+                            ),
+                          ),
                           title: Text(p.name ?? 'Proizvod'),
                           subtitle: Text(p.productCategoryName ?? ''),
                           trailing: Text(

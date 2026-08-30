@@ -44,6 +44,22 @@ namespace SOH.Services.Services
             return owner == null ? null : new RecordOwner(owner.PatientId, null);
         }
 
+        protected override OrderResponse MapToResponse(Order entity)
+        {
+            var response = base.MapToResponse(entity);
+            response.HasProductPicture = entity.Product?.Picture is { Length: > 0 };
+            return response;
+        }
+
+        // Order history is a list of rows with a small product thumbnail; the
+        // full image belongs to the product, not to every order that cites it.
+        protected override OrderResponse MapToListResponse(Order entity)
+        {
+            var response = MapToResponse(entity);
+            response.ProductPicture = null;
+            return response;
+        }
+
         // The order total always comes from the catalog price, never the client.
         protected override async Task BeforeInsert(Order entity, OrderUpsertRequest request)
         {

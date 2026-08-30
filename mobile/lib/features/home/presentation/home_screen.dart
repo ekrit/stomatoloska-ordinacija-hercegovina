@@ -6,12 +6,12 @@ import '../../../core/api/api_providers.dart';
 import '../../../core/utils/api_errors.dart';
 import '../../../core/widgets/async_body.dart';
 import '../../../core/widgets/section_header.dart';
-import '../../../widgets/user_appbar_actions.dart' show decodeUserPictureBytes;
 import '../../patient/presentation/providers/patient_data_providers.dart';
 import '../../shop/presentation/product_catalog_screen.dart';
 import 'product_detail_screen.dart';
 import 'recommendations_providers.dart';
 import 'services_screen.dart';
+import '../../../core/widgets/remote_image.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key, required this.onBook});
@@ -239,7 +239,6 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bytes = decodeUserPictureBytes(product.picture);
     return SizedBox(
       width: 210,
       child: Card(
@@ -254,12 +253,17 @@ class _ProductCard extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (bytes != null)
+                    if (product.hasPicture == true && product.id != null)
                       Padding(
                         padding: const EdgeInsets.only(right: 8),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.memory(bytes, width: 40, height: 40, fit: BoxFit.cover),
+                          child: RemoteImage(
+                            path: '/Product/${product.id}/picture',
+                            hasImage: true,
+                            width: 40,
+                            height: 40,
+                          ),
                         ),
                       ),
                     Expanded(

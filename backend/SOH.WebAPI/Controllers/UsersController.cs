@@ -71,6 +71,29 @@ namespace SOH.WebAPI.Controllers
             return user;
         }
 
+        /// <summary>
+        /// Serves one user's avatar. The directory listing no longer carries
+        /// picture bytes for every row; a rendered avatar fetches it here.
+        /// Authorization mirrors GetById — your own picture, or any if admin.
+        /// </summary>
+        [HttpGet("{id:int}/picture")]
+        public async Task<IActionResult> Picture(int id)
+        {
+            var uid = CurrentUserId;
+            if (uid == null)
+                return Unauthorized();
+            if (!User.IsInRole(RoleNames.Administrator) && uid != id)
+                return Forbid();
+
+            var bytes = await _userService.GetPictureAsync(id);
+            if (bytes == null || bytes.Length == 0)
+            {
+                return NotFound();
+            }
+
+            return File(bytes, ImageContentType.For(bytes));
+        }
+
         [HttpPost]
         [Authorize(Roles = RoleNames.Administrator)]
         public async Task<ActionResult<UserResponse>> Create(UserUpsertRequest request)

@@ -19,6 +19,7 @@ class UserResponse {
     this.email,
     this.username,
     this.picture,
+    this.hasPicture,
     this.isActive,
     this.createdAt,
     this.lastLoginAt,
@@ -47,6 +48,8 @@ class UserResponse {
   String? username;
 
   String? picture;
+
+  bool? hasPicture;
 
   ///
   /// Please note: This property should have been non-nullable! Since the specification file
@@ -98,6 +101,7 @@ class UserResponse {
     other.email == email &&
     other.username == username &&
     other.picture == picture &&
+    other.hasPicture == hasPicture &&
     other.isActive == isActive &&
     other.createdAt == createdAt &&
     other.lastLoginAt == lastLoginAt &&
@@ -117,6 +121,7 @@ class UserResponse {
     (email == null ? 0 : email!.hashCode) +
     (username == null ? 0 : username!.hashCode) +
     (picture == null ? 0 : picture!.hashCode) +
+    (hasPicture == null ? 0 : hasPicture!.hashCode) +
     (isActive == null ? 0 : isActive!.hashCode) +
     (createdAt == null ? 0 : createdAt!.hashCode) +
     (lastLoginAt == null ? 0 : lastLoginAt!.hashCode) +
@@ -128,7 +133,7 @@ class UserResponse {
     (roles == null ? 0 : roles!.hashCode);
 
   @override
-  String toString() => 'UserResponse[id=$id, firstName=$firstName, lastName=$lastName, email=$email, username=$username, picture=$picture, isActive=$isActive, createdAt=$createdAt, lastLoginAt=$lastLoginAt, phoneNumber=$phoneNumber, genderId=$genderId, genderName=$genderName, cityId=$cityId, cityName=$cityName, roles=$roles]';
+  String toString() => 'UserResponse[id=$id, firstName=$firstName, lastName=$lastName, email=$email, username=$username, picture=$picture, hasPicture=$hasPicture, isActive=$isActive, createdAt=$createdAt, lastLoginAt=$lastLoginAt, phoneNumber=$phoneNumber, genderId=$genderId, genderName=$genderName, cityId=$cityId, cityName=$cityName, roles=$roles]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -161,6 +166,11 @@ class UserResponse {
       json[r'picture'] = this.picture;
     } else {
       json[r'picture'] = null;
+    }
+    if (this.hasPicture != null) {
+      json[r'hasPicture'] = this.hasPicture;
+    } else {
+      json[r'hasPicture'] = null;
     }
     if (this.isActive != null) {
       json[r'isActive'] = this.isActive;
@@ -235,6 +245,7 @@ class UserResponse {
         email: mapValueOfType<String>(json, r'email'),
         username: mapValueOfType<String>(json, r'username'),
         picture: mapValueOfType<String>(json, r'picture'),
+        hasPicture: mapValueOfType<bool>(json, r'hasPicture'),
         isActive: mapValueOfType<bool>(json, r'isActive'),
         createdAt: mapDateTime(json, r'createdAt', r''),
         lastLoginAt: mapDateTime(json, r'lastLoginAt', r''),

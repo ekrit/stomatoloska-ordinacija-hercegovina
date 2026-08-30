@@ -10,8 +10,29 @@ namespace SOH.WebAPI.Controllers
 {
     public class ProductController : BaseCRUDController<ProductResponse, ProductSearchObject, ProductUpsertRequest, ProductUpsertRequest>
     {
+        private readonly IProductService _products;
+
         public ProductController(IProductService service) : base(service)
         {
+            _products = service;
+        }
+
+        /// <summary>
+        /// Serves one product image. List rows no longer carry picture bytes;
+        /// a card that needs one fetches it here, so a page of results is small
+        /// and images are cached per product by the client instead of being
+        /// re-sent with every listing.
+        /// </summary>
+        [HttpGet("{id:int}/picture")]
+        public async Task<IActionResult> Picture(int id)
+        {
+            var bytes = await _products.GetPictureAsync(id);
+            if (bytes == null || bytes.Length == 0)
+            {
+                return NotFound();
+            }
+
+            return File(bytes, ImageContentType.For(bytes));
         }
 
         [Authorize(Roles = RoleNames.Administrator)]
