@@ -6,16 +6,16 @@ namespace SOH.Model.Requests
 {
     public class AppointmentUpsertRequest
     {
-        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Odaberite ispravnu vrijednost.")]
         public int PatientId { get; set; }
 
-        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Odaberite ispravnu vrijednost.")]
         public int DoctorId { get; set; }
 
-        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Odaberite ispravnu vrijednost.")]
         public int ServiceId { get; set; }
 
-        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Odaberite ispravnu vrijednost.")]
         public int RoomId { get; set; }
 
         [Required]

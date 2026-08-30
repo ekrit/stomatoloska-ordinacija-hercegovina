@@ -134,12 +134,12 @@ u okruženju), grupisane da se `SOHDbContextModelSnapshot.cs` dira što rjeđe.
 
 ### Faza F — mobile
 
-- [ ] **14. Nedostaje "forgot password" tok.**
+- [x] **14. Nedostaje "forgot password" tok.**
   Postoji samo `change-password` za prijavljenog korisnika.
   *Rješenje:* zahtjev za reset → jednokratni token/kod → nova lozinka nakon
   serverske provjere. Postojeći change-password ostaje.
 
-- [ ] **15. Nedosljedna validacija i poruke greške.**
+- [x] **15. Nedosljedna validacija i poruke greške.**
   `login_screen.dart` i `admin_add_patient_screen.dart` koriste obične
   `TextField`; ponegdje se prikazuje sirovi `$e`; `[Required]` na non-nullable
   `int` ne sprječava 0.
@@ -182,6 +182,8 @@ u okruženju), grupisane da se `SOHDbContextModelSnapshot.cs` dira što rjeđe.
 | 2026-08-30 | 6 | faza B | `SyncDomainProfilesAsync` — User je source-of-truth za ime/telefon, Patient/Doctor se sinhronizuju u istoj operaciji; uloga se ne dodjeljuje bez domenskog profila |
 | 2026-08-30 | 7 | faza C | `MoneyPolicy`: BAM je valuta sistema, PayPal se naplaćuje u EUR po fiksnom kursu 1 EUR = 1.95583 KM; `Payment` čuva i naplaćeni iznos/valutu |
 | 2026-08-30 | 8 | faza C | `VerifyWebhookAsync` fail-closed; mock samo uz eksplicitni `PAYPAL__ALLOW_UNVERIFIED_WEBHOOKS=true` |
+| 2026-08-30 | 14 | faza F | Forgot-password tok: `POST /Users/password-reset/request` + `/complete`, jednokratni kod (čuva se samo hash, 15 min, jednokratan), e-mail preko notification workera, mobilni ekran; postojeći change-password ostaje |
+| 2026-08-30 | 15 | faza F | `Form` + validatori uz kontrole na login i admin-add-patient ekranima; sirovi `$e` zamijenjen kontrolisanim porukama; `[Required]` na non-nullable `int` zamijenjen `[Range]` za FK ID-eve, rating, `BrushesCount` i iznos |
 | 2026-08-30 | 12 | faza E | Šifarnici `AppointmentStatusType`/`PaymentStatusType` (GET/POST/PUT/DELETE + desktop ekran), seedani iz enum-a; enum ostaje autoritet za state machine, brisanje blokirano dok status koristi ijedan zapis |
 | 2026-08-30 | 13 | faza E | Desktop: dodavanje i brisanje doktora, kompletan delete tok za lokacije, forma lokacije obuhvata adresu/telefon/e-mail/radno vrijeme |
 | 2026-08-30 | 10 | faza D | `GET /Appointment/availability` računa stvarne slotove (trajanje usluge, slobodan doktor i prostorija, radno vrijeme); `EndTime` i prostorija se izvode serverski; klijent samo prikazuje |

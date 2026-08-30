@@ -46,7 +46,11 @@ namespace SOH.Subscriber.Services
                         "Appointment_Reminders",
                         HandleAppointmentReminder);
 
-                    _logger.LogInformation("Subscribed to appointment reminders.");
+                    bus.PubSub.Subscribe<PasswordResetRequestedMessage>(
+                        "Password_Resets",
+                        HandlePasswordReset);
+
+                    _logger.LogInformation("Subscribed to appointment reminders and password resets.");
                     delay = TimeSpan.FromSeconds(1);
                     await Task.Delay(Timeout.Infinite, stoppingToken);
                 }
@@ -68,6 +72,42 @@ namespace SOH.Subscriber.Services
                     }
                     delay = TimeSpan.FromTicks(Math.Min(delay.Ticks * 2, maxDelay.Ticks));
                 }
+            }
+        }
+
+        /// <summary>
+        /// Mails the one-time reset code to the account's own address — that is
+        /// the whole point of the flow, so unlike the reminder recipients this
+        /// does not read a configured list. The code is never logged.
+        /// </summary>
+        private async Task HandlePasswordReset(PasswordResetRequestedMessage message)
+        {
+            _logger.LogInformation(
+                "Password reset requested for user {UserId}; code expires {ExpiresAtUtc:o}",
+                message.UserId,
+                message.ExpiresAtUtc);
+
+            if (string.IsNullOrWhiteSpace(message.Email))
+            {
+                _logger.LogWarning("No e-mail address for user {UserId}; reset code not delivered.", message.UserId);
+                return;
+            }
+
+            var subject = "Reset lozinke - Stomatološka ordinacija";
+            var body =
+                $"Poštovani/a {message.FirstName},\n\n" +
+                $"Vaš jednokratni kod za reset lozinke je: {message.Code}\n" +
+                $"Kod vrijedi do {message.ExpiresAtUtc:HH:mm} UTC ({message.ExpiresAtUtc:dd.MM.yyyy.}).\n\n" +
+                "Ako niste tražili reset lozinke, zanemarite ovu poruku - vaša lozinka ostaje nepromijenjena.";
+
+            try
+            {
+                await _emailSender.SendEmailAsync(message.Email, subject, body);
+                _logger.LogInformation("Password reset e-mail sent for user {UserId}", message.UserId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send password reset e-mail for user {UserId}", message.UserId);
             }
         }
 

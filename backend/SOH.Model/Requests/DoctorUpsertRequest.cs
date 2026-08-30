@@ -4,7 +4,7 @@ namespace SOH.Model.Requests
 {
     public class DoctorUpsertRequest
     {
-        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Odaberite ispravnu vrijednost.")]
         public int UserId { get; set; }
 
         [Required]

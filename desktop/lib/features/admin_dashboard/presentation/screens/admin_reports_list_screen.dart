@@ -12,6 +12,7 @@ import 'package:soh_api/api.dart';
 import '../../../../core/api/api_providers.dart';
 import '../../../../core/api/soh_extra_api.dart';
 import '../../../../core/widgets/paginated_search_view.dart';
+import '../../../../core/utils/api_errors.dart';
 
 class AdminReportsListScreen extends ConsumerStatefulWidget {
   const AdminReportsListScreen({super.key});
@@ -141,7 +142,9 @@ class _AdminReportsListScreenState extends ConsumerState<AdminReportsListScreen>
       _reload();
       messenger.showSnackBar(SnackBar(content: Text('PDF saved: $path')));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      messenger.showSnackBar(SnackBar(
+        content: Text(extractApiErrorMessage(e, fallback: 'Radnju nije moguće izvršiti.')),
+      ));
     }
   }
 
@@ -155,7 +158,9 @@ class _AdminReportsListScreenState extends ConsumerState<AdminReportsListScreen>
       );
       _reload();
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      messenger.showSnackBar(SnackBar(
+        content: Text(extractApiErrorMessage(e, fallback: 'Radnju nije moguće izvršiti.')),
+      ));
     }
   }
 
@@ -170,7 +175,9 @@ class _AdminReportsListScreenState extends ConsumerState<AdminReportsListScreen>
         SnackBar(content: Text('Copied ${items.length} row(s) to clipboard.')),
       );
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      messenger.showSnackBar(SnackBar(
+        content: Text(extractApiErrorMessage(e, fallback: 'Radnju nije moguće izvršiti.')),
+      ));
     }
   }
 }

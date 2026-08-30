@@ -29,10 +29,10 @@ namespace SOH.Model.Requests
         [MaxLength(20)]
         public string? PhoneNumber { get; set; }
         
-        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Odaberite ispravnu vrijednost.")]
         public int GenderId { get; set; }
         
-        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Odaberite ispravnu vrijednost.")]
         public int CityId { get; set; }
         
         public bool IsActive { get; set; } = true;

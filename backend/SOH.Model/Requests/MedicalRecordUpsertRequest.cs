@@ -4,7 +4,7 @@ namespace SOH.Model.Requests
 {
     public class MedicalRecordUpsertRequest
     {
-        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Odaberite ispravnu vrijednost.")]
         public int AppointmentId { get; set; }
 
         [Required]

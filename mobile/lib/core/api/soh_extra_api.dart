@@ -205,6 +205,49 @@ class SohExtraApi {
     }
   }
 
+
+  /// Starts the "forgot password" flow. Always succeeds from the client's point
+  /// of view: the server answers identically whether or not the account exists,
+  /// so this call cannot be used to discover usernames.
+  Future<void> requestPasswordReset(String usernameOrEmail) async {
+    final resp = await _client.invokeAPI(
+      '/Users/password-reset/request',
+      'POST',
+      <QueryParam>[],
+      jsonEncode({'usernameOrEmail': usernameOrEmail}),
+      <String, String>{},
+      <String, String>{},
+      'application/json',
+    );
+    if (resp.statusCode < 200 || resp.statusCode >= 300) {
+      throw ApiException(resp.statusCode, resp.body);
+    }
+  }
+
+  /// Completes the reset with the one-time code delivered by e-mail.
+  Future<void> completePasswordReset({
+    required String usernameOrEmail,
+    required String code,
+    required String newPassword,
+  }) async {
+    final resp = await _client.invokeAPI(
+      '/Users/password-reset/complete',
+      'POST',
+      <QueryParam>[],
+      jsonEncode({
+        'usernameOrEmail': usernameOrEmail,
+        'code': code,
+        'newPassword': newPassword,
+      }),
+      <String, String>{},
+      <String, String>{},
+      'application/json',
+    );
+    if (resp.statusCode < 200 || resp.statusCode >= 300) {
+      throw ApiException(resp.statusCode, resp.body);
+    }
+  }
+
   /// Changes the signed-in user's password after verifying the current one.
   /// The server rejects the change if the old password is wrong.
   Future<void> changePassword(int userId, String oldPassword, String newPassword) async {

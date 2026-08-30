@@ -90,7 +90,7 @@ class DoctorResponseScreen extends ConsumerWidget {
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('$e')),
+        error: (e, _) => Center(child: Text(extractApiErrorMessage(e))),
         data: (items) {
           final pending = items
               .where((a) => a.status == AppointmentStatuses.requested)

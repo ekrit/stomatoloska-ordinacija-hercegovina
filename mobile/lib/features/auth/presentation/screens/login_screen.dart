@@ -19,6 +19,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _loading = false;
@@ -32,7 +33,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
+  String? _validateUsername(String? v) {
+    final t = (v ?? '').trim();
+    if (t.isEmpty) return 'Korisničko ime je obavezno.';
+    return null;
+  }
+
+  String? _validatePassword(String? v) {
+    if ((v ?? '').isEmpty) return 'Lozinka je obavezna.';
+    return null;
+  }
+
   Future<void> _login() async {
+    // Per-field validation, so an empty username no longer surfaces as the
+    // same generic "wrong username or password" line as a real auth failure.
+    if (!_formKey.currentState!.validate()) return;
     setState(() {
       _loading = true;
       _error = null;
@@ -100,7 +115,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             constraints: const BoxConstraints(maxWidth: 440),
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
-              child: Column(
+              child: Form(
+                key: _formKey,
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
@@ -119,14 +136,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                   ),
                   const SizedBox(height: 28),
-                  TextField(
+                  TextFormField(
                     controller: _usernameController,
                     decoration: const InputDecoration(labelText: 'Korisničko ime'),
                     textInputAction: TextInputAction.next,
                     autofillHints: const [AutofillHints.username],
+                    validator: _validateUsername,
                   ),
                   const SizedBox(height: 12),
-                  TextField(
+                  TextFormField(
                     controller: _passwordController,
                     obscureText: !_showPassword,
                     decoration: InputDecoration(
@@ -142,7 +160,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                     autofillHints: const [AutofillHints.password],
-                    onSubmitted: (_) => _loading ? null : _login(),
+                    validator: _validatePassword,
+                    onFieldSubmitted: (_) => _loading ? null : _login(),
                   ),
                   const SizedBox(height: 20),
                   FilledButton(
@@ -162,7 +181,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         : () => Navigator.pushNamed(context, AppRoutes.register),
                     child: const Text('Kreiraj nalog'),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
+                  TextButton(
+                    onPressed: _loading
+                        ? null
+                        : () => Navigator.pushNamed(context, AppRoutes.forgotPassword),
+                    child: const Text('Zaboravili ste lozinku?'),
+                  ),
                   TextButton(
                     onPressed: _loading
                         ? null
@@ -177,6 +202,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ],
                 ],
+                ),
               ),
             ),
           ),

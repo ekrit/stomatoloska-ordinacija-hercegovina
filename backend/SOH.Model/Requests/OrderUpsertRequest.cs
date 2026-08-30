@@ -4,10 +4,10 @@ namespace SOH.Model.Requests
 {
     public class OrderUpsertRequest
     {
-        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Odaberite ispravnu vrijednost.")]
         public int PatientId { get; set; }
 
-        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Odaberite ispravnu vrijednost.")]
         public int ProductId { get; set; }
 
         [Range(1, 1000)]

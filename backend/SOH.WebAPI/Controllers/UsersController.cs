@@ -1,3 +1,4 @@
+using SOH.Model.Notifications;
 using SOH.Model.Requests;
 using SOH.Model.Responses;
 using SOH.Model.SearchObjects;
@@ -24,17 +25,23 @@ namespace SOH.WebAPI.Controllers
         private readonly IRoleService _roleService;
         private readonly IRevokedTokenStore _revokedTokens;
         private readonly IConfiguration _configuration;
+        private readonly IPasswordResetPublisher _passwordResetPublisher;
+        private readonly ILogger<UsersController> _logger;
 
         public UsersController(
             IUserService userService,
             IRoleService roleService,
             IRevokedTokenStore revokedTokens,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IPasswordResetPublisher passwordResetPublisher,
+            ILogger<UsersController> logger)
         {
             _userService = userService;
             _roleService = roleService;
             _revokedTokens = revokedTokens;
             _configuration = configuration;
+            _passwordResetPublisher = passwordResetPublisher;
+            _logger = logger;
         }
 
         private int? CurrentUserId =>
@@ -146,6 +153,57 @@ namespace SOH.WebAPI.Controllers
                 return Forbid();
 
             await _userService.ChangeOwnPasswordAsync(id, request.OldPassword, request.NewPassword);
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Starts a password reset for a user who cannot sign in. This is not
+        /// the same thing as change-password, which requires the current
+        /// password and an active session; both flows exist because they serve
+        /// different situations.
+        /// </summary>
+        /// <remarks>
+        /// Always answers 204, whether or not the identifier matched an
+        /// account. Responding differently would let anyone probe this endpoint
+        /// to discover which usernames and e-mails exist. The one-time code is
+        /// delivered by e-mail through the notification worker and never
+        /// returned in the response.
+        /// </remarks>
+        [HttpPost("password-reset/request")]
+        [AllowAnonymous]
+        public async Task<ActionResult> RequestPasswordReset([FromBody] PasswordResetStartRequest request)
+        {
+            var issued = await _userService.RequestPasswordResetAsync(request.UsernameOrEmail);
+            if (issued is PasswordResetIssue code)
+            {
+                try
+                {
+                    await _passwordResetPublisher.PublishAsync(new PasswordResetRequestedMessage
+                    {
+                        UserId = code.UserId,
+                        Email = code.Email,
+                        FirstName = code.FirstName,
+                        Code = code.Code,
+                        ExpiresAtUtc = code.ExpiresAtUtc,
+                    });
+                }
+                catch (Exception ex)
+                {
+                    // The code is already stored, so a broker outage must not
+                    // reveal itself through a different status code here.
+                    _logger.LogError(ex, "Failed to publish password reset code for user {UserId}", code.UserId);
+                }
+            }
+
+            return NoContent();
+        }
+
+        /// <summary>Completes the reset with the one-time code from the e-mail.</summary>
+        [HttpPost("password-reset/complete")]
+        [AllowAnonymous]
+        public async Task<ActionResult> CompletePasswordReset([FromBody] PasswordResetCompleteRequest request)
+        {
+            await _userService.ResetPasswordAsync(request.UsernameOrEmail, request.Code, request.NewPassword);
             return NoContent();
         }
 

@@ -63,7 +63,9 @@ builder.Services.AddDatabaseServices(connectionString);
 builder.Services.AddMapster();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserAccessor, HttpContextCurrentUserAccessor>();
-builder.Services.AddSingleton<IAppointmentReminderPublisher, AppointmentReminderPublisher>();
+builder.Services.AddSingleton<AppointmentReminderPublisher>();
+builder.Services.AddSingleton<IAppointmentReminderPublisher>(sp => sp.GetRequiredService<AppointmentReminderPublisher>());
+builder.Services.AddSingleton<IPasswordResetPublisher>(sp => sp.GetRequiredService<AppointmentReminderPublisher>());
 builder.Services.AddSingleton<IRevokedTokenStore, RevokedTokenStore>();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");

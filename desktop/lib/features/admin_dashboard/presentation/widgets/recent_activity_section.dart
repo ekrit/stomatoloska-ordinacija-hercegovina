@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../providers/admin_dashboard_providers.dart';
+import '../../../../core/utils/api_errors.dart';
 
 String activityCountLabel(int count) => 'Ukupno radnji: $count';
 
@@ -49,7 +50,7 @@ class RecentActivitySection extends ConsumerWidget {
                 height: 120,
                 child: Center(child: CircularProgressIndicator()),
               ),
-              error: (e, _) => Text('Greška pri učitavanju radnji: $e'),
+              error: (e, _) => Text(extractApiErrorMessage(e, fallback: 'Radnje nije moguće učitati.')),
               data: (activity) {
                 final items = activity.items;
                 if (items.isEmpty) {

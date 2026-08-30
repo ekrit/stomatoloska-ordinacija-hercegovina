@@ -32,6 +32,7 @@ namespace SOH.Services.Database
         public DbSet<AppointmentStatusHistory> AppointmentStatusHistories { get; set; }
         public DbSet<AppointmentStatusType> AppointmentStatusTypes { get; set; }
         public DbSet<PaymentStatusType> PaymentStatusTypes { get; set; }
+        public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
     
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

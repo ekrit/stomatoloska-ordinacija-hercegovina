@@ -10,7 +10,7 @@ namespace SOH.WebAPI.Services
     /// itself must never fail because the broker is down, so the final
     /// failure is logged as an error and swallowed.
     /// </summary>
-    public sealed class AppointmentReminderPublisher : IAppointmentReminderPublisher, IDisposable
+    public sealed class AppointmentReminderPublisher : IAppointmentReminderPublisher, IPasswordResetPublisher, IDisposable
     {
         private static readonly TimeSpan[] RetryDelays =
         {
@@ -33,6 +33,19 @@ namespace SOH.WebAPI.Services
             _bus = new Lazy<IBus>(
                 () => RabbitHutch.CreateBus(connectionString),
                 LazyThreadSafetyMode.ExecutionAndPublication);
+        }
+
+        /// <summary>
+        /// Publishes a password-reset code. Unlike a reminder, a failure here
+        /// must surface: silently swallowing it would leave the user waiting
+        /// for a mail that is never sent, with no way to tell.
+        /// </summary>
+        public async Task PublishAsync(
+            PasswordResetRequestedMessage message,
+            CancellationToken cancellationToken = default)
+        {
+            await _bus.Value.PubSub.PublishAsync(message, cancellationToken);
+            _logger.LogInformation("Password reset code published for user {UserId}", message.UserId);
         }
 
         public async Task PublishAsync(
