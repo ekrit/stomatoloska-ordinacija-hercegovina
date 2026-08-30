@@ -235,8 +235,13 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           Card(
             child: ListTile(
               title: const Text('Iznos za plaćanje'),
+              subtitle: Text(
+                'PayPal naplaćuje ${order.chargedAmount.toStringAsFixed(2)} '
+                '${order.chargedCurrency} po fiksnom kursu '
+                '1 EUR = 1,95583 KM.',
+              ),
               trailing: Text(
-                '${order.amount.toStringAsFixed(2)} EUR',
+                '${order.amount.toStringAsFixed(2)} ${order.currency}',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
@@ -264,7 +269,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text('Nastaviti na PayPal?'),
         content: Text(
-          'You are about to pay ${order.amount.toStringAsFixed(2)} EUR via PayPal. '
+          'Plaćate ${order.amount.toStringAsFixed(2)} ${order.currency}, '
+          'što PayPal naplaćuje kao ${order.chargedAmount.toStringAsFixed(2)} '
+          '${order.chargedCurrency}. '
           'Otvara se PayPal-ova sigurna stranica za plaćanje.',
         ),
         actions: [

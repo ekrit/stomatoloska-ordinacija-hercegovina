@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using SOH.Model.Exceptions;
+using SOH.Services.Database;
 using SOH.Services.Interfaces;
 
 namespace SOH.Services.Services;
@@ -20,6 +21,7 @@ public class PayPalGateway : IPayPalGateway
     private readonly string _clientId;
     private readonly string _clientSecret;
     private readonly string _webhookId;
+    private readonly bool _allowUnverifiedWebhooks;
 
     public PayPalGateway(HttpClient http, IConfiguration configuration)
     {
@@ -30,6 +32,12 @@ public class PayPalGateway : IPayPalGateway
         _clientId = section["CLIENT_ID"] ?? string.Empty;
         _clientSecret = section["CLIENT_SECRET"] ?? string.Empty;
         _webhookId = section["WEBHOOK_ID"] ?? string.Empty;
+
+        // Opt-in only, for local work against a sandbox with no registered
+        // webhook. Never set this outside development: it turns the anonymous
+        // webhook endpoint into an unauthenticated payment-status writer.
+        _allowUnverifiedWebhooks =
+            string.Equals(section["ALLOW_UNVERIFIED_WEBHOOKS"], "true", StringComparison.OrdinalIgnoreCase);
     }
 
     private bool IsConfigured =>
@@ -67,10 +75,12 @@ public class PayPalGateway : IPayPalGateway
             ?? throw new BusinessException("PayPal auth returned no access_token.");
     }
 
-    public async Task<PayPalOrderResult> CreateOrderAsync(decimal amountEur, string returnUrl, string cancelUrl, CancellationToken cancellationToken = default)
+    public async Task<PayPalOrderResult> CreateOrderAsync(decimal amountInProviderCurrency, string returnUrl, string cancelUrl, CancellationToken cancellationToken = default)
     {
         var token = await GetAccessTokenAsync(cancellationToken);
 
+        // The caller converts from the business currency; this method charges
+        // exactly what it is given, in the provider currency it names.
         var payload = new
         {
             intent = "CAPTURE",
@@ -80,8 +90,8 @@ public class PayPalGateway : IPayPalGateway
                 {
                     amount = new
                     {
-                        currency_code = "EUR",
-                        value = amountEur.ToString("F2", CultureInfo.InvariantCulture),
+                        currency_code = MoneyPolicy.ProviderCurrency,
+                        value = amountInProviderCurrency.ToString("F2", CultureInfo.InvariantCulture),
                     },
                 },
             },
@@ -110,21 +120,63 @@ public class PayPalGateway : IPayPalGateway
         using var doc = JsonDocument.Parse(body);
         var root = doc.RootElement;
         var orderId = root.GetProperty("id").GetString() ?? string.Empty;
-        var approvalUrl = string.Empty;
-        if (root.TryGetProperty("links", out var links))
+
+        return new PayPalOrderResult(orderId, ReadApprovalLink(root) ?? string.Empty);
+    }
+
+    public async Task<string?> GetApprovalUrlAsync(string orderId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(orderId))
         {
-            foreach (var link in links.EnumerateArray())
+            return null;
+        }
+
+        var token = await GetAccessTokenAsync(cancellationToken);
+
+        using var req = new HttpRequestMessage(HttpMethod.Get, $"v2/checkout/orders/{orderId}");
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        using var resp = await _http.SendAsync(req, cancellationToken);
+        if (!resp.IsSuccessStatusCode)
+        {
+            // Unknown or expired order: the caller opens a new one.
+            return null;
+        }
+
+        var body = await resp.Content.ReadAsStringAsync(cancellationToken);
+        using var doc = JsonDocument.Parse(body);
+        var root = doc.RootElement;
+
+        // Only these two states can still be approved by the payer; anything
+        // else (COMPLETED, VOIDED, ...) must not be resumed.
+        var status = root.TryGetProperty("status", out var s) ? s.GetString() : null;
+        if (!string.Equals(status, "CREATED", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(status, "PAYER_ACTION_REQUIRED", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        return ReadApprovalLink(root);
+    }
+
+    private static string? ReadApprovalLink(JsonElement orderRoot)
+    {
+        if (!orderRoot.TryGetProperty("links", out var links))
+        {
+            return null;
+        }
+
+        foreach (var link in links.EnumerateArray())
+        {
+            if (link.TryGetProperty("rel", out var rel) &&
+                string.Equals(rel.GetString(), "approve", StringComparison.OrdinalIgnoreCase) &&
+                link.TryGetProperty("href", out var href))
             {
-                if (link.TryGetProperty("rel", out var rel) &&
-                    string.Equals(rel.GetString(), "approve", StringComparison.OrdinalIgnoreCase))
-                {
-                    approvalUrl = link.GetProperty("href").GetString() ?? string.Empty;
-                    break;
-                }
+                return href.GetString();
             }
         }
 
-        return new PayPalOrderResult(orderId, approvalUrl);
+        return null;
     }
 
     public async Task<string?> CaptureOrderAsync(string orderId, CancellationToken cancellationToken = default)
@@ -194,12 +246,15 @@ public class PayPalGateway : IPayPalGateway
 
     public async Task<bool> VerifyWebhookAsync(string? transmissionId, string? transmissionTime, string? certUrl, string? authAlgo, string? transmissionSig, string rawBody, CancellationToken cancellationToken = default)
     {
-        // Sandbox convenience: with no webhook id (or no credentials) configured
-        // there is nothing to verify against, so accept the event. This keeps a
-        // bare sandbox usable without a registered webhook.
+        // Fail closed. The webhook endpoint is necessarily AllowAnonymous, so
+        // this method is the only thing standing between an unauthenticated
+        // POST and a payment being marked Paid. Accepting events when there is
+        // nothing to verify against meant any caller who found the URL could
+        // flip payment state; missing configuration is a reason to reject, not
+        // to trust. The development escape hatch is explicit and opt-in.
         if (string.IsNullOrWhiteSpace(_webhookId) || !IsConfigured)
         {
-            return true;
+            return _allowUnverifiedWebhooks;
         }
 
         // Production-grade verification: ask PayPal to validate the signature of

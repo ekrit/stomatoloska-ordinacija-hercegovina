@@ -46,7 +46,7 @@ class _AdminServicesListScreenState extends ConsumerState<AdminServicesListScree
         itemBuilder: (context, s) => ListTile(
           title: Text(s.name ?? 'Service #${s.id ?? ''}'),
           subtitle: Text(
-            '${s.price?.toStringAsFixed(2) ?? '0.00'} EUR · ${s.durationMinutes ?? 0} min'
+            '${s.price?.toStringAsFixed(2) ?? '0.00'} KM · ${s.durationMinutes ?? 0} min'
             '${(s.description ?? '').isNotEmpty ? '\n${s.description}' : ''}',
           ),
           isThreeLine: (s.description ?? '').isNotEmpty,
