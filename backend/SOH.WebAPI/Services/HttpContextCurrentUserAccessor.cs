@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using SOH.Services.Interfaces;
+using SOH.WebAPI.Authorization;
 
 namespace SOH.WebAPI.Services
 {
@@ -12,14 +13,22 @@ namespace SOH.WebAPI.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
+        private ClaimsPrincipal? Principal => _httpContextAccessor.HttpContext?.User;
+
         public int? UserId =>
             int.TryParse(
-                _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier),
+                Principal?.FindFirstValue(ClaimTypes.NameIdentifier),
                 out var id)
                 ? id
                 : null;
 
-        public string? Username =>
-            _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Name);
+        public string? Username => Principal?.FindFirstValue(ClaimTypes.Name);
+
+        public bool IsAdministrator => Principal?.IsInRole(RoleNames.Administrator) == true;
+
+        public bool IsDoctor => Principal?.IsInRole(RoleNames.Doctor) == true;
+
+        public bool IsPatient =>
+            Principal?.Identity?.IsAuthenticated == true && !IsAdministrator && !IsDoctor;
     }
 }

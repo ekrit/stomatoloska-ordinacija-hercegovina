@@ -5,14 +5,16 @@ using SOH.Services.Interfaces;
 using SOH.WebAPI.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace SOH.WebAPI.Controllers
 {
     public class ReviewController : BaseCRUDController<ReviewResponse, ReviewSearchObject, ReviewUpsertRequest, ReviewUpsertRequest>
     {
+        private readonly IReviewService _reviews;
+
         public ReviewController(IReviewService service) : base(service)
         {
+            _reviews = service;
         }
 
         // Patients see only the reviews they authored; doctors see reviews
@@ -20,19 +22,24 @@ namespace SOH.WebAPI.Controllers
         public override Task<PagedResult<ReviewResponse>> Get([FromQuery] ReviewSearchObject? search = null)
         {
             search ??= new ReviewSearchObject();
-            if (!User.IsInRole(RoleNames.Administrator))
+            if (!CallerIsAdmin)
             {
-                var uid = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
-                if (User.IsInRole(RoleNames.Doctor))
+                if (CallerIsDoctor)
                 {
-                    search.DoctorId = uid;
+                    search.DoctorId = CallerUserId;
                 }
                 else
                 {
-                    search.PatientId = uid;
+                    search.PatientId = CallerUserId;
                 }
             }
             return base.Get(search);
+        }
+
+        public override async Task<ReviewResponse?> GetById(int id)
+        {
+            await EnsureCallerMayAccessAsync(_reviews, id);
+            return await base.GetById(id);
         }
 
         [Authorize(Roles = RoleNames.Administrator + "," + RoleNames.Patient)]
@@ -40,8 +47,11 @@ namespace SOH.WebAPI.Controllers
             => base.Create(request);
 
         [Authorize(Roles = RoleNames.Administrator + "," + RoleNames.Patient)]
-        public override Task<ReviewResponse?> Update(int id, [FromBody] ReviewUpsertRequest request)
-            => base.Update(id, request);
+        public override async Task<ReviewResponse?> Update(int id, [FromBody] ReviewUpsertRequest request)
+        {
+            await EnsureCallerMayAccessAsync(_reviews, id);
+            return await base.Update(id, request);
+        }
 
         [Authorize(Roles = RoleNames.Administrator)]
         public override Task<bool> Delete(int id) => base.Delete(id);

@@ -7,7 +7,6 @@ using SOH.WebAPI.Authorization;
 using SOH.WebAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace SOH.WebAPI.Controllers
 {
@@ -30,19 +29,27 @@ namespace SOH.WebAPI.Controllers
         public override Task<PagedResult<AppointmentResponse>> Get([FromQuery] AppointmentSearchObject? search = null)
         {
             search ??= new AppointmentSearchObject();
-            if (!User.IsInRole(RoleNames.Administrator))
+            if (!CallerIsAdmin)
             {
-                var uid = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
-                if (User.IsInRole(RoleNames.Doctor))
+                if (CallerIsDoctor)
                 {
-                    search.DoctorId = uid;
+                    search.DoctorId = CallerUserId;
                 }
                 else
                 {
-                    search.PatientId = uid;
+                    search.PatientId = CallerUserId;
                 }
             }
             return base.Get(search);
+        }
+
+        // Narrowing the list is not enough: a single appointment fetched by id
+        // must belong to the caller as well, otherwise a guessed id exposes
+        // another patient's visit.
+        public override async Task<AppointmentResponse?> GetById(int id)
+        {
+            await EnsureCallerMayAccessAsync(_appointments, id);
+            return await base.GetById(id);
         }
 
         [Authorize(Roles = RoleNames.Administrator + "," + RoleNames.Patient)]
@@ -72,12 +79,13 @@ namespace SOH.WebAPI.Controllers
         [Authorize(Roles = RoleNames.Administrator + "," + RoleNames.Doctor)]
         public override async Task<AppointmentResponse?> Update(int id, [FromBody] AppointmentUpsertRequest request)
         {
-            if (!User.IsInRole(RoleNames.Administrator))
+            if (!CallerIsAdmin)
             {
-                var uid = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var v) ? v : 0;
-                await _appointments.EnsureDoctorOwnsAsync(id, uid);
-                request.DoctorId = uid;
+                await _appointments.EnsureDoctorOwnsAsync(id, CallerUserId);
+                request.DoctorId = CallerUserId;
             }
+            // The patient of an existing appointment is pinned server-side in
+            // AppointmentService.BeforeUpdate, for the admin path too.
             return await base.Update(id, request);
         }
 
@@ -91,9 +99,14 @@ namespace SOH.WebAPI.Controllers
         [Authorize(Roles = RoleNames.Administrator + "," + RoleNames.Doctor + "," + RoleNames.Patient)]
         public async Task<ActionResult<AppointmentResponse>> Cancel(int id)
         {
-            var uid = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var v) ? v : 0;
-            var privileged = User.IsInRole(RoleNames.Administrator) || User.IsInRole(RoleNames.Doctor);
-            var result = await _appointments.CancelOwnAsync(id, uid, privileged);
+            // A doctor is not simply "privileged": they may cancel the
+            // appointments assigned to them, not a colleague's.
+            var actor = CallerIsAdmin
+                ? AppointmentActor.Administrator
+                : CallerIsDoctor
+                    ? AppointmentActor.Doctor
+                    : AppointmentActor.Patient;
+            var result = await _appointments.CancelOwnAsync(id, CallerUserId, actor);
             return Ok(result);
         }
     }

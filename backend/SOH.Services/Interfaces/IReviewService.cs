@@ -4,7 +4,7 @@ using SOH.Model.SearchObjects;
 
 namespace SOH.Services.Interfaces
 {
-    public interface IReviewService : ICRUDService<ReviewResponse, ReviewSearchObject, ReviewUpsertRequest, ReviewUpsertRequest>
+    public interface IReviewService : ICRUDService<ReviewResponse, ReviewSearchObject, ReviewUpsertRequest, ReviewUpsertRequest>, IRecordOwnership
     {
     }
 }

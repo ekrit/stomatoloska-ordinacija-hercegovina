@@ -18,6 +18,17 @@ namespace SOH.Services.Services
             _currentUser = currentUser;
         }
 
+        public async Task<RecordOwner?> GetOwnerAsync(int id, CancellationToken cancellationToken = default)
+        {
+            var owner = await _context.Reviews
+                .AsNoTracking()
+                .Where(r => r.Id == id)
+                .Select(r => new { r.PatientId, r.DoctorId })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return owner == null ? null : new RecordOwner(owner.PatientId, owner.DoctorId);
+        }
+
         protected override IQueryable<Review> ApplyFilter(IQueryable<Review> query, ReviewSearchObject search)
         {
             if (search.AppointmentId.HasValue)

@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,15 +21,20 @@ namespace SOH.WebAPI.Controllers
             _payPal = payPal;
         }
 
-        private int CallerUserId =>
-            int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
-
-        private bool CallerIsAdmin => User.IsInRole(RoleNames.Administrator);
-
         // Raw CRUD list/mutations stay admin-only; patients use the flow endpoints below.
         [Authorize(Roles = RoleNames.Administrator)]
         public override Task<PagedResult<PaymentResponse>> Get([FromQuery] PaymentSearchObject? search = null)
             => base.Get(search);
+
+        // The list is admin-only, but GetById was inherited open to every
+        // authenticated user. PaymentResponse carries the amount, status and
+        // PayPal references, so a patient may read only the payment for their
+        // own appointment and a doctor only for appointments assigned to them.
+        public override async Task<PaymentResponse?> GetById(int id)
+        {
+            await EnsureCallerMayAccessAsync(_payments, id);
+            return await base.GetById(id);
+        }
 
         [Authorize(Roles = RoleNames.Administrator)]
         public override Task<PaymentResponse> Create([FromBody] PaymentUpsertRequest request)

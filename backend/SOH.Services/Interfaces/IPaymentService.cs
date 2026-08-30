@@ -4,7 +4,7 @@ using SOH.Model.SearchObjects;
 
 namespace SOH.Services.Interfaces
 {
-    public interface IPaymentService : ICRUDService<PaymentResponse, PaymentSearchObject, PaymentUpsertRequest, PaymentUpsertRequest>
+    public interface IPaymentService : ICRUDService<PaymentResponse, PaymentSearchObject, PaymentUpsertRequest, PaymentUpsertRequest>, IRecordOwnership
     {
         /// <summary>Creates a Pending payment for the appointment and a PayPal order. Amount comes from the service catalog.</summary>
         Task<PaymentOrderCreateResponse> CreateOrderAsync(int appointmentId, int callerUserId, bool isAdmin, CancellationToken cancellationToken = default);
