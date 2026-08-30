@@ -47,6 +47,13 @@ namespace SOH.Services.Database
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Username)
                 .IsUnique();
+
+            // One hygiene entry per patient per day. The service checks this
+            // too for a friendly message, but the index is what actually makes
+            // it an invariant: two concurrent POSTs cannot both win.
+            modelBuilder.Entity<HygieneTracker>()
+                .HasIndex(h => new { h.PatientId, h.Date })
+                .IsUnique();
                
 
             // Configure Role entity

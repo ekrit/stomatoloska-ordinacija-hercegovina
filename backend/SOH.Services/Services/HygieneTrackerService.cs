@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SOH.Model.Exceptions;
 using SOH.Model.Requests;
 using SOH.Model.Responses;
 using SOH.Model.SearchObjects;
@@ -20,21 +21,49 @@ namespace SOH.Services.Services
         // A patient logs their own brushing. The PatientId in the request is
         // client input, so it is replaced with the identity from the JWT; only
         // an administrator keeps the id they sent.
-        protected override Task BeforeInsert(HygieneTracker entity, HygieneTrackerUpsertRequest request)
+        protected override async Task BeforeInsert(HygieneTracker entity, HygieneTrackerUpsertRequest request)
         {
             if (_currentUser.IsPatient && _currentUser.UserId is int callerId)
             {
                 entity.PatientId = callerId;
             }
-            return Task.CompletedTask;
+
+            // The diary holds one entry per patient per day. Only the date part
+            // is meaningful, so it is normalised before the check — otherwise
+            // two entries differing by a timestamp would both be accepted.
+            entity.Date = entity.Date.Date;
+
+            await EnsureNoEntryForDayAsync(entity.PatientId, entity.Date, ignoreId: null);
         }
 
         // An existing entry keeps its patient; the request shares the insert
         // model, so Mapster would otherwise reassign it on update.
-        protected override Task BeforeUpdate(HygieneTracker entity, HygieneTrackerUpsertRequest request)
+        protected override async Task BeforeUpdate(HygieneTracker entity, HygieneTrackerUpsertRequest request)
         {
             request.PatientId = entity.PatientId;
-            return Task.CompletedTask;
+            request.Date = request.Date.Date;
+
+            await EnsureNoEntryForDayAsync(entity.PatientId, request.Date, ignoreId: entity.Id);
+        }
+
+        /// <summary>
+        /// Guards the one-entry-per-day rule in the service as well as in the
+        /// database. The unique index is the real invariant — two concurrent
+        /// POSTs can both pass this check — but hitting it raw would surface as
+        /// a 500, so the common case is caught here with a clear message.
+        /// </summary>
+        private async Task EnsureNoEntryForDayAsync(int patientId, DateTime day, int? ignoreId)
+        {
+            var exists = await _context.HygieneTrackers
+                .AsNoTracking()
+                .Where(h => ignoreId == null || h.Id != ignoreId.Value)
+                .AnyAsync(h => h.PatientId == patientId && h.Date == day.Date);
+
+            if (exists)
+            {
+                throw new BusinessException(
+                    "Za ovaj dan već postoji zapis o higijeni. Uredite postojeći zapis umjesto kreiranja novog.");
+            }
         }
 
         public async Task<RecordOwner?> GetOwnerAsync(int id, CancellationToken cancellationToken = default)

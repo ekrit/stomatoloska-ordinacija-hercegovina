@@ -15,14 +15,14 @@ poslovna logika*).
 - Detail + interaction: tapping a recommended card opens
   [`mobile/lib/features/home/presentation/product_detail_screen.dart`](../mobile/lib/features/home/presentation/product_detail_screen.dart),
   which lists every reason and posts a `DetailOpened` interaction (scored
-  higher than a plain `View`).
+  higher than a plain `View`, which is currently not scored at all — see the note below).
 
 ## API surface
 
 | Method | Route | Auth | Purpose |
 |---|---|---|---|
 | `GET` | `/Recommendation?take=8` | Bearer (Patient) | Returns up to `take` ranked products with score + per-product reasons. |
-| `POST` | `/Recommendation/track` | Bearer (Patient) | Records that the patient interacted with a product (`View` or `DetailOpened`). Used as personal signal in the next call. |
+| `POST` | `/Recommendation/track` | Bearer (Patient) | Records that the patient interacted with a product (`View` or `DetailOpened`). Only `DetailOpened` is produced by the apps and used as a personal signal; `View` is stored but not scored. |
 
 Both routes use the JWT `NameIdentifier` claim as the user id; no body
 needs to carry it.
@@ -38,7 +38,6 @@ tune without a redeploy.
 score(product, user)
   = WeightContent        * contentMatch(product, recent-services(user))
   + WeightPopularity     * log(1 + recent-order-count(product))
-  + WeightPersonalViews  * log(1 + own-view-count(user, product))
   + WeightDetailOpened   * log(1 + own-detail-open-count(user, product))
 ```
 
@@ -48,7 +47,6 @@ Current weights (see `RecommendationService`):
 |---|---|---|---|
 | Content (services -> product) | 3.5 | last 6 appointments in the last 9 months | Tokenized name + category name (FK to ProductCategory) + description; overlap with tokens from recent service names. Bounded `1 + 0.35 * overlap` capped at 4 to keep one strong match from dominating. |
 | Popularity (clinic-wide orders) | 1.2 | last 90 days | Counted from `Order.ProductId` on `Orders.CreatedAt` (quantity summed). Logarithmic so a 100-order spike does not crowd everything else out. |
-| Personal views | 2.0 | all time | `ProductInteractions` of kind `View`. Logarithmic for the same reason. |
 | Detail opened | 3.0 | all time | `ProductInteractions` of kind `DetailOpened`. Stronger personal signal than a passive card view. |
 
 The constants live at the top of the file:
@@ -56,7 +54,6 @@ The constants live at the top of the file:
 ```csharp
 private const double WeightContent       = 3.5;
 private const double WeightPopularity    = 1.2;
-private const double WeightPersonalViews = 2.0;
 private const double WeightDetailOpened  = 3.0;
 ```
 
@@ -95,7 +92,6 @@ picks") so the UI never shows an empty justification chip.
 |---|---|---|
 | Content | `Appointments` joined to `Services` | `PatientId`, `StartTime`, `Service.Name` |
 | Popularity | `Orders` | `ProductId`, `Quantity`, `CreatedAt` |
-| Personal views | `ProductInteractions` | `UserId`, `ProductId`, `Kind=View`, `CreatedAt` |
 | Detail opened | `ProductInteractions` | `UserId`, `ProductId`, `Kind=DetailOpened`, `CreatedAt` |
 
 `ProductInteractions` is populated by the mobile app via `POST
@@ -126,3 +122,14 @@ ranking.
   redeploy.
 - Add a "cold start" boost for items in categories never recommended yet,
   for product discovery.
+
+## Napomena o `View` signalu
+
+Raniji scoring je davao težinu i `View` interakciji, ali nijedan klijent taj
+signal nije zapisivao — samo `product_detail_screen.dart` šalje `DetailOpened`.
+Težina je time bila mrtva, a dokumentacija je opisivala signal koji ne postoji.
+
+Umjesto uvođenja impression-trackinga koji review nije tražio, `View` je
+uklonjen iz scoringa. Endpoint `/Recommendation/track` i dalje prima i pohranjuje
+`View`, pa se signal može vratiti kada ga aplikacija stvarno počne proizvoditi;
+scoring koristi isključivo ono što aplikacija zaista šalje.

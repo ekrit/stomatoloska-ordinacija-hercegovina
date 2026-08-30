@@ -311,6 +311,9 @@ namespace SOH.Services.Migrations
 
                     b.HasIndex("PatientId");
 
+                    b.HasIndex("PatientId", "Date")
+                        .IsUnique();
+
                     b.ToTable("HygieneTrackers");
                 });
 

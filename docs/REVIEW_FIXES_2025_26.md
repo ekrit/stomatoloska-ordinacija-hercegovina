@@ -148,15 +148,15 @@ u okruženju), grupisane da se `SOHDbContextModelSnapshot.cs` dira što rjeđe.
 
 ### Faza G — ostalo
 
-- [ ] **16. GET mijenja stanje notifikacije.**
+- [x] **16. GET mijenja stanje notifikacije.**
   `MarkRead(int id)` je izložen i preko GET-a.
   *Rješenje:* jedan write endpoint (PATCH/POST `/notifications/{id}/read`).
 
-- [ ] **17. Hygiene tracker bez dnevnog invarijanta.**
+- [x] **17. Hygiene tracker bez dnevnog invarijanta.**
   Nema provjere jednog zapisa po pacijentu po danu; `BrushesCount` bez opsega.
   *Rješenje:* unique constraint + servisna provjera, validacija opsega.
 
-- [ ] **18. Recommender signali nisu usklađeni sa scoringom.**
+- [x] **18. Recommender signali nisu usklađeni sa scoringom.**
   `View` ima težinu, ali nema produkcijskog poziva koji ga zapisuje.
   *Rješenje:* stvarno zapisati `View` na korisničkom događaju, ili ukloniti
   signal/težinu i uskladiti dokumentaciju.
@@ -182,6 +182,9 @@ u okruženju), grupisane da se `SOHDbContextModelSnapshot.cs` dira što rjeđe.
 | 2026-08-30 | 6 | faza B | `SyncDomainProfilesAsync` — User je source-of-truth za ime/telefon, Patient/Doctor se sinhronizuju u istoj operaciji; uloga se ne dodjeljuje bez domenskog profila |
 | 2026-08-30 | 7 | faza C | `MoneyPolicy`: BAM je valuta sistema, PayPal se naplaćuje u EUR po fiksnom kursu 1 EUR = 1.95583 KM; `Payment` čuva i naplaćeni iznos/valutu |
 | 2026-08-30 | 8 | faza C | `VerifyWebhookAsync` fail-closed; mock samo uz eksplicitni `PAYPAL__ALLOW_UNVERIFIED_WEBHOOKS=true` |
+| 2026-08-30 | 16 | faza G | `MarkRead` izložen samo kao POST/PATCH; uklonjeni GET i PUT, i GET fallback na klijentu |
+| 2026-08-30 | 17 | faza G | Jedan zapis higijene po pacijentu po danu: unique index (`PatientId`, `Date`) + servisna provjera; datum se normalizuje na dan |
+| 2026-08-30 | 18 | faza G | Uklonjena težina za `View` koju nijedan klijent nije proizvodio; scoring koristi samo `DetailOpened`; dokumentacija usklađena |
 | 2026-08-30 | 14 | faza F | Forgot-password tok: `POST /Users/password-reset/request` + `/complete`, jednokratni kod (čuva se samo hash, 15 min, jednokratan), e-mail preko notification workera, mobilni ekran; postojeći change-password ostaje |
 | 2026-08-30 | 15 | faza F | `Form` + validatori uz kontrole na login i admin-add-patient ekranima; sirovi `$e` zamijenjen kontrolisanim porukama; `[Required]` na non-nullable `int` zamijenjen `[Range]` za FK ID-eve, rating, `BrushesCount` i iznos |
 | 2026-08-30 | 12 | faza E | Šifarnici `AppointmentStatusType`/`PaymentStatusType` (GET/POST/PUT/DELETE + desktop ekran), seedani iz enum-a; enum ostaje autoritet za state machine, brisanje blokirano dok status koristi ijedan zapis |

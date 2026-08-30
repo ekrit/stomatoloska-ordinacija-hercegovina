@@ -9,13 +9,22 @@ namespace SOH.Services.Services;
 
 /// <summary>
 /// Hybrid recommender: content (recent services vs product category/name),
-/// popularity (order counts), and personal view history — all signals feed the score and explanations.
+/// popularity (order counts), and the patient's own product-detail opens — all
+/// signals feed the score and the explanations shown to the user.
+/// <para>
+/// Scoring deliberately uses only signals the application actually produces. A
+/// plain <c>View</c> interaction carried its own weight here, but nothing in
+/// either client ever recorded one: the weight was dead, and the documentation
+/// described a signal that did not exist. Rather than invent an impression
+/// pipeline the review did not ask for, the weight is gone and
+/// <c>DetailOpened</c> — which the product detail screen really does record —
+/// is the personal signal.
+/// </para>
 /// </summary>
 public class RecommendationService : IRecommendationService
 {
     private const double WeightContent = 3.5;
     private const double WeightPopularity = 1.2;
-    private const double WeightPersonalViews = 2.0;
     private const double WeightDetailOpened = 3.0;
 
     private readonly SOHDbContext _context;
@@ -56,13 +65,6 @@ public class RecommendationService : IRecommendationService
             .Select(g => new { ProductId = g.Key, Count = g.Sum(x => x.Quantity) })
             .ToDictionaryAsync(x => x.ProductId, x => x.Count, cancellationToken);
 
-        var viewCounts = await _context.ProductInteractions
-            .AsNoTracking()
-            .Where(pi => pi.UserId == userId && pi.Kind == ProductInteractionKind.View)
-            .GroupBy(pi => pi.ProductId)
-            .Select(g => new { ProductId = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(x => x.ProductId, x => x.Count, cancellationToken);
-
         var detailCounts = await _context.ProductInteractions
             .AsNoTracking()
             .Where(pi => pi.UserId == userId && pi.Kind == ProductInteractionKind.DetailOpened)
@@ -94,13 +96,6 @@ public class RecommendationService : IRecommendationService
                 reasons.Add($"Popularan proizvod u posljednje vrijeme ({pop} nedavnih narudžbi).");
             }
 
-            var views = viewCounts.TryGetValue(p.Id, out var vc) ? vc : 0;
-            if (views > 0)
-            {
-                score += WeightPersonalViews * Math.Log(1 + views);
-                reasons.Add($"Pregledali ste ovaj proizvod {views} put(a); dajemo prednost artiklima koje ste već istraživali.");
-            }
-
             var details = detailCounts.TryGetValue(p.Id, out var dc) ? dc : 0;
             if (details > 0)
             {
@@ -128,6 +123,11 @@ public class RecommendationService : IRecommendationService
             .ToList();
     }
 
+    /// <summary>
+    /// Tracking still accepts and stores <c>View</c> so historical rows keep
+    /// their meaning and the signal can be reinstated later; it simply does not
+    /// feed the score while nothing in the apps records one.
+    /// </summary>
     private static ProductInteractionKind ParseKind(string kind)
     {
         return kind.Trim().Equals("DetailOpened", StringComparison.OrdinalIgnoreCase)

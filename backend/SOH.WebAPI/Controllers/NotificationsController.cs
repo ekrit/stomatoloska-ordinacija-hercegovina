@@ -37,11 +37,18 @@ public class NotificationsController : ControllerBase
         return Ok(await _notifications.GetUnreadCountAsync(uid.Value));
     }
 
-    /// <summary>Mark one notification as read. Prefer POST (GET must not be cached by intermediaries).</summary>
+    /// <summary>
+    /// Marks one notification as read.
+    /// <para>
+    /// Exposed only as a write. This used to answer on GET as well, but GET is
+    /// defined as safe: intermediaries may cache it and clients, crawlers and
+    /// link prefetchers may issue it on their own, which would silently flip
+    /// read state. PUT is dropped too — the request does not carry a full
+    /// representation of the resource — leaving POST and PATCH.
+    /// </para>
+    /// </summary>
     [HttpPost("{id:int}/read")]
-    [HttpPut("{id:int}/read")]
     [HttpPatch("{id:int}/read")]
-    [HttpGet("{id:int}/read")]
     public async Task<ActionResult> MarkRead(int id)
     {
         var uid = CurrentUserId();
