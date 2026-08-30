@@ -161,7 +161,7 @@ u okruženju), grupisane da se `SOHDbContextModelSnapshot.cs` dira što rjeđe.
   *Rješenje:* stvarno zapisati `View` na korisničkom događaju, ili ukloniti
   signal/težinu i uskladiti dokumentaciju.
 
-- [ ] **19. List endpointi vraćaju pune slike.**
+- [x] **19. List endpointi vraćaju pune slike.**
   `UserResponse.Picture`, `ProductResponse.Picture`, `OrderResponse.ProductPicture`
   su `byte[]` u list servisima, uz limit od ~2 MB po slici.
   *Rješenje:* razdvojiti list i detail DTO-e; lista bez pune slike, puna slika
@@ -182,6 +182,7 @@ u okruženju), grupisane da se `SOHDbContextModelSnapshot.cs` dira što rjeđe.
 | 2026-08-30 | 6 | faza B | `SyncDomainProfilesAsync` — User je source-of-truth za ime/telefon, Patient/Doctor se sinhronizuju u istoj operaciji; uloga se ne dodjeljuje bez domenskog profila |
 | 2026-08-30 | 7 | faza C | `MoneyPolicy`: BAM je valuta sistema, PayPal se naplaćuje u EUR po fiksnom kursu 1 EUR = 1.95583 KM; `Payment` čuva i naplaćeni iznos/valutu |
 | 2026-08-30 | 8 | faza C | `VerifyWebhookAsync` fail-closed; mock samo uz eksplicitni `PAYPAL__ALLOW_UNVERIFIED_WEBHOOKS=true` |
+| 2026-08-30 | 19 | faza G | List endpointi više ne vraćaju pune slike: `MapToListResponse` hook, `HasPicture`/`HasProductPicture` flagovi, namjenski `GET /Product/{id}/picture` i `GET /Users/{id}/picture`, `RemoteImage` widget na 5 list ekrana |
 | 2026-08-30 | 16 | faza G | `MarkRead` izložen samo kao POST/PATCH; uklonjeni GET i PUT, i GET fallback na klijentu |
 | 2026-08-30 | 17 | faza G | Jedan zapis higijene po pacijentu po danu: unique index (`PatientId`, `Date`) + servisna provjera; datum se normalizuje na dan |
 | 2026-08-30 | 18 | faza G | Uklonjena težina za `View` koju nijedan klijent nije proizvodio; scoring koristi samo `DetailOpened`; dokumentacija usklađena |
@@ -192,3 +193,22 @@ u okruženju), grupisane da se `SOHDbContextModelSnapshot.cs` dira što rjeđe.
 | 2026-08-30 | 10 | faza D | `GET /Appointment/availability` računa stvarne slotove (trajanje usluge, slobodan doktor i prostorija, radno vrijeme); `EndTime` i prostorija se izvode serverski; klijent samo prikazuje |
 | 2026-08-30 | 11 | faza D | `PatientComplaint`/`DeclineReason`/`CancelReason` odvojeni; obavezan razlog otkazivanja i odbijanja; `AppointmentStatusHistory` (ko/kad/iz→u/zašto); nema `Completed` prije kraja termina |
 | 2026-08-30 | 9 | faza C | Plaćanje tek nakon `Accepted`; postojeći Pending se reuse-uje preko `GetApprovalUrlAsync`; usluga/vrijeme zaključani nakon `Paid`; admin CRUD ne može postaviti `Paid`/`TransactionRef` |
+
+---
+
+## Status
+
+Sve 19 stavki iz review-a su implementirane i mergeane u `main`.
+
+**Prije odbrane obavezno lokalno:**
+
+```
+dotnet build
+dotnet ef migrations add Probe   # ne smije prijaviti zaostale model promjene
+flutter analyze                  # u mobile/ i desktop/
+```
+
+Migracije su pisane ručno (nema `dotnet ef` u okruženju u kojem su nastale),
+bez pratećih `.Designer.cs` fajlova — `[DbContext]` i `[Migration]` atributi su
+zato direktno na klasi, pa ih `Database.Migrate()` normalno pronalazi.
+`SOHDbContextModelSnapshot.cs` je ažuriran ručno uz svaku od njih.

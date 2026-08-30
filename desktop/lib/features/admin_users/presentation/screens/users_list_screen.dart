@@ -4,8 +4,8 @@ import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
 import '../../../../core/widgets/paginated_search_view.dart';
-import '../../../../widgets/user_appbar_actions.dart' show decodeUserPictureBytes;
 import 'user_edit_screen.dart';
+import '../../../../core/widgets/remote_image.dart';
 
 class UsersListScreen extends ConsumerStatefulWidget {
   const UsersListScreen({super.key});
@@ -56,11 +56,15 @@ class _UsersListScreenState extends ConsumerState<UsersListScreen> {
               .whereType<String>()
               .where((p) => p.isNotEmpty)
               .join(' ');
-          final pic = decodeUserPictureBytes(u.picture);
           return ListTile(
-            leading: CircleAvatar(
-              backgroundImage: pic != null ? MemoryImage(pic) : null,
-              child: pic == null ? const Icon(Icons.person_outline) : null,
+            leading: ClipOval(
+              child: RemoteImage(
+                path: '/Users/${u.id}/picture',
+                hasImage: u.hasPicture == true && u.id != null,
+                width: 40,
+                height: 40,
+                placeholder: const Icon(Icons.person_outline),
+              ),
             ),
             title: Text(
               name.isNotEmpty ? name : (u.username ?? '—'),

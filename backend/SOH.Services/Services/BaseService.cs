@@ -40,7 +40,7 @@ namespace SOH.Services.Services
             var list = await query.ToListAsync();
             return new PagedResult<T>
             {
-                Items = list.Select(MapToResponse).ToList(),
+                Items = list.Select(MapToListResponse).ToList(),
                 TotalCount = totalCount
             };
         }
@@ -62,6 +62,17 @@ namespace SOH.Services.Services
         protected virtual T MapToResponse(TEntity entity)
         {
             return _mapper.Map<T>(entity);
+        }
+
+        /// <summary>
+        /// Projection for list rows. Defaults to the full response; services
+        /// whose response carries a large blob override this to leave the blob
+        /// out, so a page of results does not ship several megabytes of images
+        /// that a table or card view never displays at full size.
+        /// </summary>
+        protected virtual T MapToListResponse(TEntity entity)
+        {
+            return MapToResponse(entity);
         }
 
     }

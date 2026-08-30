@@ -5,8 +5,8 @@ import 'package:soh_api/api.dart';
 import '../../../../core/api/api_providers.dart';
 import '../../../../core/utils/api_errors.dart';
 import '../../../../core/widgets/paginated_search_view.dart';
-import '../../../../widgets/user_appbar_actions.dart' show decodeUserPictureBytes;
 import 'admin_product_edit_screen.dart';
+import '../../../../core/widgets/remote_image.dart';
 
 class AdminProductsListScreen extends ConsumerStatefulWidget {
   const AdminProductsListScreen({super.key});
@@ -77,8 +77,7 @@ class _AdminProductsListScreenState extends ConsumerState<AdminProductsListScree
   }
 
   Widget _productThumb(BuildContext context, ProductResponse p) {
-    final bytes = decodeUserPictureBytes(p.picture);
-    if (bytes == null) {
+    if (p.hasPicture != true || p.id == null) {
       return CircleAvatar(
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         child: const Icon(Icons.medical_services_outlined),
@@ -86,7 +85,12 @@ class _AdminProductsListScreenState extends ConsumerState<AdminProductsListScree
     }
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
-      child: Image.memory(bytes, width: 44, height: 44, fit: BoxFit.cover),
+      child: RemoteImage(
+        path: '/Product/${p.id}/picture',
+        hasImage: true,
+        width: 44,
+        height: 44,
+      ),
     );
   }
 

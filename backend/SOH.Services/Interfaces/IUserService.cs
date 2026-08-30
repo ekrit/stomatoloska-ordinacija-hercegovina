@@ -32,6 +32,9 @@ namespace SOH.Services.Interfaces
         /// </summary>
         Task ChangeOwnPasswordAsync(int userId, string oldPassword, string newPassword);
 
+        /// <summary>Raw avatar bytes for one user, or null when they have none.</summary>
+        Task<byte[]?> GetPictureAsync(int id, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Issues a one-time reset code, or null when the identifier matches no
         /// active account. Callers must respond identically either way so the

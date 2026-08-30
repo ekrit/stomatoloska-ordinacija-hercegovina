@@ -20,6 +20,7 @@ class ProductResponse {
     this.productCategoryId,
     this.productCategoryName,
     this.picture,
+    this.hasPicture,
   });
 
   ///
@@ -54,6 +55,8 @@ class ProductResponse {
 
   String? picture;
 
+  bool? hasPicture;
+
   @override
   bool operator ==(Object other) => identical(this, other) || other is ProductResponse &&
     other.id == id &&
@@ -62,7 +65,8 @@ class ProductResponse {
     other.price == price &&
     other.productCategoryId == productCategoryId &&
     other.productCategoryName == productCategoryName &&
-    other.picture == picture;
+    other.picture == picture &&
+    other.hasPicture == hasPicture;
 
   @override
   int get hashCode =>
@@ -73,10 +77,11 @@ class ProductResponse {
     (price == null ? 0 : price!.hashCode) +
     (productCategoryId == null ? 0 : productCategoryId!.hashCode) +
     (productCategoryName == null ? 0 : productCategoryName!.hashCode) +
-    (picture == null ? 0 : picture!.hashCode);
+    (picture == null ? 0 : picture!.hashCode) +
+    (hasPicture == null ? 0 : hasPicture!.hashCode);
 
   @override
-  String toString() => 'ProductResponse[id=$id, name=$name, description=$description, price=$price, productCategoryId=$productCategoryId, productCategoryName=$productCategoryName, picture=$picture]';
+  String toString() => 'ProductResponse[id=$id, name=$name, description=$description, price=$price, productCategoryId=$productCategoryId, productCategoryName=$productCategoryName, picture=$picture, hasPicture=$hasPicture]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -115,6 +120,11 @@ class ProductResponse {
     } else {
       json[r'picture'] = null;
     }
+    if (this.hasPicture != null) {
+      json[r'hasPicture'] = this.hasPicture;
+    } else {
+      json[r'hasPicture'] = null;
+    }
     return json;
   }
 
@@ -144,6 +154,7 @@ class ProductResponse {
         productCategoryId: mapValueOfType<int>(json, r'productCategoryId'),
         productCategoryName: mapValueOfType<String>(json, r'productCategoryName'),
         picture: mapValueOfType<String>(json, r'picture'),
+        hasPicture: mapValueOfType<bool>(json, r'hasPicture'),
       );
     }
     return null;

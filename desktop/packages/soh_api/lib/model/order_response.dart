@@ -20,6 +20,7 @@ class OrderResponse {
     this.productId,
     this.productName,
     this.productPicture,
+    this.hasProductPicture,
     this.quantity,
     this.totalAmount,
     this.createdAt,
@@ -57,6 +58,8 @@ class OrderResponse {
 
   String? productPicture;
 
+  bool? hasProductPicture;
+
   ///
   /// Please note: This property should have been non-nullable! Since the specification file
   /// does not include a default value (using the "default:" property), however, the generated
@@ -90,6 +93,7 @@ class OrderResponse {
     other.productId == productId &&
     other.productName == productName &&
     other.productPicture == productPicture &&
+    other.hasProductPicture == hasProductPicture &&
     other.quantity == quantity &&
     other.totalAmount == totalAmount &&
     other.createdAt == createdAt;
@@ -104,12 +108,13 @@ class OrderResponse {
     (productId == null ? 0 : productId!.hashCode) +
     (productName == null ? 0 : productName!.hashCode) +
     (productPicture == null ? 0 : productPicture!.hashCode) +
+    (hasProductPicture == null ? 0 : hasProductPicture!.hashCode) +
     (quantity == null ? 0 : quantity!.hashCode) +
     (totalAmount == null ? 0 : totalAmount!.hashCode) +
     (createdAt == null ? 0 : createdAt!.hashCode);
 
   @override
-  String toString() => 'OrderResponse[id=$id, patientId=$patientId, patientFirstName=$patientFirstName, patientLastName=$patientLastName, productId=$productId, productName=$productName, productPicture=$productPicture, quantity=$quantity, totalAmount=$totalAmount, createdAt=$createdAt]';
+  String toString() => 'OrderResponse[id=$id, patientId=$patientId, patientFirstName=$patientFirstName, patientLastName=$patientLastName, productId=$productId, productName=$productName, productPicture=$productPicture, hasProductPicture=$hasProductPicture, quantity=$quantity, totalAmount=$totalAmount, createdAt=$createdAt]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -147,6 +152,11 @@ class OrderResponse {
       json[r'productPicture'] = this.productPicture;
     } else {
       json[r'productPicture'] = null;
+    }
+    if (this.hasProductPicture != null) {
+      json[r'hasProductPicture'] = this.hasProductPicture;
+    } else {
+      json[r'hasProductPicture'] = null;
     }
     if (this.quantity != null) {
       json[r'quantity'] = this.quantity;
@@ -192,6 +202,7 @@ class OrderResponse {
         productId: mapValueOfType<int>(json, r'productId'),
         productName: mapValueOfType<String>(json, r'productName'),
         productPicture: mapValueOfType<String>(json, r'productPicture'),
+        hasProductPicture: mapValueOfType<bool>(json, r'hasProductPicture'),
         quantity: mapValueOfType<int>(json, r'quantity'),
         totalAmount: mapValueOfType<double>(json, r'totalAmount'),
         createdAt: mapDateTime(json, r'createdAt', r''),

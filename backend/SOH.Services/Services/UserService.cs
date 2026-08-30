@@ -84,7 +84,16 @@ namespace SOH.Services.Services
             var users = await query.ToListAsync();
             return new PagedResult<UserResponse>
             {
-                Items = users.Select(MapToResponse).ToList(),
+                // The user directory renders small avatars; shipping every
+                // account's full picture with the page is wasted bandwidth.
+                // Rows carry HasPicture and fetch bytes from
+                // GET /Users/{id}/picture when one is actually drawn.
+                Items = users.Select(u =>
+                {
+                    var response = MapToResponse(u);
+                    response.Picture = null;
+                    return response;
+                }).ToList(),
                 TotalCount = totalCount
             };
         }
@@ -572,6 +581,15 @@ namespace SOH.Services.Services
             return Convert.ToBase64String(bytes);
         }
 
+        public Task<byte[]?> GetPictureAsync(int id, CancellationToken cancellationToken = default)
+        {
+            return _context.Users
+                .AsNoTracking()
+                .Where(u => u.Id == id)
+                .Select(u => u.Picture)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
         public async Task ChangeOwnPasswordAsync(int userId, string oldPassword, string newPassword)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId)
@@ -631,6 +649,7 @@ namespace SOH.Services.Services
                 Email = user.Email,
                 Username = user.Username,
                 Picture = user.Picture,
+                HasPicture = user.Picture is { Length: > 0 },
                 IsActive = user.IsActive,
                 CreatedAt = user.CreatedAt,
                 LastLoginAt = user.LastLoginAt,

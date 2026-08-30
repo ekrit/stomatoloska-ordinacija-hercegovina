@@ -4,10 +4,10 @@ import 'package:soh_api/api.dart';
 
 import '../../../../core/api/api_providers.dart';
 import '../../../../core/utils/api_errors.dart';
-import '../../../../widgets/user_appbar_actions.dart' show decodeUserPictureBytes;
 import '../../../shop/presentation/product_catalog_screen.dart';
 import '../providers/patient_data_providers.dart';
 import 'order_detail_screen.dart';
+import '../../../../core/widgets/remote_image.dart';
 
 String orderAmountLabel(num value) => '${value.toStringAsFixed(2)} KM';
 
@@ -62,15 +62,18 @@ class MyOrdersScreen extends ConsumerWidget {
               separatorBuilder: (_, __) => const Divider(height: 1),
               itemBuilder: (context, i) {
                 final o = items[i];
-                final bytes = decodeUserPictureBytes(o.productPicture);
                 final qty = o.quantity ?? 1;
                 return ListTile(
-                  leading: bytes != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.memory(bytes, width: 48, height: 48, fit: BoxFit.cover),
-                        )
-                      : const CircleAvatar(child: Icon(Icons.receipt_long_outlined)),
+                  leading: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: RemoteImage(
+                      path: '/Product/${o.productId}/picture',
+                      hasImage: o.hasProductPicture == true && o.productId != null,
+                      width: 48,
+                      height: 48,
+                      placeholder: const Icon(Icons.receipt_long_outlined),
+                    ),
+                  ),
                   title: Text(o.productName?.trim().isNotEmpty == true
                       ? o.productName!
                       : 'Proizvod'),
