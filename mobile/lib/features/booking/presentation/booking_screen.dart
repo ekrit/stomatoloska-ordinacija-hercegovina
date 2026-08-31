@@ -85,7 +85,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             AppointmentUpsertRequest(
               patientId: user!.id!,
               doctorId: doctorId,
-              serviceId: svc.id!,
+              serviceId: svc!.id!,
               roomId: slot.roomId,
               startTime: slot.startTime,
               // EndTime is derived server-side from the service duration; it is
