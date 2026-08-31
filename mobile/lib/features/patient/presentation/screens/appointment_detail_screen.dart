@@ -152,11 +152,28 @@ class AppointmentDetailScreen extends ConsumerWidget {
   Future<void> _refund(BuildContext context, WidgetRef ref, AppointmentResponse a) async {
     final paymentId = a.paymentId;
     if (paymentId == null) return;
+    try {
+      await SohExtraApi(ref.read(apiClientProvider)).refundPayment(paymentId);
+      ref.invalidate(myAppointmentsProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Zahtjev za povrat je poslan.')),
+        );
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(extractApiErrorMessage(e, fallback: 'Povrat nije uspio.'))),
+        );
+      }
+    }
+  }
+
+  Future<void> _cancel(BuildContext context, WidgetRef ref, AppointmentResponse a) async {
+    if (a.id == null) return;
     final reason = await promptCancelReason(context);
     if (reason == null) return;
-    if (a.id == null) {
-      return;
-    }
     try {
       await SohExtraApi(ref.read(apiClientProvider)).cancelAppointment(a.id!, reason);
       ref.invalidate(myAppointmentsProvider);

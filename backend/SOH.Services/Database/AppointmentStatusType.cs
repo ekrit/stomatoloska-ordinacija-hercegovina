@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SOH.Services.Database
 {
@@ -21,7 +22,13 @@ namespace SOH.Services.Database
     public class AppointmentStatusType
     {
         /// <summary>Matches the <see cref="AppointmentStatus"/> value.</summary>
+        /// <remarks>
+        /// Pinned to the enum value and seeded with explicit ids, so it must not
+        /// be a database-generated identity column — otherwise the model would
+        /// disagree with the migration/snapshot and drift.
+        /// </remarks>
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int Id { get; set; }
 
         [Required]
