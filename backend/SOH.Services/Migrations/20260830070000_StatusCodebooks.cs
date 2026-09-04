@@ -48,29 +48,13 @@ namespace SOH.Services.Migrations
                     table.PrimaryKey("PK_PaymentStatusTypes", x => x.Id);
                 });
 
-            // Ids match the enum values: AppointmentStatus 1..5, PaymentStatus 1..4.
-            migrationBuilder.InsertData(
-                table: "AppointmentStatusTypes",
-                columns: new[] { "Id", "Name", "Description" },
-                values: new object[,]
-                {
-                    { 1, "Zatražen", "Pacijent je poslao zahtjev; čeka se odgovor doktora." },
-                    { 2, "Prihvaćen", "Doktor je prihvatio termin; plaćanje je moguće." },
-                    { 3, "Odbijen", "Doktor je odbio zahtjev uz obavezan razlog." },
-                    { 4, "Završen", "Termin je obavljen; moguća je recenzija." },
-                    { 5, "Otkazan", "Termin je otkazan uz obavezan razlog." }
-                });
-
-            migrationBuilder.InsertData(
-                table: "PaymentStatusTypes",
-                columns: new[] { "Id", "Name", "Description" },
-                values: new object[,]
-                {
-                    { 1, "Na čekanju", "PayPal narudžba je kreirana; naplata još nije potvrđena." },
-                    { 2, "Plaćeno", "Naplata je potvrđena kroz PayPal." },
-                    { 3, "Neuspjelo", "Naplata nije uspjela." },
-                    { 4, "Refundirano", "Sredstva su vraćena pacijentu." }
-                });
+            // The rows (ids matching the enum values) are seeded at runtime by
+            // RuntimeDataSeeder, not via migrationBuilder.InsertData. This
+            // migration is hand-written and carries no BuildTargetModel, so
+            // Migrate() has no model to resolve InsertData column types from and
+            // would throw "no entity type mapped to the table ..." when applying
+            // it on a fresh database. CreateTable embeds its own column types, so
+            // it applies fine; the seed is idempotent and runs after Migrate.
         }
 
         /// <inheritdoc />

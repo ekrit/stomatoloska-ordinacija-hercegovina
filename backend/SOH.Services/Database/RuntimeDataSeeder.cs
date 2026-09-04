@@ -22,6 +22,7 @@ namespace SOH.Services.Database
 
         public static async Task SeedAsync(SOHDbContext context)
         {
+            await SeedStatusCodebooksAsync(context);
             var seededProducts = await SeedProductsAsync(context);
             var seededAppointments = await SeedAppointmentsAsync(context);
             if (seededAppointments)
@@ -35,6 +36,38 @@ namespace SOH.Services.Database
             await SeedHygieneAsync(context);
             await SeedNotificationsAsync(context);
             await SeedActivityLogsAsync(context);
+        }
+
+        /// <summary>
+        /// Seeds the appointment/payment status codebooks. These used to be
+        /// inserted by the StatusCodebooks migration via InsertData, but that
+        /// hand-written migration carries no target model, so Migrate() cannot
+        /// resolve the InsertData column types and throws on a fresh database.
+        /// The rows are seeded here instead — idempotent, with explicit ids that
+        /// match the enum values (Id is [DatabaseGenerated(None)]).
+        /// </summary>
+        private static async Task SeedStatusCodebooksAsync(SOHDbContext context)
+        {
+            if (!await context.AppointmentStatusTypes.AnyAsync())
+            {
+                context.AppointmentStatusTypes.AddRange(
+                    new AppointmentStatusType { Id = 1, Name = "Zatražen", Description = "Pacijent je poslao zahtjev; čeka se odgovor doktora." },
+                    new AppointmentStatusType { Id = 2, Name = "Prihvaćen", Description = "Doktor je prihvatio termin; plaćanje je moguće." },
+                    new AppointmentStatusType { Id = 3, Name = "Odbijen", Description = "Doktor je odbio zahtjev uz obavezan razlog." },
+                    new AppointmentStatusType { Id = 4, Name = "Završen", Description = "Termin je obavljen; moguća je recenzija." },
+                    new AppointmentStatusType { Id = 5, Name = "Otkazan", Description = "Termin je otkazan uz obavezan razlog." });
+                await context.SaveChangesAsync();
+            }
+
+            if (!await context.PaymentStatusTypes.AnyAsync())
+            {
+                context.PaymentStatusTypes.AddRange(
+                    new PaymentStatusType { Id = 1, Name = "Na čekanju", Description = "PayPal narudžba je kreirana; naplata još nije potvrđena." },
+                    new PaymentStatusType { Id = 2, Name = "Plaćeno", Description = "Naplata je potvrđena kroz PayPal." },
+                    new PaymentStatusType { Id = 3, Name = "Neuspjelo", Description = "Naplata nije uspjela." },
+                    new PaymentStatusType { Id = 4, Name = "Refundirano", Description = "Sredstva su vraćena pacijentu." });
+                await context.SaveChangesAsync();
+            }
         }
 
         private static async Task<bool> SeedProductsAsync(SOHDbContext context)
