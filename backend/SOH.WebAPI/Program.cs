@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using SOH.WebAPI.Filters;
 using SOH.Services.Services;
 using SOH.Services.Interfaces;
+using SOH.Services.Recommender;
 using SOH.WebAPI.Services;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
@@ -49,6 +50,10 @@ builder.Services.AddScoped<IActivityLogService, ActivityLogService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
+// The Matrix Factorization model holds trained latent factors in memory, so it
+// is a singleton shared across requests; the scoped RecommendationService reads
+// its precomputed scores and marks it stale when new interactions arrive.
+builder.Services.AddSingleton<IProductRecommenderModel, ProductRecommenderModel>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IReportPdfService, ReportPdfService>();
 builder.Services.AddHttpClient<IPayPalGateway, PayPalGateway>();
@@ -206,6 +211,13 @@ using (var scope = app.Services.CreateScope())
     // Demo/testing data (products with images, appointments in every status,
     // reviews, orders, recommender signals). Idempotent per domain.
     await RuntimeDataSeeder.SeedAsync(dataContext);
+
+    // Train the Matrix Factorization recommender once at startup so the first
+    // request is served from a warm model (the document's "model se trenira pri
+    // pokretanju"). Uses the same implicit-feedback pairs as a lazy rebuild.
+    var recommenderModel = scope.ServiceProvider.GetRequiredService<IProductRecommenderModel>();
+    var initialPairs = await RecommendationService.LoadPositivePairsAsync(dataContext);
+    recommenderModel.Rebuild(initialPairs);
 }
 
 app.Run();
