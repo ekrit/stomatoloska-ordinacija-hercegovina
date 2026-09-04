@@ -95,13 +95,17 @@ public sealed class ProductRecommenderModel : IProductRecommenderModel
         {
             try
             {
+                Console.WriteLine($"[recommender] training Matrix Factorization on {positivePairs.Count} implicit-feedback pairs...");
                 _scores = Train(positivePairs);
+                Console.WriteLine($"[recommender] training done; scored {_scores.Count} user(s).");
             }
-            catch
+            catch (Exception ex)
             {
-                // Too few interactions, or a native/training error: keep an empty
+                // Too few interactions, or a managed training error: keep an empty
                 // model so every user falls back to popularity. The recommender
-                // must never break the request path.
+                // must never break the request path. (A native libmf crash cannot
+                // be caught here, which is why the rank is clamped in Train.)
+                Console.WriteLine($"[recommender] training failed, falling back to popularity: {ex.Message}");
                 _scores = new Dictionary<int, Dictionary<int, double>>();
             }
             finally
@@ -133,6 +137,14 @@ public sealed class ProductRecommenderModel : IProductRecommenderModel
             .ToList();
         var data = ml.Data.LoadFromEnumerable(ratings);
 
+        // The number of latent factors must not exceed the matrix dimensions.
+        // On a small demo catalog (few users/products) a rank larger than the
+        // number of users or products makes the native libmf trainer allocate a
+        // degenerate factor matrix and can crash the process with a native
+        // segfault that no managed try/catch can intercept — so it is clamped to
+        // the smaller dimension (and a small cap for larger catalogs).
+        var rank = Math.Max(1, Math.Min(Math.Min(users.Length, products.Length), 16));
+
         // One-class Matrix Factorization for implicit feedback: only positives
         // are observed; Alpha/C weight the sampled unobserved entries.
         var options = new MatrixFactorizationTrainer.Options
@@ -144,7 +156,7 @@ public sealed class ProductRecommenderModel : IProductRecommenderModel
             Alpha = 0.01,
             Lambda = 0.025,
             C = 0.00001,
-            ApproximationRank = 16,
+            ApproximationRank = rank,
             NumberOfIterations = 100,
         };
 
