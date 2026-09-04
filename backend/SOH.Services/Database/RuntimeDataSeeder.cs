@@ -232,13 +232,22 @@ namespace SOH.Services.Database
 
             if (!await context.Orders.AnyAsync())
             {
+                // Purchases form the implicit-feedback matrix for the Matrix
+                // Factorization recommender. The overlaps are intentional so the
+                // model has shared structure to learn at first run: Amel, Test and
+                // Mobile all buy the sensitive paste (3) and the floss (6), while
+                // each keeps items the others have not bought (0 / 1,4 / 8) — those
+                // are exactly the cross-user recommendations the model produces.
                 var orders = new (int PatientId, int ProductIndex, int Quantity, int DaysAgo)[]
                 {
                     (PatientAmel, 0, 1, 22),
                     (PatientAmel, 3, 2, 20),
                     (PatientAmel, 6, 1, 6),
+                    (PatientAmel, 8, 1, 14),
                     (PatientTest, 1, 1, 15),
                     (PatientTest, 4, 1, 12),
+                    (PatientTest, 3, 1, 10),
+                    (PatientTest, 6, 1, 8),
                     (PatientMobile, 3, 1, 9),
                     (PatientMobile, 8, 2, 7),
                     (PatientMobile, 6, 1, 2),
@@ -261,18 +270,23 @@ namespace SOH.Services.Database
 
             if (!await context.ProductInteractions.AnyAsync())
             {
-                // Views + opened details feed the recommender's personal signals.
+                // Views + opened details feed the recommender. DetailOpened is a
+                // product-linked positive and joins purchases in the implicit
+                // feedback matrix; View is stored but not a training signal.
                 var interactions = new (int UserId, int ProductIndex, ProductInteractionKind Kind, int DaysAgo)[]
                 {
                     (PatientAmel, 0, ProductInteractionKind.View, 23),
                     (PatientAmel, 0, ProductInteractionKind.DetailOpened, 23),
                     (PatientAmel, 3, ProductInteractionKind.View, 21),
                     (PatientAmel, 4, ProductInteractionKind.View, 5),
+                    (PatientAmel, 4, ProductInteractionKind.DetailOpened, 5),
                     (PatientTest, 1, ProductInteractionKind.View, 16),
                     (PatientTest, 1, ProductInteractionKind.DetailOpened, 16),
+                    (PatientTest, 3, ProductInteractionKind.DetailOpened, 10),
                     (PatientTest, 7, ProductInteractionKind.View, 4),
                     (PatientMobile, 3, ProductInteractionKind.View, 10),
                     (PatientMobile, 3, ProductInteractionKind.DetailOpened, 9),
+                    (PatientMobile, 6, ProductInteractionKind.DetailOpened, 2),
                     (PatientMobile, 8, ProductInteractionKind.View, 8),
                     (PatientMobile, 9, ProductInteractionKind.View, 3),
                     (PatientMobile, 6, ProductInteractionKind.View, 1),

@@ -3,37 +3,46 @@ using SOH.Model.Requests;
 using SOH.Model.Responses;
 using SOH.Services.Database;
 using SOH.Services.Interfaces;
+using SOH.Services.Recommender;
 using MapsterMapper;
 
 namespace SOH.Services.Services;
 
 /// <summary>
-/// Hybrid recommender: content (recent services vs product category/name),
-/// popularity (order counts), and the patient's own product-detail opens — all
-/// signals feed the score and the explanations shown to the user.
+/// Model-based Collaborative Filtering recommender for oral-hygiene products.
 /// <para>
-/// Scoring deliberately uses only signals the application actually produces. A
-/// plain <c>View</c> interaction carried its own weight here, but nothing in
-/// either client ever recorded one: the weight was dead, and the documentation
-/// described a signal that did not exist. Rather than invent an impression
-/// pipeline the review did not ask for, the weight is gone and
-/// <c>DetailOpened</c> — which the product detail screen really does record —
-/// is the personal signal.
+/// The ranking algorithm is <b>Matrix Factorization</b> (ML.NET, see
+/// <see cref="IProductRecommenderModel"/>). The implicit-feedback matrix is
+/// built from the product-linked positive signals the application actually
+/// records — product purchases (<c>Orders</c>) and opened product details
+/// (<c>ProductInteractions</c> of kind <c>DetailOpened</c>). Every such
+/// (user, product) pair is a positive; the trainer learns latent user and
+/// product factors and can therefore recommend a product the user never
+/// touched because users with a similar history preferred it.
+/// </para>
+/// <para>
+/// Popularity is <b>only</b> the cold-start fallback: a user the model has
+/// never seen, or a product outside the trained matrix, is ranked by how many
+/// patients bought or opened it. Every recommendation carries a plain-language
+/// reason so the UI can explain why the product was surfaced.
+/// </para>
+/// <para>
+/// Note on reviews: <c>Review</c> in this system rates an appointment/doctor,
+/// not a product, so it is not a product-level signal and is deliberately not
+/// fed into the matrix.
 /// </para>
 /// </summary>
 public class RecommendationService : IRecommendationService
 {
-    private const double WeightContent = 3.5;
-    private const double WeightPopularity = 1.2;
-    private const double WeightDetailOpened = 3.0;
-
     private readonly SOHDbContext _context;
     private readonly IMapper _mapper;
+    private readonly IProductRecommenderModel _model;
 
-    public RecommendationService(SOHDbContext context, IMapper mapper)
+    public RecommendationService(SOHDbContext context, IMapper mapper, IProductRecommenderModel model)
     {
         _context = context;
         _mapper = mapper;
+        _model = model;
     }
 
     public async Task TrackInteractionAsync(int userId, ProductInteractionTrackRequest request, CancellationToken cancellationToken = default)
@@ -51,139 +60,148 @@ public class RecommendationService : IRecommendationService
             CreatedAt = DateTime.UtcNow
         });
         await _context.SaveChangesAsync(cancellationToken);
+
+        // A new interaction means the trained factors no longer reflect the
+        // data; retrain lazily on the next recommendation request.
+        _model.MarkStale();
     }
 
     public async Task<IReadOnlyList<RecommendedProductResponse>> GetRecommendationsAsync(int userId, int take, CancellationToken cancellationToken = default)
     {
         take = Math.Clamp(take, 1, 50);
 
-        var sinceOrders = DateTime.UtcNow.AddDays(-90);
-        var orderCounts = await _context.Orders
-            .AsNoTracking()
-            .Where(o => o.CreatedAt >= sinceOrders)
-            .GroupBy(o => o.ProductId)
-            .Select(g => new { ProductId = g.Key, Count = g.Sum(x => x.Quantity) })
-            .ToDictionaryAsync(x => x.ProductId, x => x.Count, cancellationToken);
-
-        var detailCounts = await _context.ProductInteractions
-            .AsNoTracking()
-            .Where(pi => pi.UserId == userId && pi.Kind == ProductInteractionKind.DetailOpened)
-            .GroupBy(pi => pi.ProductId)
-            .Select(g => new { ProductId = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(x => x.ProductId, x => x.Count, cancellationToken);
-
-        var serviceKeywords = await LoadRecentServiceKeywordsAsync(userId, cancellationToken);
+        if (_model.IsStale)
+        {
+            var pairs = await LoadPositivePairsAsync(_context, cancellationToken);
+            _model.Rebuild(pairs);
+        }
 
         var products = await _context.Products
             .AsNoTracking()
             .Include(p => p.ProductCategory)
             .ToListAsync(cancellationToken);
-        var scored = new List<RecommendedProductResponse>();
+
+        // Already-purchased products are not re-recommended.
+        var purchased = await _context.Orders
+            .AsNoTracking()
+            .Where(o => o.PatientId == userId)
+            .Select(o => o.ProductId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+        var purchasedSet = purchased.ToHashSet();
+
+        var popularity = await LoadPopularityAsync(_context, cancellationToken);
+
+        var hasModel = _model.TryGetUserScores(userId, out var mfScores);
+
+        // Tier 0 = Matrix Factorization prediction (primary), Tier 1 = popularity
+        // fallback. Ordering by tier first keeps MF-ranked items above fallback
+        // items so popularity never outranks a real personalized prediction.
+        var scored = new List<(int Tier, double Score, string Name, RecommendedProductResponse Response)>();
 
         foreach (var p in products)
         {
+            if (purchasedSet.Contains(p.Id))
+                continue;
+
             var reasons = new List<string>();
-            double score = 0;
+            int tier;
+            double score;
 
-            var contentScore = ComputeContentScore(p, serviceKeywords, reasons);
-            score += WeightContent * contentScore;
-
-            var pop = orderCounts.TryGetValue(p.Id, out var c) ? c : 0;
-            if (pop > 0)
+            if (hasModel && mfScores.TryGetValue(p.Id, out var mf))
             {
-                var popPart = Math.Log(1 + pop);
-                score += WeightPopularity * popPart;
-                reasons.Add($"Popularan proizvod u posljednje vrijeme ({pop} nedavnih narudžbi).");
+                tier = 0;
+                score = mf;
+                reasons.Add(
+                    "Model-based Collaborative Filtering (Matrix Factorization): pacijenti sa sličnim obrascima kupovine i pregleda proizvoda preferiraju ovaj proizvod.");
+            }
+            else
+            {
+                tier = 1;
+                var pop = popularity.TryGetValue(p.Id, out var c) ? c : 0;
+                score = pop;
+                reasons.Add(pop > 0
+                    ? $"Popularno kod pacijenata (kupovine i otvaranja detalja: {pop}) — prijedlog dok model ne prikupi vaše interakcije."
+                    : "Novo u katalogu — kupovinom i pregledom proizvoda personalizujemo buduće preporuke.");
             }
 
-            var details = detailCounts.TryGetValue(p.Id, out var dc) ? dc : 0;
-            if (details > 0)
-            {
-                score += WeightDetailOpened * Math.Log(1 + details);
-                reasons.Add($"Otvorili ste detalje ovog proizvoda {details} put(a), pa ga prikazujemo više.");
-            }
-
-            if (reasons.Count == 0)
-            {
-                reasons.Add("Artikal iz kataloga — istražite ponudu kako bismo personalizovali buduće preporuke.");
-            }
-
-            scored.Add(new RecommendedProductResponse
+            scored.Add((tier, score, p.Name, new RecommendedProductResponse
             {
                 Product = _mapper.Map<ProductResponse>(p),
-                Reasons = reasons.Distinct().ToList(),
+                Reasons = reasons,
                 Score = Math.Round(score, 4)
-            });
+            }));
         }
 
         return scored
-            .OrderByDescending(x => x.Score)
-            .ThenBy(x => x.Product.Name)
+            .OrderBy(x => x.Tier)
+            .ThenByDescending(x => x.Score)
+            .ThenBy(x => x.Name)
             .Take(take)
+            .Select(x => x.Response)
             .ToList();
     }
 
     /// <summary>
-    /// Tracking still accepts and stores <c>View</c> so historical rows keep
-    /// their meaning and the signal can be reinstated later; it simply does not
-    /// feed the score while nothing in the apps records one.
+    /// The implicit-feedback matrix: product-linked positive (user, product)
+    /// pairs from purchases and opened product details. Shared by the startup
+    /// warm-up so training uses exactly the same signal as a lazy rebuild.
     /// </summary>
+    public static async Task<IReadOnlyCollection<(int UserId, int ProductId)>> LoadPositivePairsAsync(
+        SOHDbContext context, CancellationToken cancellationToken = default)
+    {
+        var orderPairs = await context.Orders
+            .AsNoTracking()
+            .Select(o => new { UserId = o.PatientId, o.ProductId })
+            .ToListAsync(cancellationToken);
+
+        var detailPairs = await context.ProductInteractions
+            .AsNoTracking()
+            .Where(i => i.Kind == ProductInteractionKind.DetailOpened)
+            .Select(i => new { i.UserId, i.ProductId })
+            .ToListAsync(cancellationToken);
+
+        return orderPairs
+            .Concat(detailPairs)
+            .Select(x => (x.UserId, x.ProductId))
+            .Distinct()
+            .ToList();
+    }
+
+    /// <summary>
+    /// Cold-start ranking: how many patients bought (quantity summed) or opened
+    /// the detail of each product. Only used when Matrix Factorization has no
+    /// score for the user/product.
+    /// </summary>
+    private static async Task<Dictionary<int, int>> LoadPopularityAsync(
+        SOHDbContext context, CancellationToken cancellationToken)
+    {
+        var orderCounts = await context.Orders
+            .AsNoTracking()
+            .GroupBy(o => o.ProductId)
+            .Select(g => new { ProductId = g.Key, Count = g.Sum(x => x.Quantity) })
+            .ToListAsync(cancellationToken);
+
+        var detailCounts = await context.ProductInteractions
+            .AsNoTracking()
+            .Where(i => i.Kind == ProductInteractionKind.DetailOpened)
+            .GroupBy(i => i.ProductId)
+            .Select(g => new { ProductId = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+
+        var popularity = new Dictionary<int, int>();
+        foreach (var row in orderCounts)
+            popularity[row.ProductId] = row.Count;
+        foreach (var row in detailCounts)
+            popularity[row.ProductId] = popularity.GetValueOrDefault(row.ProductId) + row.Count;
+
+        return popularity;
+    }
+
     private static ProductInteractionKind ParseKind(string kind)
     {
         return kind.Trim().Equals("DetailOpened", StringComparison.OrdinalIgnoreCase)
             ? ProductInteractionKind.DetailOpened
             : ProductInteractionKind.View;
-    }
-
-    private static double ComputeContentScore(Product p, HashSet<string> serviceKeywords, List<string> reasons)
-    {
-        if (serviceKeywords.Count == 0)
-            return 0;
-
-        var productTokens = TokenizeToSet($"{p.Name} {p.ProductCategory.Name} {p.Description}");
-        var overlap = productTokens.Intersect(serviceKeywords).ToList();
-        if (overlap.Count == 0)
-            return 0;
-
-        reasons.Add(
-            $"Odgovara temama vaših nedavnih posjeta (zajednički pojmovi: {string.Join(", ", overlap.Take(4))}).");
-        return Math.Min(1 + overlap.Count * 0.35, 4);
-    }
-
-    private async Task<HashSet<string>> LoadRecentServiceKeywordsAsync(int userId, CancellationToken cancellationToken)
-    {
-        var since = DateTime.UtcNow.AddMonths(-9);
-        var names = await _context.Appointments
-            .AsNoTracking()
-            .Where(a => a.PatientId == userId && a.StartTime >= since)
-            .OrderByDescending(a => a.StartTime)
-            .Take(6)
-            .Join(_context.Services, a => a.ServiceId, s => s.Id, (_, s) => s.Name)
-            .ToListAsync(cancellationToken);
-
-        var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var n in names)
-        {
-            foreach (var t in TokenizeToSet(n))
-                set.Add(t);
-        }
-        return set;
-    }
-
-    private static HashSet<string> TokenizeToSet(string text)
-    {
-        var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        if (string.IsNullOrWhiteSpace(text))
-            return set;
-
-        foreach (var raw in text.ToLowerInvariant().Split(
-                     new[] { ' ', ',', '.', '-', '/', '(', ')', '\n', '\r', '\t' },
-                     StringSplitOptions.RemoveEmptyEntries))
-        {
-            var w = raw.Trim();
-            if (w.Length >= 3)
-                set.Add(w);
-        }
-        return set;
     }
 }
