@@ -146,7 +146,6 @@ public sealed class ProductRecommenderModel : IProductRecommenderModel
             C = 0.00001,
             ApproximationRank = 16,
             NumberOfIterations = 100,
-            Quiet = true,
         };
 
         var pipeline = ml.Transforms.Conversion
